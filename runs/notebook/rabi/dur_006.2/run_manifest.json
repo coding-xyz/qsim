@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "run_id": "dur_006.2",
+  "created_at": "2026-02-14T01:20:51.399453+00:00",
+  "random_seed": 12345,
+  "inputs": {
+    "backend": "D:\\超导量子计算机噪声抑制\\qsim\\examples\\backend.yaml",
+    "qasm_inline": "<inline>",
+    "qasm_sha256": "7bc06be5a028eeac14866c1dbedc4b8c1fe7213f63fbb5ce606e6a0062e4ea85"
+  },
+  "outputs": {
+    "circuit": "circuit.json",
+    "backend_config": "backend_config.json",
+    "normalized_circuit": "normalized_circuit.json",
+    "compile_report": "compile_report.json",
+    "pulse_ir": "pulse_ir.json",
+    "pulse_samples": "pulse_samples.npz",
+    "executable_model": "executable_model.json",
+    "model_spec": "model_spec.json",
+    "trace": "trace.h5",
+    "observables": "observables.json",
+    "report": "report.json"
+  },
+  "dependencies": {
+    "numpy": "1.24.3",
+    "h5py": "3.9.0",
+    "PyYAML": "6.0.1",
+    "qutip": "5.2.2",
+    "qiskit": "2.2.3",
+    "ezdxf": "1.4.3"
+  },
+  "dependency_fingerprint": "57d29bab8e35c926e6b326025eee310db4d197edff821b56f2ba7b3586648ef4",
+  "digests": {
+    "circuit.json": "e37b237578a49917c4c682f505567a81fa86241313e971eca4b5699cc5072581",
+    "backend_config.json": "c42640242290de9841c37c86f00dc2ab9fb6abe28b78c768b4bc7d5d50e3c194",
+    "normalized_circuit.json": "e37b237578a49917c4c682f505567a81fa86241313e971eca4b5699cc5072581",
+    "compile_report.json": "a271daa12a3328cb7c0633a33e81f958c67ccd50c2fef344e8c233e0851a835b",
+    "pulse_ir.json": "5b0cfaa839bb2f76c44a3ea8f60ac2bda100be05e999e786340624c78c9563f2",
+    "pulse_samples.npz": "6a733bda5506af66f049496779ddb442210b86dc7950a528eca4d8c94fe74d93",
+    "executable_model.json": "ba779b7a2c86ddd5fa7a6b6f2728898f0f9d77c6765b8047a09aae7f64b46153",
+    "model_spec.json": "c66a9a1cbcfdb70ff5255104ca93fde268dacd77c749b16842d82ccc54028738",
+    "trace.h5": "325c9d4ff298bf9c61accdd6d019e6ff57c292ac172bf73a5c31b154de0eb382",
+    "observables.json": "075f9c9748c6ca6610425162d791645820365065af08b87923045a434dad1321",
+    "report.json": "3dfaf45e7ead33a50ece61f9653230c7a01b484ff59e22041df4206b9c32e4d4"
+  }
+}

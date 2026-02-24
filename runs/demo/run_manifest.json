@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "run_id": "demo",
+  "created_at": "2026-02-13T07:13:39.147576+00:00",
+  "random_seed": 12345,
+  "inputs": {
+    "backend": "examples\\backend.yaml",
+    "qasm_inline": "<inline>"
+  },
+  "outputs": {
+    "circuit": "circuit.json",
+    "backend_config": "backend_config.json",
+    "normalized_circuit": "normalized_circuit.json",
+    "compile_report": "compile_report.json",
+    "pulse_ir": "pulse_ir.json",
+    "pulse_samples": "pulse_samples.npz",
+    "executable_model": "executable_model.json",
+    "model_spec": "model_spec.json",
+    "trace": "trace.h5",
+    "observables": "observables.json",
+    "report": "report.json",
+    "timing_diagram": "timing_diagram.dxf"
+  },
+  "dependencies": {
+    "numpy": "1.24.3",
+    "h5py": "3.9.0",
+    "PyYAML": "6.0.1",
+    "qutip": "5.2.2",
+    "qiskit": "2.2.3",
+    "ezdxf": "1.4.3"
+  },
+  "digests": {}
+}

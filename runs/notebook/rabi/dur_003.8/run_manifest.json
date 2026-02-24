@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "run_id": "dur_003.8",
+  "created_at": "2026-02-14T01:20:50.596496+00:00",
+  "random_seed": 12345,
+  "inputs": {
+    "backend": "D:\\超导量子计算机噪声抑制\\qsim\\examples\\backend.yaml",
+    "qasm_inline": "<inline>",
+    "qasm_sha256": "7bc06be5a028eeac14866c1dbedc4b8c1fe7213f63fbb5ce606e6a0062e4ea85"
+  },
+  "outputs": {
+    "circuit": "circuit.json",
+    "backend_config": "backend_config.json",
+    "normalized_circuit": "normalized_circuit.json",
+    "compile_report": "compile_report.json",
+    "pulse_ir": "pulse_ir.json",
+    "pulse_samples": "pulse_samples.npz",
+    "executable_model": "executable_model.json",
+    "model_spec": "model_spec.json",
+    "trace": "trace.h5",
+    "observables": "observables.json",
+    "report": "report.json"
+  },
+  "dependencies": {
+    "numpy": "1.24.3",
+    "h5py": "3.9.0",
+    "PyYAML": "6.0.1",
+    "qutip": "5.2.2",
+    "qiskit": "2.2.3",
+    "ezdxf": "1.4.3"
+  },
+  "dependency_fingerprint": "57d29bab8e35c926e6b326025eee310db4d197edff821b56f2ba7b3586648ef4",
+  "digests": {
+    "circuit.json": "e37b237578a49917c4c682f505567a81fa86241313e971eca4b5699cc5072581",
+    "backend_config.json": "c42640242290de9841c37c86f00dc2ab9fb6abe28b78c768b4bc7d5d50e3c194",
+    "normalized_circuit.json": "e37b237578a49917c4c682f505567a81fa86241313e971eca4b5699cc5072581",
+    "compile_report.json": "a271daa12a3328cb7c0633a33e81f958c67ccd50c2fef344e8c233e0851a835b",
+    "pulse_ir.json": "c5037829c7f0a6817c9dbdf2e221e2e9ad8a413455444556cf92712c95f132a5",
+    "pulse_samples.npz": "52f9fd58fe05684900ea4f194765b723098c4cd7d95fe933d332986899f8c10b",
+    "executable_model.json": "ba779b7a2c86ddd5fa7a6b6f2728898f0f9d77c6765b8047a09aae7f64b46153",
+    "model_spec.json": "a7c9cf1c0d95e018c1c2f4e31f6c3fdf610b60315863f3f4d215eb1e5cfc0b73",
+    "trace.h5": "89958397eb47b1b4c616ffe97056046bef4add16e26aa737c34a06a7ad92d70b",
+    "observables.json": "fccd031b01c32ebc787e6ba95eee5fe4c2bb8f250ad445673a6bad3b86ac00a9",
+    "report.json": "82b20a51e6161cd9eef2a531c706bdfaf0656a9e5cca9058c916c4aedc134829"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "t_end": 260.0,
+  "channels": [
+    {
+      "name": "RO0",
+      "pulses": [
+        {
+          "t0": 60.0,
+          "t1": 260.0,
+          "amp": 0.8,
+          "shape": "readout",
+          "params": {},
+          "carrier": {
+            "freq": 6500000000.0,
+            "phase": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "XY0",
+      "pulses": [
+        {
+          "t0": 0.0,
+          "t1": 20.0,
+          "amp": 1.0,
+          "shape": "gaussian",
+          "params": {
+            "sigma": 3.3333333333333335
+          },
+          "carrier": {
+            "freq": 5000000000.0,
+            "phase": 0.0
+          }
+        },
+        {
+          "t0": 40.0,
+          "t1": 60.0,
+          "amp": 1.0,
+          "shape": "gaussian",
+          "params": {
+            "sigma": 3.3333333333333335
+          },
+          "carrier": {
+            "freq": 5000000000.0,
+            "phase": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Z0",
+      "pulses": [
+        {
+          "t0": 20.0,
+          "t1": 40.0,
+          "amp": 0.2,
+          "shape": "dc",
+          "params": {},
+          "carrier": null
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "level": "qubit",
+  "solver": "me",
+  "h_terms": [
+    {
+      "type": "drive",
+      "source": "pulse_ir",
+      "channels": [
+        "RO0",
+        "XY0"
+      ]
+    }
+  ],
+  "noise_terms": [
+    {
+      "type": "lindblad"
+    }
+  ],
+  "metadata": {
+    "num_qubits": 1
+  }
+}

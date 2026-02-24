@@ -1,0 +1,2 @@
+[console_scripts]
+qsim = qsim.ui.cli:main

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "initial_gate_count": 2,
+  "passes": [
+    {
+      "name": "NormalizePass",
+      "before": 2,
+      "after": 2
+    }
+  ],
+  "hardware_used": true,
+  "final_gate_count": 2
+}

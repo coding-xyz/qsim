@@ -1,0 +1,167 @@
+{
+  "schema": "qsim.pulse-metadata.v1",
+  "count": 10,
+  "pulses": [
+    {
+      "id": "P1",
+      "channel": "XY_0",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
+      "duration_ns": 20.0,
+      "shape": "gaussian",
+      "params": {
+        "sigma": 3.3333333333333335
+      },
+      "amp_dbm": 1.0,
+      "carrier": {
+        "freq_hz": 5000000000.0,
+        "phase_deg": 0.0
+      }
+    },
+    {
+      "id": "P2",
+      "channel": "XY_0",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "drag",
+      "params": {
+        "beta": 0.35,
+        "sigma": 5.0
+      },
+      "amp_dbm": 1.2,
+      "carrier": {
+        "freq_hz": 5000000000.0,
+        "phase_deg": 0.0
+      }
+    },
+    {
+      "id": "P3",
+      "channel": "XY_1",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "drag",
+      "params": {
+        "beta": 0.35,
+        "sigma": 5.0
+      },
+      "amp_dbm": 1.2,
+      "carrier": {
+        "freq_hz": 5000000000.0,
+        "phase_deg": 11.459155902616464
+      }
+    },
+    {
+      "id": "P4",
+      "channel": "XY_1",
+      "t_start_ns": 60.0,
+      "t_end_ns": 100.0,
+      "duration_ns": 40.0,
+      "shape": "drag",
+      "params": {
+        "beta": 0.35,
+        "sigma": 5.0
+      },
+      "amp_dbm": 1.2,
+      "carrier": {
+        "freq_hz": 5000000000.0,
+        "phase_deg": 0.0
+      }
+    },
+    {
+      "id": "P5",
+      "channel": "XY_2",
+      "t_start_ns": 60.0,
+      "t_end_ns": 100.0,
+      "duration_ns": 40.0,
+      "shape": "drag",
+      "params": {
+        "beta": 0.35,
+        "sigma": 5.0
+      },
+      "amp_dbm": 1.2,
+      "carrier": {
+        "freq_hz": 5000000000.0,
+        "phase_deg": 11.459155902616464
+      }
+    },
+    {
+      "id": "P6",
+      "channel": "TC_0",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
+      "params": {
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
+      },
+      "amp_uA": 0.75
+    },
+    {
+      "id": "P7",
+      "channel": "TC_1",
+      "t_start_ns": 60.0,
+      "t_end_ns": 100.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
+      "params": {
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
+      },
+      "amp_uA": 0.75
+    },
+    {
+      "id": "P8",
+      "channel": "RO_0",
+      "t_start_ns": 100.0,
+      "t_end_ns": 2100.0,
+      "duration_ns": 2000.0,
+      "shape": "readout",
+      "params": {
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
+      },
+      "amp_dbm": 0.8,
+      "carrier": {
+        "freq_hz": 8000000000.0,
+        "phase_deg": 0.0
+      }
+    },
+    {
+      "id": "P9",
+      "channel": "RO_1",
+      "t_start_ns": 100.0,
+      "t_end_ns": 2100.0,
+      "duration_ns": 2000.0,
+      "shape": "readout",
+      "params": {
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
+      },
+      "amp_dbm": 0.8,
+      "carrier": {
+        "freq_hz": 8000000000.0,
+        "phase_deg": 0.0
+      }
+    },
+    {
+      "id": "P10",
+      "channel": "RO_2",
+      "t_start_ns": 100.0,
+      "t_end_ns": 2100.0,
+      "duration_ns": 2000.0,
+      "shape": "readout",
+      "params": {
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
+      },
+      "amp_dbm": 0.8,
+      "carrier": {
+        "freq_hz": 8000000000.0,
+        "phase_deg": 0.0
+      }
+    }
+  ]
+}

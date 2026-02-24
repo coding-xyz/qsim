@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "t_end": 320.0,
+  "channels": [
+    {
+      "name": "RO0",
+      "pulses": [
+        {
+          "t0": 120.0,
+          "t1": 320.0,
+          "amp": 0.8,
+          "shape": "readout",
+          "params": {},
+          "carrier": {
+            "freq": 6500000000.0,
+            "phase": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "XY0",
+      "pulses": [
+        {
+          "t0": 0.0,
+          "t1": 120.0,
+          "amp": 1.0,
+          "shape": "gaussian",
+          "params": {
+            "sigma": 20.0
+          },
+          "carrier": {
+            "freq": 5000000000.0,
+            "phase": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "engine": "auto",
+  "solver": "me",
+  "dimension": 4,
+  "t_end": 1000.0,
+  "dt": 1.0,
+  "payload": {
+    "h_terms": [
+      {
+        "type": "drive",
+        "source": "pulse_ir",
+        "channels": [
+          "RO0",
+          "RO1",
+          "XY0",
+          "XY1"
+        ]
+      }
+    ],
+    "noise_terms": [
+      {
+        "type": "lindblad"
+      }
+    ],
+    "noise_cfg": {}
+  }
+}

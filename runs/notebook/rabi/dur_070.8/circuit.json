@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "format": "openqasm3",
+  "num_qubits": 1,
+  "num_clbits": 1,
+  "gates": [
+    {
+      "name": "x",
+      "qubits": [
+        0
+      ],
+      "params": [],
+      "clbits": []
+    },
+    {
+      "name": "measure",
+      "qubits": [
+        0
+      ],
+      "params": [],
+      "clbits": [
+        0
+      ]
+    }
+  ],
+  "source_qasm": "\nOPENQASM 3;\nqubit[1] q;\nbit[1] c;\nx q[0];\nmeasure q[0] -> c[0];\n"
+}

@@ -1,0 +1,2961 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="qsim 使用指南、实现 Wiki 与自动生成 API 参考">
+      
+      
+      
+      
+        <link rel="prev" href="engines.html">
+      
+      
+        <link rel="next" href="session.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>pulse - qsim 文档</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-pulse" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../index.html" title="qsim 文档" class="md-header__button md-logo" aria-label="qsim 文档" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            qsim 文档
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              pulse
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../WIKI.html" class="md-tabs__link">
+          
+  
+  
+  Wiki
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="index.html" class="md-tabs__link">
+          
+  
+  
+  API 参考
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="qsim 文档" class="md-nav__button md-logo" aria-label="qsim 文档" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    qsim 文档
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wiki
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Wiki
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../WIKI.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    入口
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/overview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/circuit.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    电路层
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/backend_model.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端与模型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/noise_engine.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    噪声与求解器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/visualization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可视化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/io_session.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IO 与会话
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/gaps.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    差距清单
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 参考
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API 参考
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    总览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="backend.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="circuit.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    circuit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="common.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="engines.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    engines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pulse
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="pulse.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pulse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulsedrawer_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.drawer_adapter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.drawer_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drawer_adapter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="drawer_adapter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.drawer_adapter.EngineeringDrawer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EngineeringDrawer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EngineeringDrawer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.drawer_adapter.EngineeringDrawer.export_dxf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_dxf
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulseprimitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.primitives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        primitives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="primitives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.primitives.WaveformSamples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaveformSamples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulsesequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.sequence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sequence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sequence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PulseCompiler
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PulseCompiler">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler.compile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler.pulse_ir_to_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_ir_to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler.to_npz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_npz
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulseshapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.shapes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        shapes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="shapes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.DragShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DragShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.GaussianShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GaussianShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.PulseShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PulseShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.ReadoutShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReadoutShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.RectShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RectShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.make_shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulsevisualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.visualize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        visualize
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="visualize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.auto_fold_breaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auto_fold_breaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.auto_fold_long_pulses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auto_fold_long_pulses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.canonicalize_channel_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        canonicalize_channel_names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.dump_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dump_json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.ensure_z_channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ensure_z_channels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.export_json_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_json_table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.load_trace_h5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_trace_h5
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.make_timing_theme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_timing_theme
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.plot_pulses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_pulses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.plot_report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.plot_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_trace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.pulse_ir_from_qasm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_ir_from_qasm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.reorder_xy_z_channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reorder_xy_z_channels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.save_observables_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_observables_plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="session.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    session
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ui.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ui
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulsedrawer_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.drawer_adapter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.drawer_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drawer_adapter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="drawer_adapter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.drawer_adapter.EngineeringDrawer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EngineeringDrawer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EngineeringDrawer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.drawer_adapter.EngineeringDrawer.export_dxf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_dxf
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulseprimitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.primitives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        primitives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="primitives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.primitives.WaveformSamples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaveformSamples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulsesequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.sequence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sequence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sequence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PulseCompiler
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PulseCompiler">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler.compile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler.pulse_ir_to_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_ir_to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.sequence.PulseCompiler.to_npz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_npz
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulseshapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.shapes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        shapes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="shapes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.DragShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DragShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.GaussianShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GaussianShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.PulseShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PulseShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.ReadoutShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReadoutShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.RectShape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RectShape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.shapes.make_shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimpulsevisualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.pulse.visualize
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        visualize
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="visualize">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.auto_fold_breaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auto_fold_breaks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.auto_fold_long_pulses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auto_fold_long_pulses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.canonicalize_channel_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        canonicalize_channel_names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.dump_json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dump_json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.ensure_z_channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ensure_z_channels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.export_json_table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_json_table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.load_trace_h5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_trace_h5
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.make_timing_theme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_timing_theme
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.plot_pulses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_pulses
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.plot_report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.plot_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_trace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.pulse_ir_from_qasm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_ir_from_qasm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.reorder_xy_z_channels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reorder_xy_z_channels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.pulse.visualize.save_observables_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_observables_plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="api-pulse">API - pulse<a class="headerlink" href="#api-pulse" title="Permanent link">&para;</a></h1>
+<p><code>src/qsim/pulse</code> 下模块：</p>
+<h2 id="qsimpulsedrawer_adapter"><code>qsim.pulse.drawer_adapter</code><a class="headerlink" href="#qsimpulsedrawer_adapter" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.pulse.drawer_adapter" class="doc doc-heading">
+            <code>qsim.pulse.drawer_adapter</code>
+
+
+<a href="#qsim.pulse.drawer_adapter" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.drawer_adapter.EngineeringDrawer" class="doc doc-heading">
+            <code>EngineeringDrawer</code>
+
+
+<a href="#qsim.pulse.drawer_adapter.EngineeringDrawer" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Adapter that exports <code>PulseIR</code> timing diagram to DXF.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="qsim.pulse.drawer_adapter.EngineeringDrawer.export_dxf" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">export_dxf</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#qsim.pulse.drawer_adapter.EngineeringDrawer.export_dxf" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export pulse sequence as DXF using <code>pulse_drawer</code> backend.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimpulseprimitives"><code>qsim.pulse.primitives</code><a class="headerlink" href="#qsimpulseprimitives" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.pulse.primitives" class="doc doc-heading">
+            <code>qsim.pulse.primitives</code>
+
+
+<a href="#qsim.pulse.primitives" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.primitives.WaveformSamples" class="doc doc-heading">
+            <code>WaveformSamples</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.pulse.primitives.WaveformSamples" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Uniformly sampled waveform payload for one channel.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimpulsesequence"><code>qsim.pulse.sequence</code><a class="headerlink" href="#qsimpulsesequence" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.pulse.sequence" class="doc doc-heading">
+            <code>qsim.pulse.sequence</code>
+
+
+<a href="#qsim.pulse.sequence" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.sequence.PulseCompiler" class="doc doc-heading">
+            <code>PulseCompiler</code>
+
+
+<a href="#qsim.pulse.sequence.PulseCompiler" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Compile pulse IR into uniformly sampled channel waveforms.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="qsim.pulse.sequence.PulseCompiler.compile" class="doc doc-heading">
+            <code class="highlight language-python"><span class="nb">compile</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#qsim.pulse.sequence.PulseCompiler.compile" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Sample pulse envelopes by channel at a fixed sample rate.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="qsim.pulse.sequence.PulseCompiler.pulse_ir_to_dict" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">pulse_ir_to_dict</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#qsim.pulse.sequence.PulseCompiler.pulse_ir_to_dict" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Convert <code>PulseIR</code> dataclass into JSON-friendly dict.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="qsim.pulse.sequence.PulseCompiler.to_npz" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">to_npz</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#qsim.pulse.sequence.PulseCompiler.to_npz" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Save sampled waveforms into a compressed NPZ file.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimpulseshapes"><code>qsim.pulse.shapes</code><a class="headerlink" href="#qsimpulseshapes" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.pulse.shapes" class="doc doc-heading">
+            <code>qsim.pulse.shapes</code>
+
+
+<a href="#qsim.pulse.shapes" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.shapes.DragShape" class="doc doc-heading">
+            <code>DragShape</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.pulse.shapes.DragShape" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="PulseShape (qsim.pulse.shapes.PulseShape)" href="#qsim.pulse.shapes.PulseShape">PulseShape</a></code></p>
+
+
+
+        <p>DRAG-like envelope using Gaussian plus derivative component.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.shapes.GaussianShape" class="doc doc-heading">
+            <code>GaussianShape</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.pulse.shapes.GaussianShape" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="PulseShape (qsim.pulse.shapes.PulseShape)" href="#qsim.pulse.shapes.PulseShape">PulseShape</a></code></p>
+
+
+
+        <p>Truncated Gaussian envelope normalized to pulse amplitude.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.shapes.PulseShape" class="doc doc-heading">
+            <code>PulseShape</code>
+
+
+<a href="#qsim.pulse.shapes.PulseShape" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Base interface for pulse envelope shapes.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.shapes.ReadoutShape" class="doc doc-heading">
+            <code>ReadoutShape</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.pulse.shapes.ReadoutShape" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="PulseShape (qsim.pulse.shapes.PulseShape)" href="#qsim.pulse.shapes.PulseShape">PulseShape</a></code></p>
+
+
+
+        <p>Readout envelope, currently identical to rectangular pulse.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.pulse.shapes.RectShape" class="doc doc-heading">
+            <code>RectShape</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.pulse.shapes.RectShape" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="PulseShape (qsim.pulse.shapes.PulseShape)" href="#qsim.pulse.shapes.PulseShape">PulseShape</a></code></p>
+
+
+
+        <p>Piecewise-constant pulse with optional linear rise/fall edges.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.shapes.make_shape" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">make_shape</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.shapes.make_shape" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Factory returning pulse-shape implementation by shape name.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimpulsevisualize"><code>qsim.pulse.visualize</code><a class="headerlink" href="#qsimpulsevisualize" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.pulse.visualize" class="doc doc-heading">
+            <code>qsim.pulse.visualize</code>
+
+
+<a href="#qsim.pulse.visualize" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.auto_fold_breaks" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">auto_fold_breaks</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">,</span> <span class="n">idle_threshold_ns</span><span class="o">=</span><span class="mf">50000.0</span><span class="p">,</span> <span class="n">keep_edge_ns</span><span class="o">=</span><span class="mf">1500.0</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.auto_fold_breaks" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Auto-detect long idle windows shared by all channels for axis folding.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.auto_fold_long_pulses" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">auto_fold_long_pulses</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">,</span> <span class="n">channel_prefixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;RO&#39;</span><span class="p">,),</span> <span class="n">min_pulse_ns</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">keep_head_ns</span><span class="o">=</span><span class="mf">120.0</span><span class="p">,</span> <span class="n">keep_tail_ns</span><span class="o">=</span><span class="mf">120.0</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.auto_fold_long_pulses" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Fold interiors of long pulses (e.g., 2us readout), keeping only head and tail.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.canonicalize_channel_names" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">canonicalize_channel_names</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.canonicalize_channel_names" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Normalize channel naming to <code>XY_i</code>, <code>Z_i</code>, <code>RO_i</code>, and <code>TC_i</code> forms.</p>
+<p>This helper keeps pulse content unchanged and only rewrites channel names
+to a consistent underscore style expected by timing plots.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.dump_json" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">dump_json</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.dump_json" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Dump JSON payload with UTF-8 and pretty indentation.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.ensure_z_channels" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">ensure_z_channels</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.ensure_z_channels" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Ensure all <code>Z_i</code> channels exist, adding empty channels when missing.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.export_json_table" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">export_json_table</span><span class="p">(</span><span class="n">json_path</span><span class="p">,</span> <span class="n">out_path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rows_key</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.export_json_table" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export JSON rows into CSV or XLSX table.</p>
+<p>Auto-detect row source:
+- top-level list =&gt; rows
+- top-level dict with key <code>rows_key</code> (or <code>pulses</code> by default) as list =&gt; rows
+- otherwise =&gt; single-row table</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.load_trace_h5" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_trace_h5</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.load_trace_h5" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load <code>Trace</code> from HDF5 file written by workflow artifacts.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.make_timing_theme" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">make_timing_theme</span><span class="p">(</span><span class="o">**</span><span class="n">overrides</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.make_timing_theme" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build timing-plot theme with optional overrides.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.plot_pulses" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">plot_pulses</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">,</span> <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">show_carrier</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">carrier_undersample</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">carrier_points_per_pulse</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">timing_layout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">breaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">auto_fold_idle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">idle_threshold_ns</span><span class="o">=</span><span class="mf">50000.0</span><span class="p">,</span> <span class="n">keep_edge_ns</span><span class="o">=</span><span class="mf">1500.0</span><span class="p">,</span> <span class="n">show_clock</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clock_mhz</span><span class="o">=</span><span class="n">DEFAULT_CLOCK_MHZ</span><span class="p">,</span> <span class="n">carrier_plot_max_hz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">carrier_samples_per_cycle</span><span class="o">=</span><span class="n">DEFAULT_CARRIER_SAMPLES_PER_CYCLE</span><span class="p">,</span> <span class="n">envelope_points_per_pulse</span><span class="o">=</span><span class="n">DEFAULT_ENVELOPE_POINTS_PER_PULSE</span><span class="p">,</span> <span class="n">black_white</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">uppercase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">channel_label_fontsize</span><span class="o">=</span><span class="n">DEFAULT_CHANNEL_LABEL_FONTSIZE</span><span class="p">,</span> <span class="n">tick_fontsize</span><span class="o">=</span><span class="n">DEFAULT_TICK_FONTSIZE</span><span class="p">,</span> <span class="n">title_fontsize</span><span class="o">=</span><span class="n">DEFAULT_TITLE_FONTSIZE</span><span class="p">,</span> <span class="n">axis_label_fontsize</span><span class="o">=</span><span class="n">DEFAULT_AXIS_LABEL_FONTSIZE</span><span class="p">,</span> <span class="n">break_display_gap_ns</span><span class="o">=</span><span class="n">DEFAULT_BREAK_DISPLAY_GAP_NS</span><span class="p">,</span> <span class="n">show_grid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">hide_top_right_spines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dxf_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">png_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dxf_style</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">theme</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dxf_from_figure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">annotate_pulses</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pulse_label_fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">pulse_metadata_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">post_sequence_gap_ns</span><span class="o">=</span><span class="n">DEFAULT_POST_SEQUENCE_GAP_NS</span><span class="p">,</span> <span class="n">target_ticks</span><span class="o">=</span><span class="n">DEFAULT_TARGET_TICKS</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.plot_pulses" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Plot pulse waveforms and optionally export a DXF engineering drawing.</p>
+<p>This function supports two plotting modes:
+- <code>timing_layout=False</code>: legacy compact waveform view sampled at fixed <code>sample_rate</code>.
+- <code>timing_layout=True</code>: timing-diagram view with per-channel rows, optional break/folding,
+  clock lane, custom typography/colors, and optional DXF export.</p>
+<p>Parameters
+- <code>pulse_ir</code>: Pulse schedule to visualize.
+- <code>sample_rate</code>: Fixed sample rate for legacy mode (<code>timing_layout=False</code>).
+- <code>show_carrier</code>: Whether to draw carrier components.
+- <code>carrier_undersample</code>: Legacy mode carrier decimation factor.
+- <code>carrier_points_per_pulse</code>: Legacy mode sampling points per pulse for carrier.
+- <code>timing_layout</code>: Enable timing-diagram style plot.
+- <code>title</code>: Figure title. If <code>None</code>, a default title is used.
+- <code>breaks</code>: Explicit folded time windows. Accepts <code>(t0, t1)</code> tuples or dicts with
+  <code>t0/t1</code>.
+- <code>auto_fold_idle</code>: Auto-generate fold windows for long all-channel idle regions when
+  <code>breaks</code> is not provided.
+- <code>idle_threshold_ns</code>: Minimum idle duration for <code>auto_fold_idle</code>.
+- <code>keep_edge_ns</code>: Keep this amount near both sides when folding idle windows.
+- <code>show_clock</code>: Add top <code>CLK</code> lane in timing mode.
+- <code>clock_mhz</code>: Clock frequency for the <code>CLK</code> lane.
+- <code>carrier_plot_max_hz</code>: Visualization cap for carrier frequency to avoid over-dense lines.
+- <code>carrier_samples_per_cycle</code>: Samples per carrier cycle in timing mode.
+- <code>envelope_points_per_pulse</code>: Minimum envelope sample points per visible segment.
+- <code>black_white</code>: Use monochrome styling.
+- <code>uppercase</code>: Uppercase channel labels/title text.
+- <code>channel_label_fontsize</code>: Font size of channel row labels.
+- <code>tick_fontsize</code>: Font size of custom time tick labels.
+- <code>title_fontsize</code>: Plot title font size.
+- <code>axis_label_fontsize</code>: Time axis label font size.
+- <code>break_display_gap_ns</code>: Visual gap width for each folded segment in timing mode.
+- <code>show_grid</code>: Whether to show background grid.
+- <code>hide_top_right_spines</code>: Hide matplotlib top/right frame spines.
+- <code>dxf_path</code>: If provided, export DXF using the same <code>pulse_ir</code> and break settings.
+- <code>png_path</code>: Optional output path to save the rendered matplotlib figure as PNG.
+  If provided, <code>fig.savefig(png_path)</code> is executed inside this function.
+- <code>dxf_style</code>: Optional style overrides passed to DXF renderer.
+- <code>theme</code>: Unified timing theme dict that drives both matplotlib and DXF styles.
+- <code>dxf_from_figure</code>: If <code>True</code> in timing layout, export DXF by extracting primitives
+  directly from the matplotlib figure for maximal visual consistency.
+- <code>annotate_pulses</code>: In timing layout, annotate each pulse with sequential ids
+  (<code>p1</code>, <code>p2</code>, ...).
+- <code>pulse_label_fontsize</code>: Font size for pulse id annotations.
+- <code>pulse_metadata_path</code>: If set, write a JSON file containing all pulse metadata,
+  including timing, amplitude, shape, params, and carrier values (if present).
+- <code>post_sequence_gap_ns</code>: Keep this zero-amplitude tail after the last pulse to
+  indicate experiment end.
+- <code>target_ticks</code>: Target number of major ticks on time axis in timing layout.</p>
+<p>Returns
+- <code>matplotlib.figure.Figure</code>: Generated figure object.</p>
+<p>Notes
+- Timing-break markers use dotted lines in matplotlib output.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.plot_report" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">plot_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.plot_report" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Plot error budget bar chart from analysis report.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.plot_trace" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">plot_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.plot_trace" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Plot trace state trajectories versus simulation time.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.pulse_ir_from_qasm" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">pulse_ir_from_qasm</span><span class="p">(</span><span class="n">qasm_text</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backend_config</span><span class="p">,</span> <span class="n">hardware</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">canonicalize_names</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_empty_z</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.pulse_ir_from_qasm" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compile OpenQASM text into <code>PulseIR</code> for visualization.</p>
+<p>Parameters
+- <code>qasm_text</code>: OpenQASM 3 program string.
+- <code>backend_config</code>: Backend config object or YAML path.
+- <code>hardware</code>: Optional hardware knobs consumed by lowering.
+- <code>canonicalize_names</code>: Convert channel names to underscore style.
+- <code>include_empty_z</code>: Add missing <code>Z_i</code> channels for all declared qubits.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.reorder_xy_z_channels" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reorder_xy_z_channels</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.reorder_xy_z_channels" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Reorder channels as XY_i, Z_i, XY_j, Z_j, ... while preserving other channels.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.pulse.visualize.save_observables_plot" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_observables_plot</span><span class="p">(</span><span class="n">observables</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span></code>
+
+<a href="#qsim.pulse.visualize.save_observables_plot" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Save observables values as a bar chart image file.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

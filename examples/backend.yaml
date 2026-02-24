@@ -1,0 +1,9 @@
+﻿level: qubit
+noise: lindblad
+solver: me
+analysis_pipeline: default
+truncation:
+  transmon_levels: 3
+  cavity_nmax: 8
+sweep: []
+seed: 12345

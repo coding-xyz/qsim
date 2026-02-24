@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "summary": {
+    "status": "ok",
+    "fidelity_proxy": 4.539992976249074e-05
+  },
+  "error_budget": {
+    "dephasing": 0.9999546000702375,
+    "leakage": 0.09999546000702375
+  }
+}

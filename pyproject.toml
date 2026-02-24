@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qsim"
+version = "0.1.0"
+description = "Workflow-driven quantum simulation toolkit"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.24",
+  "h5py>=3.9",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.8"]
+dxf = ["ezdxf>=1.2"]
+qiskit = ["qiskit>=1.0"]
+qutip = ["qutip>=5.0"]
+docs = [
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.5",
+  "mkdocs-gen-files>=0.5",
+  "mkdocstrings[python]>=0.28",
+]
+
+[project.scripts]
+qsim = "qsim.ui.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

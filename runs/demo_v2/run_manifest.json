@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "run_id": "demo_v2",
+  "created_at": "2026-02-13T07:31:07.199294+00:00",
+  "random_seed": 12345,
+  "inputs": {
+    "backend": "examples\\backend.yaml",
+    "qasm_inline": "<inline>",
+    "qasm_sha256": "dc771d5f32a7ec16c65335cb105f55602ecb0aaaf5170fcedee5f4cc79c96303"
+  },
+  "outputs": {
+    "circuit": "circuit.json",
+    "backend_config": "backend_config.json",
+    "normalized_circuit": "normalized_circuit.json",
+    "compile_report": "compile_report.json",
+    "pulse_ir": "pulse_ir.json",
+    "pulse_samples": "pulse_samples.npz",
+    "executable_model": "executable_model.json",
+    "model_spec": "model_spec.json",
+    "trace": "trace.h5",
+    "observables": "observables.json",
+    "report": "report.json",
+    "timing_diagram": "timing_diagram.dxf"
+  },
+  "dependencies": {
+    "numpy": "1.24.3",
+    "h5py": "3.9.0",
+    "PyYAML": "6.0.1",
+    "qutip": "5.2.2",
+    "qiskit": "2.2.3",
+    "ezdxf": "1.4.3"
+  },
+  "dependency_fingerprint": "57d29bab8e35c926e6b326025eee310db4d197edff821b56f2ba7b3586648ef4",
+  "digests": {
+    "circuit.json": "cbb1d26e7e0e05c27d0344f289c1f6d37940ad41e1b78a9517d996a435524e11",
+    "backend_config.json": "c42640242290de9841c37c86f00dc2ab9fb6abe28b78c768b4bc7d5d50e3c194",
+    "normalized_circuit.json": "cbb1d26e7e0e05c27d0344f289c1f6d37940ad41e1b78a9517d996a435524e11",
+    "compile_report.json": "5513c86232745605a9c4500d31940360c5b311f0407a2f83d0ef406538d0c4a1",
+    "pulse_ir.json": "873ee53d6c63a49f00b02f518bb2c66f8f25565198daf2723b88493b4a8cd1b2",
+    "pulse_samples.npz": "665519fab937b72a8c546d44e1db77aed01823a0b939e2abb29c619a7658bd87",
+    "executable_model.json": "c1611438d5b86e98bd796d54393a30ecb6b076e8b3610278cc32a46614c4b6b3",
+    "model_spec.json": "0845d076ea6bfeeef8d2cba4a5660ba4f76ad2a3ca0622216481a9736ebbe340",
+    "trace.h5": "d84319482fc2fd6e6acffcfa3a17eafb79eedf522f7b6eeaa7d1c747c1381521",
+    "observables.json": "a77aed8111523b089d77d5594c450f7168c53256a35824c5d3c6469c94c3f808",
+    "report.json": "70f5e6c421d286f411ef1f4c4b24f5b2668e5f1dd51f8ac4ac5d58f9356788ec",
+    "timing_diagram.dxf": "348bad79f877a73c181b61d7ac333e2f6e8b624dec4fe17304f177b285ee4ffc"
+  }
+}

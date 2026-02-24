@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "level": "qubit",
+  "solver": "me",
+  "h_terms": [
+    {
+      "type": "drive",
+      "source": "pulse_ir",
+      "channels": [
+        "RO0",
+        "RO1",
+        "XY0",
+        "XY1"
+      ]
+    }
+  ],
+  "noise_terms": [
+    {
+      "type": "lindblad"
+    }
+  ],
+  "metadata": {
+    "num_qubits": 2,
+    "truncation": {
+      "transmon_levels": 3,
+      "cavity_nmax": 8
+    }
+  }
+}

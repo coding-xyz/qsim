@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "run_id": "02_t1_160",
+  "created_at": "2026-02-14T03:43:45.477701+00:00",
+  "random_seed": 12345,
+  "inputs": {
+    "backend": "D:\\超导量子计算机噪声抑制\\qsim\\examples\\backend.yaml",
+    "qasm_inline": "<inline>",
+    "qasm_sha256": "08eabad8f19d3cc3512e5cb0e7027bd2329a00a661dc6ee9628fada3cfdf8ec2"
+  },
+  "outputs": {
+    "circuit": "circuit.json",
+    "backend_config": "backend_config.json",
+    "normalized_circuit": "normalized_circuit.json",
+    "compile_report": "compile_report.json",
+    "pulse_ir": "pulse_ir.json",
+    "pulse_samples": "pulse_samples.npz",
+    "executable_model": "executable_model.json",
+    "model_spec": "model_spec.json",
+    "trace": "trace.h5",
+    "observables": "observables.json",
+    "report": "report.json",
+    "settings_report": "settings_report.json"
+  },
+  "dependencies": {
+    "numpy": "1.24.3",
+    "h5py": "3.9.0",
+    "PyYAML": "6.0.1",
+    "qutip": "5.2.2",
+    "qiskit": "2.2.3",
+    "ezdxf": "1.4.3"
+  },
+  "dependency_fingerprint": "57d29bab8e35c926e6b326025eee310db4d197edff821b56f2ba7b3586648ef4",
+  "digests": {
+    "circuit.json": "8814b5fb7dcd63310c89a5ba8d363edf505a663529056d5a27b7e350d7a88c7c",
+    "backend_config.json": "c42640242290de9841c37c86f00dc2ab9fb6abe28b78c768b4bc7d5d50e3c194",
+    "normalized_circuit.json": "8814b5fb7dcd63310c89a5ba8d363edf505a663529056d5a27b7e350d7a88c7c",
+    "compile_report.json": "5513c86232745605a9c4500d31940360c5b311f0407a2f83d0ef406538d0c4a1",
+    "pulse_ir.json": "a6139ee12faa83d2cea6d2ece9dce0f10f03b70432c6023456aab74a347af594",
+    "pulse_samples.npz": "a24df13d27defab37feed6f04ae70df31f880b9bca4044c22b8c4a9ae2ebd8eb",
+    "executable_model.json": "0c5a0cb7784aa651741ce4946b40a68993775402eb2fb742eb617585e6e93eb5",
+    "model_spec.json": "1bcd14062bc7dd710b9d37a8605578088ee27785829e4937c92b3dfec3249b60",
+    "trace.h5": "a6cf4778df48fea6d0a4becb6c0fbe11b8e03597a67e326fc4947d8b273fa0de",
+    "observables.json": "a125a909d69bdcdefeba73410c6a4a2405d33dbb09924654535c6da3b7969048",
+    "report.json": "ffb6fdea3624ad6cf18c4a0ac5242b94dd8f3c399c4c803823c8608a6a1eb99d",
+    "settings_report.json": "f93ad6977c2372887350e06ce69d3bfe709e7c95a4842dd5c24006ad36067aa7"
+  }
+}
