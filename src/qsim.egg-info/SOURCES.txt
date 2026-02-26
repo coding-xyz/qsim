@@ -36,6 +36,11 @@ src/qsim/pulse/primitives.py
 src/qsim/pulse/sequence.py
 src/qsim/pulse/shapes.py
 src/qsim/pulse/visualize.py
+src/qsim/qec/__init__.py
+src/qsim/qec/decoder.py
+src/qsim/qec/interfaces.py
+src/qsim/qec/mock.py
+src/qsim/qec/prior.py
 src/qsim/session/__init__.py
 src/qsim/session/manifest.py
 src/qsim/session/session.py
@@ -45,6 +50,8 @@ src/qsim/ui/cli.py
 src/qsim/ui/notebook.py
 tests/test_circuit_adapter.py
 tests/test_model_build.py
+tests/test_qec_m2_m3_pipeline.py
+tests/test_qec_workflow_m1.py
 tests/test_qutip_engine_general.py
 tests/test_session.py
 tests/test_shapes.py

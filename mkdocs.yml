@@ -1,4 +1,4 @@
-site_name: qsim 文档
+﻿site_name: qsim 文档
 site_description: qsim 使用指南、实现 Wiki 与自动生成 API 参考
 repo_name: qsim
 use_directory_urls: false
@@ -42,6 +42,7 @@ nav:
       - 噪声与求解器: wiki/noise_engine.md
       - 可视化: wiki/visualization.md
       - IO 与会话: wiki/io_session.md
+      - 量子纠错: wiki/qec_analysis.md
       - 差距清单: wiki/gaps.md
   - API 参考:
       - 总览: api/index.md
@@ -51,5 +52,7 @@ nav:
       - common: api/common.md
       - engines: api/engines.md
       - pulse: api/pulse.md
+      - qec: api/qec.md
       - session: api/session.md
       - ui: api/ui.md
+

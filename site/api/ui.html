@@ -543,6 +543,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wiki/qec_analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    量子纠错
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../wiki/gaps.html" class="md-nav__link">
         
   
@@ -811,6 +839,34 @@
     
   
     pulse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="qec.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    qec
   
 
     
@@ -1321,7 +1377,7 @@
 
 
 <h3 id="qsim.ui.notebook.run_workflow" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">run_workflow</span><span class="p">(</span><span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">hardware</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;qutip&#39;</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">export_dxf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">run_workflow</span><span class="p">(</span><span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">hardware</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;qutip&#39;</span><span class="p">,</span> <span class="n">prior_backend</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">decoder</span><span class="o">=</span><span class="s1">&#39;mwpm&#39;</span><span class="p">,</span> <span class="n">decoder_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qec_engine</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">pauli_plus_analysis</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pauli_plus_code_distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pauli_plus_shots</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span> <span class="n">decoder_eval</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eval_decoders</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eval_seeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eval_option_grid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eval_parallelism</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">eval_retries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">eval_resume</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">export_dxf</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#qsim.ui.notebook.run_workflow" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -1436,6 +1492,230 @@
             </td>
             <td>
                   <code>&#39;qutip&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>prior_backend</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Prior backend selector: <code>auto|stim|cirq|mock</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;auto&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>decoder</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Decoder selector: <code>mwpm|bp|mock</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;mwpm&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>decoder_options</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional decoder runtime options.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>qec_engine</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>QEC analysis engine selector: <code>auto|stim|cirq|mock</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;auto&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>pauli_plus_analysis</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Enable Pauli+/Kraus-aligned scaling and budget outputs.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>pauli_plus_code_distances</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="int">int</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Code distances for scaling report (defaults to <code>[3, 5]</code>).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>pauli_plus_shots</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Shots per code distance for Pauli+ simulation.</p>
+              </div>
+            </td>
+            <td>
+                  <code>20000</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>decoder_eval</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Enable decoder benchmark sweep report generation.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>eval_decoders</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="str">str</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Decoder set for evaluation; defaults to <code>[decoder, "bp"]</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>eval_seeds</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="int">int</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Seeds for evaluation sweep; defaults to <code>[cfg.seed]</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>eval_option_grid</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="dict">dict</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Hyperparameter option grid for evaluation.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>eval_parallelism</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Parallel workers for evaluation tasks.</p>
+              </div>
+            </td>
+            <td>
+                  <code>1</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>eval_retries</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Retry count for failed eval tasks.</p>
+              </div>
+            </td>
+            <td>
+                  <code>0</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>eval_resume</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Resume from <code>resume_state.json</code> if available.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
             </td>
           </tr>
           <tr class="doc-section-item">

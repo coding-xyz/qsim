@@ -1,170 +1,95 @@
-# qsim
+﻿# qsim
 
-基于 `workflow.agent.md` 的量子模拟工作流实现：会话管理、电路导入、后端编译、脉冲生成、引擎求解、分析注册、Notebook/CLI 可视化与工程图导出。
+qsim is a workflow-first quantum simulation project with reproducible artifacts, QEC pipeline integration, and documentation automation.
 
-## 功能概览
+## What It Supports
 
-- 电路层：`from_qasm / to_qasm / from_qiskit / to_qiskit`（严格 OpenQASM 3 解析）
-- 后端配置：`BackendConfig.load(...).validate()`
-- 编译流水线：`CompilePipeline` + 可替换 `ICircuitPass`
-- Lowering：输出 `PulseIR` 与 `ExecutableModel`
-- 脉冲：`rect / gaussian / drag / readout` 采样
-- 工程图：`EngineeringDrawer.export_dxf()` 复用 `pulse_drawer.render_sequence_to_dxf`
-- 引擎：`Engine.run()` + QuTiP / Julia Toolbox / Julia Optics 三实现（QuTiP 支持 `sesolve/mesolve/mcsolve`）
-- 分析：`AnalysisRegistry` 版本化注册 + `AnalysisRunner`
-- 运行产物：统一 schema + `run_manifest.json`（含二进制哈希与依赖指纹）
+- Circuit import/export (`OpenQASM`, optional Qiskit adapters)
+- Compile + lowering pipeline (`CircuitIR -> PulseIR -> ExecutableModel -> ModelSpec`)
+- Simulation engines (QuTiP and Julia placeholders)
+- QEC pipeline:
+  - syndrome extraction
+  - prior builders (`stim|cirq|mock|auto`)
+  - decoders (`mwpm|bp|mock`)
+  - decoder sweep/eval (parallel, retry, resume)
+- Analysis pipeline:
+  - legacy budget (`error_budget_v2.json`)
+  - Pauli+/Kraus-oriented outputs
+    - `scaling_report.json`
+    - `error_budget_pauli_plus.json`
+    - `component_ablation.csv`
 
-## 安装
-
-```bash
-pip install -e .
-```
-
-可选依赖：
-
-```bash
-pip install -e .[viz,dxf,qiskit,qutip]
-```
-
-## 快速开始（CLI）
+## Quick Start (CLI)
 
 ```bash
 qsim run --qasm examples/bell.qasm --backend examples/backend.yaml --out runs/demo
 ```
 
-输出目录包含：
-
-- `circuit.json`
-- `backend_config.json`
-- `normalized_circuit.json`
-- `compile_report.json`
-- `pulse_ir.json`
-- `pulse_samples.npz`
-- `executable_model.json`
-- `model_spec.json`
-- `trace.h5`
-- `observables.json`
-- `report.json`
-- `run_manifest.json`
-- `timing_diagram.dxf`（若安装了 `ezdxf`）
-
-## Notebook 用法
+## Complete QEC Demo (Python)
 
 ```python
 from pathlib import Path
-from qsim.ui.notebook import run_workflow, plot_default
+from qsim.ui.notebook import run_workflow
 
+qasm = Path("examples/bell.qasm").read_text(encoding="utf-8")
 result = run_workflow(
-    qasm_text=Path("examples/bell.qasm").read_text(encoding="utf-8"),
+    qasm_text=qasm,
     backend_path="examples/backend.yaml",
-    out_dir="runs/notebook",
+    out_dir="runs/demo_qec_complete",
+    persist_artifacts=True,
+    export_dxf=False,
+    prior_backend="stim",
+    decoder="bp",
+    decoder_options={"max_iter": 4, "damping": 0.4},
+    decoder_eval=True,
+    eval_decoders=["mwpm", "bp", "mock"],
+    eval_seeds=[11, 12],
+    eval_option_grid=[{}, {"max_iter": 2, "damping": 0.4}],
+    eval_parallelism=2,
+    eval_retries=1,
+    eval_resume=True,
+    pauli_plus_analysis=True,
+    qec_engine="auto",
+    pauli_plus_code_distances=[3, 5],
+    pauli_plus_shots=1000,
 )
-
-figs = plot_default(result)
+print(result["out_dir"])
 ```
 
-## 会话接口
+Expected key artifacts:
 
-```python
-from qsim.session.session import Session
+- `syndrome_frame.json`, `prior_model.json`, `decoder_output.json`, `logical_error.json`
+- `decoder_eval_report.json`, `decoder_eval_table.csv`, `batch_manifest.json`, `resume_state.json`
+- `scaling_report.json`, `error_budget_pauli_plus.json`, `component_ablation.csv`
+- `error_budget_v2.json` (legacy compatibility)
+- `run_manifest.json`
 
-s = Session.open("runs/session_a")
-rev = s.commit("circuit", {"schema_version": "1.0", "qasm": "OPENQASM 3;"})
-artifact = s.get(rev)
-```
-
-## 自定义分析插件
-
-```python
-from qsim.analysis.registry import AnalysisRegistry
-
-registry = AnalysisRegistry()
-
-def my_pass(trace, model_spec):
-    return {"my_metric": float(len(trace.times))}
-
-analysis_rev = registry.register(
-    name="my_pass",
-    callable_obj=my_pass,
-    schema_in="Trace@1.0",
-    schema_out="Metric@1.0",
-)
-```
-
-## 项目结构
-
-与 `workflow.agent.md` 一致，主代码在 `src/qsim/` 下分为：
-
-- `session/`
-- `circuit/`
-- `backend/`
-- `pulse/`
-- `engines/`
-- `analysis/`
-- `ui/`
-
-## 说明
-
-- 本项目默认提供可运行的最小工作流；高保真物理模型、真实 QuTiP/Julia 求解可在现有接口上无缝替换。
-- 所有核心产物均带 `schema_version`，便于版本管理与回溯。
-
-## 通用模型求解（新增）
-
-`Engine` 现在默认消费由线路+脉冲自动生成的 `ModelSpec.payload["model_type"] == "qubit_network"`：
-
-- 多比特漂移项：`qubit_freqs_hz`
-- 比特间耦合：`couplings`（支持 `xx+yy / xx / zz`）
-- 时变控制：由 `PulseCompiler` 产生的 `XY* / Z*` 通道采样自动映射
-- 塌缩算符：由 `noise.gamma1 / noise.gamma_phi` 自动生成
-
-`QuTiPEngine` 已支持按 `solver` 自动调用：
-
-- `se` -> `sesolve`
-- `me` -> `mesolve`
-- `mcwf` -> `mcsolve`
-
-可通过 `run_workflow(..., hardware=..., noise=...)` 传入硬件/噪声参数，例如：
-
-```python
-hardware = {
-    "dt": 0.5,
-    "qubit_freqs_hz": [5.0e9, 5.1e9],
-    "couplings": [{"i": 0, "j": 1, "g": 0.02, "kind": "xx+yy"}],
-}
-noise = {"gamma1": 1e-3, "gamma_phi": 5e-4}
-```
-
-## Simulation Level And Noise Options
-
-`run_workflow(..., hardware=..., noise=...)` now supports explicit model/noise selection and emits a full `settings_report.json` in each run directory.
-
-### Model level (`hardware.simulation_level`)
-
-- `qubit`: 2-level Pauli model per qubit
-- `nlevel`: truncated transmon ladder (`transmon_levels`)
-- `cqed`: transmon(s) + one cavity mode (`cavity_nmax`, `cavity_freq_hz`, `g_cavity_hz`)
-
-### Noise options (`noise`)
-
-- Per-qubit or global relaxation/dephasing/excitation:
-  - `t1[_per_qubit]`, `t2[_per_qubit]`, `tphi[_per_qubit]`, `tup[_per_qubit]`
-  - `gamma1[_per_qubit]`, `gamma_phi[_per_qubit]`, `gamma_up[_per_qubit]`
-- Select model:
-  - `noise.model = "markovian_lindblad"` (default)
-  - `noise.model = "one_over_f"` (effective stochastic dephasing)
-  - `noise.model = "ou"` (Ornstein-Uhlenbeck stochastic dephasing)
-
-`Tup` means thermal upward transition time constant (`gamma_up = 1 / Tup`).
-
-## Documentation (Wiki Pagination + Auto API Reference)
-
-This repository now supports generated API reference from source docstrings:
+## Documentation
 
 ```bash
 pip install -e .[docs]
 mkdocs serve
 ```
 
-- Paginated wiki pages are under `docs/wiki/`.
-- API reference pages are generated by `docs/scripts/gen_ref_pages.py`.
-- Site configuration is in `mkdocs.yml`.
+- Wiki entry: `docs/WIKI.md`
+- QEC chapter: `docs/wiki/qec_analysis.md`
+- API reference: `docs/api/`
+
+## Standard Update Workflow
+
+Use the scripted process for synchronized code/doc updates:
+
+- Script: `scripts/run_docs_update_workflow.ps1`
+- Prompt template: `scripts/codex_prompt_docs_update.md`
+
+## Issue Management
+
+All issue markdown files are organized under:
+
+- `issues/`
+- index: `issues/README.md`
+
+## Notes
+
+- Current QEC support is **offline analysis only**.
+- Real-time decoding (streaming syndrome -> control feedback) is **not online yet**.

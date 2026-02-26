@@ -1,0 +1,15 @@
+{
+  "prompt_file": "scripts/codex_prompt_docs_update.md",
+  "site_dir": "site",
+  "required_docs": [
+    "mkdocs.yml",
+    "docs/WIKI.md",
+    "docs/wiki/overview.md",
+    "docs/api/index.md"
+  ],
+  "required_site": [
+    "site/WIKI.html",
+    "site/wiki/overview.html",
+    "site/api/index.html"
+  ]
+}

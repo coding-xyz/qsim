@@ -560,6 +560,34 @@
   
   
     <li class="md-nav__item">
+      <a href="qec_analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    量子纠错
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="gaps.html" class="md-nav__link">
         
   
@@ -843,6 +871,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/qec.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    qec
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/session.html" class="md-nav__link">
         
   
@@ -935,21 +991,23 @@
 
 
 <h1 id="wiki">Wiki 概览<a class="headerlink" href="#wiki" title="Permanent link">&para;</a></h1>
-<p>主入口是 <code>qsim.ui.notebook.run_workflow(...)</code>，流水线顺序为：</p>
+<p>主入口是 <code>qsim.ui.notebook.run_workflow(...)</code>，主流程如下：</p>
 <ol>
 <li>电路导入（QASM / Qiskit）</li>
 <li>归一化编译（<code>CompilePipeline</code>）</li>
 <li>Lowering 到脉冲（<code>PulseIR</code>）</li>
 <li>构建物理模型（<code>ModelSpec</code>）</li>
 <li>数值求解（<code>Engine.run</code>）</li>
-<li>分析与产物导出</li>
+<li>分析与产物落盘（analysis + qec）</li>
 </ol>
-<p>建议优先查看产物：</p>
+<p>建议优先查看以下产物：</p>
 <ol>
 <li><code>settings_report.json</code></li>
 <li><code>model_spec.json</code></li>
 <li><code>timings.json</code></li>
 <li><code>trace.h5</code> / <code>observables.json</code> / <code>report.json</code></li>
+<li><code>prior_report.json</code> / <code>decoder_report.json</code> / <code>logical_error.json</code></li>
+<li><code>sensitivity_report.json</code> / <code>error_budget_v2.json</code> / <code>decoder_eval_report.json</code></li>
 </ol>
 
 

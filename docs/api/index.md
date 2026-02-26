@@ -1,3 +1,11 @@
-# API 参考
+﻿# API 参考
 
-此页会在 `mkdocs build/serve` 时由 `docs/scripts/gen_ref_pages.py` 自动覆盖。
+本目录由源码 docstring 驱动，重点关注：
+
+- `analysis`：观测量、误差预算、敏感度分析
+- `qec`：prior 构建、解码器、批评估（并行/重试/续跑）
+
+推荐入口：
+
+- [analysis](analysis.md)
+- [qec](qec.md)
