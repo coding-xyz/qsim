@@ -1,3 +1,5 @@
+"""Mock prior and decoder implementations for local workflow testing."""
+
 from __future__ import annotations
 
 import hashlib

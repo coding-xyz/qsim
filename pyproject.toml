@@ -28,6 +28,9 @@ docs = [
   "mkdocs-gen-files>=0.5",
   "mkdocstrings[python]>=0.28",
 ]
+dev = [
+  "pre-commit>=3.7",
+]
 
 [project.scripts]
 qsim = "qsim.ui.cli:main"

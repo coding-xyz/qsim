@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Analytic pulse shape implementations."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 import math

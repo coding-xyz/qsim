@@ -2,6 +2,8 @@
 site_description: qsim 使用指南、实现 Wiki 与自动生成 API 参考
 repo_name: qsim
 use_directory_urls: false
+docs_dir: docs/src
+site_dir: docs/site
 
 theme:
   name: material
@@ -15,7 +17,7 @@ plugins:
   - search
   - gen-files:
       scripts:
-        - docs/scripts/gen_ref_pages.py
+        - docs/src/scripts/gen_ref_pages.py
   - mkdocstrings:
       handlers:
         python:

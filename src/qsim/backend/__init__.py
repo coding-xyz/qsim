@@ -1,4 +1,6 @@
-﻿from qsim.backend.compile_pipeline import CompilePipeline
+"""Public exports for qsim backend compilation utilities."""
+
+from qsim.backend.compile_pipeline import CompilePipeline
 from qsim.backend.config import load_backend_config
 from qsim.backend.lowering import DefaultLowering
 

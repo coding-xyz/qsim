@@ -1,3 +1,5 @@
+"""High-level session API for artifact revisions."""
+
 from __future__ import annotations
 
 from dataclasses import asdict

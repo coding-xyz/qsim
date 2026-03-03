@@ -44,3 +44,36 @@ measure q[0] -> c[0];
         pytest.skip("qiskit not installed")
     assert getattr(qc, "num_qubits") == 1
     assert getattr(qc, "num_clbits") == 1
+
+
+def test_qasm_param_expressions_and_constants():
+    qasm = """
+OPENQASM 3;
+qubit[1] q;
+rz(pi/2) q[0];
+"""
+    ir = CircuitAdapter.from_qasm(qasm)
+    assert len(ir.gates) == 1
+    assert ir.gates[0].name == "rz"
+    assert pytest.approx(ir.gates[0].params[0], rel=1e-9) == 1.5707963267948966
+
+
+def test_qasm_param_bindings():
+    qasm = """
+OPENQASM 3;
+qubit[1] q;
+rz(theta + phi/2) q[0];
+"""
+    ir = CircuitAdapter.from_qasm(qasm, param_bindings={"theta": 1.0, "phi": 0.4})
+    assert len(ir.gates) == 1
+    assert pytest.approx(ir.gates[0].params[0], rel=1e-9) == 1.2
+
+
+def test_qasm_unbound_parameter_raises():
+    qasm = """
+OPENQASM 3;
+qubit[1] q;
+rz(theta) q[0];
+"""
+    with pytest.raises(ValueError):
+        CircuitAdapter.from_qasm(qasm)

@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""OpenQASM export helpers for CircuitIR objects."""
+
+from __future__ import annotations
 
 from qsim.circuit.import_qasm import CircuitAdapter
 from qsim.common.schemas import CircuitIR

@@ -1,21 +1,18 @@
-﻿from __future__ import annotations
+"""QuantumToolbox.jl engine adapter exposed through the qsim engine API."""
 
-import math
+from __future__ import annotations
 
-from qsim.common.schemas import ModelSpec, Trace
+from qsim.common.schemas import ModelSpec
 from qsim.engines.base import Engine
+from qsim.engines.julia_bridge import JuliaBridgeRunner
 
 
 class JuliaQuantumToolboxEngine(Engine):
-    """Mock Julia QuantumToolbox engine adapter."""
+    """Julia QuantumToolbox engine adapter (native bridge only)."""
 
     name = "julia_quantumtoolbox"
+    _bridge = JuliaBridgeRunner(engine_package="quantumtoolbox")
 
-    def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trace:
-        """Return synthetic oscillatory trace matching engine interface."""
+    def run(self, model_spec: ModelSpec, run_options: dict | None = None):
         run_options = run_options or {}
-        n = max(2, int(model_spec.t_end / max(model_spec.dt, 1e-9)) + 1)
-        times = [i * model_spec.dt for i in range(n)]
-        w = float(run_options.get("omega", 0.02))
-        states = [[0.5 * (1.0 + math.cos(w * t)), 0.5 * (1.0 - math.cos(w * t))] for t in times]
-        return Trace(engine="julia-quantumtoolbox-mock", times=times, states=states, metadata={"solver": model_spec.solver})
+        return self._bridge.run(model_spec, run_options=run_options)

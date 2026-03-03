@@ -1,3 +1,5 @@
+"""Qiskit bridge helpers for CircuitIR conversion."""
+
 from __future__ import annotations
 
 from qsim.circuit.import_qasm import CircuitAdapter

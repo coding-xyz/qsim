@@ -1,3 +1,5 @@
+"""Abstract base definitions for QEC analysis engines."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Circuit normalization helpers used before lowering."""
+
+from __future__ import annotations
 
 from qsim.common.schemas import CircuitGate, CircuitIR
 

@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Pulse, trace, and report visualization helpers."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +15,11 @@ from qsim.backend.config import load_backend_config
 from qsim.backend.lowering import DefaultLowering
 from qsim.circuit.import_qasm import CircuitAdapter
 from qsim.common.schemas import BackendConfig, ChannelSpec, Observables, PulseIR, Trace
+from qsim.pulse.catalog import (
+    DEFAULT_BREAK_KEEP_HEAD_NS,
+    DEFAULT_BREAK_KEEP_TAIL_NS,
+    pulse_break_window,
+)
 from qsim.pulse.sequence import PulseCompiler
 from qsim.pulse.shapes import make_shape
 
@@ -22,9 +29,13 @@ DEFAULT_RO_CARRIER_HZ = 8e9
 DEFAULT_CARRIER_PLOT_MAX_HZ = 0.5e9
 DEFAULT_CLOCK_MHZ = 100.0
 DEFAULT_READOUT_DUR_NS = 2000.0
-DEFAULT_RO_FOLD_MIN_PULSE_NS = 1000.0
-DEFAULT_RO_FOLD_KEEP_HEAD_NS = 60.0
-DEFAULT_RO_FOLD_KEEP_TAIL_NS = 60.0
+DEFAULT_RO_BREAK_MIN_PULSE_NS = 1000.0
+DEFAULT_RO_BREAK_KEEP_HEAD_NS = DEFAULT_BREAK_KEEP_HEAD_NS
+DEFAULT_RO_BREAK_KEEP_TAIL_NS = DEFAULT_BREAK_KEEP_TAIL_NS
+# Backward-compatible aliases. Prefer the BREAK names in new code.
+DEFAULT_RO_FOLD_MIN_PULSE_NS = DEFAULT_RO_BREAK_MIN_PULSE_NS
+DEFAULT_RO_FOLD_KEEP_HEAD_NS = DEFAULT_RO_BREAK_KEEP_HEAD_NS
+DEFAULT_RO_FOLD_KEEP_TAIL_NS = DEFAULT_RO_BREAK_KEEP_TAIL_NS
 DEFAULT_BREAK_DISPLAY_GAP_NS = 18.0
 DEFAULT_CHANNEL_LABEL_FONTSIZE = 10
 DEFAULT_TICK_FONTSIZE = 8
@@ -54,6 +65,12 @@ DEFAULT_XLABEL_PAD = 6
 DEFAULT_TITLE_PAD = 14
 DEFAULT_X_RIGHT_MARGIN_NS = 6.0
 DEFAULT_TARGET_TICKS = 9
+DEFAULT_TIMING_FIGURE_MIN_WIDTH = 8.0
+DEFAULT_TIMING_FIGURE_BASE_WIDTH = 6.5
+DEFAULT_TIMING_FIGURE_WIDTH_NS_PER_INCH = 100.0
+DEFAULT_TIMING_FIGURE_MIN_HEIGHT = 3.8
+DEFAULT_TIMING_FIGURE_BASE_HEIGHT = 1.8
+DEFAULT_TIMING_FIGURE_ROW_HEIGHT = 0.72
 
 # DXF text placement ratios against y-range.
 DEFAULT_DXF_TITLE_OFFSET = 2.0
@@ -83,6 +100,12 @@ DEFAULT_TIMING_THEME: dict[str, float | int | bool | str] = {
     "dxf_t0_line_top_extra_mm": 8.0,
     "dxf_edge_break_marker": "ellipsis",
 }
+
+
+@dataclass
+class _DisplayRow:
+    label: str
+    channels: list[ChannelSpec]
 
 
 def make_timing_theme(**overrides) -> dict[str, float | int | bool | str]:
@@ -141,12 +164,12 @@ def _merge_intervals(intervals: list[tuple[float, float]]) -> list[tuple[float, 
     return out
 
 
-def auto_fold_breaks(
+def auto_break_idle_windows(
     pulse_ir: PulseIR,
     idle_threshold_ns: float = 50_000.0,
     keep_edge_ns: float = 1_500.0,
 ) -> list[tuple[float, float]]:
-    """Auto-detect long idle windows shared by all channels for axis folding."""
+    """Auto-detect long idle windows shared by all channels for axis breaks."""
     active: list[tuple[float, float]] = []
     for ch in pulse_ir.channels:
         for p in ch.pulses:
@@ -173,7 +196,7 @@ def auto_fold_breaks(
     return breaks
 
 
-def auto_fold_long_pulses(
+def auto_break_long_pulses(
     pulse_ir: PulseIR,
     channel_prefixes: tuple[str, ...] = ("RO",),
     min_pulse_ns: float = 1_000.0,
@@ -181,13 +204,35 @@ def auto_fold_long_pulses(
     keep_tail_ns: float = 120.0,
 ) -> list[tuple[float, float]]:
     """
-    Fold interiors of long pulses (e.g., 2us readout), keeping only head and tail.
+    Generate break windows from explicitly breakable long pulses only.
+
+    Breakability is defined by lowering/catalog metadata on each pulse. The
+    `channel_prefixes` argument is retained only for API compatibility and is
+    ignored by the scheduling logic.
     """
-    breaks: list[tuple[float, float]] = []
+    _ = channel_prefixes
+    blocking_active: list[tuple[float, float]] = []
     for ch in pulse_ir.channels:
-        if channel_prefixes and not any(ch.name.upper().startswith(p.upper()) for p in channel_prefixes):
+        is_break_target = any(bool((p.params or {}).get("breakable", False)) for p in ch.pulses)
+        if is_break_target:
             continue
         for p in ch.pulses:
+            blocking_active.append((float(p.t0), float(p.t1)))
+    merged_blocking = _merge_intervals(blocking_active)
+
+    breaks: list[tuple[float, float]] = []
+    for ch in pulse_ir.channels:
+        target_pulses = [p for p in ch.pulses if bool((p.params or {}).get("breakable", False))]
+        for p in target_pulses:
+            explicit_window = pulse_break_window(ch.name, p)
+            if explicit_window is not None:
+                b0, b1 = explicit_window
+                if float(p.t1) - float(p.t0) < float(min_pulse_ns):
+                    continue
+                visible = _clip_interval(b0, b1, merged_blocking)
+                if visible == [(b0, b1)]:
+                    breaks.append((b0, b1))
+                continue
             t0 = float(p.t0)
             t1 = float(p.t1)
             dur = t1 - t0
@@ -196,8 +241,40 @@ def auto_fold_long_pulses(
             b0 = t0 + float(keep_head_ns)
             b1 = t1 - float(keep_tail_ns)
             if b1 > b0:
-                breaks.append((b0, b1))
+                visible = _clip_interval(b0, b1, merged_blocking)
+                if visible == [(b0, b1)]:
+                    breaks.append((b0, b1))
     return _merge_intervals(breaks)
+
+
+def auto_fold_breaks(
+    pulse_ir: PulseIR,
+    idle_threshold_ns: float = 50_000.0,
+    keep_edge_ns: float = 1_500.0,
+) -> list[tuple[float, float]]:
+    """Backward-compatible alias for `auto_break_idle_windows`."""
+    return auto_break_idle_windows(
+        pulse_ir,
+        idle_threshold_ns=idle_threshold_ns,
+        keep_edge_ns=keep_edge_ns,
+    )
+
+
+def auto_fold_long_pulses(
+    pulse_ir: PulseIR,
+    channel_prefixes: tuple[str, ...] = ("RO",),
+    min_pulse_ns: float = 1_000.0,
+    keep_head_ns: float = 120.0,
+    keep_tail_ns: float = 120.0,
+) -> list[tuple[float, float]]:
+    """Backward-compatible alias for `auto_break_long_pulses`."""
+    return auto_break_long_pulses(
+        pulse_ir,
+        channel_prefixes=channel_prefixes,
+        min_pulse_ns=min_pulse_ns,
+        keep_head_ns=keep_head_ns,
+        keep_tail_ns=keep_tail_ns,
+    )
 
 
 def reorder_xy_z_channels(pulse_ir: PulseIR) -> PulseIR:
@@ -275,11 +352,52 @@ def ensure_z_channels(pulse_ir: PulseIR, num_qubits: int) -> PulseIR:
     return PulseIR(schema_version=pulse_ir.schema_version, t_end=pulse_ir.t_end, channels=channels)
 
 
+def _xy_z_suffix(channel_name: str) -> tuple[str, str] | None:
+    """Return `(kind, suffix)` for XY/Z-style channel names."""
+    m = re.match(r"^(XY|Z)_?(.+)$", str(channel_name).upper())
+    if not m:
+        return None
+    return str(m.group(1)), str(m.group(2))
+
+
+def _build_display_rows(pulse_ir: PulseIR, *, XYZ_line_combine: bool) -> list[_DisplayRow]:
+    """Build timing-plot display rows without mutating the input PulseIR."""
+    if not XYZ_line_combine:
+        return [_DisplayRow(label=ch.name, channels=[ch]) for ch in pulse_ir.channels]
+
+    by_name: dict[str, ChannelSpec] = {ch.name.upper(): ch for ch in pulse_ir.channels}
+    consumed_xy_z: set[str] = set()
+    rows: list[_DisplayRow] = []
+    for ch in pulse_ir.channels:
+        parsed = _xy_z_suffix(ch.name)
+        up = ch.name.upper()
+        if parsed is None:
+            rows.append(_DisplayRow(label=ch.name, channels=[ch]))
+            continue
+        if up in consumed_xy_z:
+            continue
+        _kind, suffix = parsed
+        xy = by_name.get(f"XY_{suffix}")
+        z = by_name.get(f"Z_{suffix}")
+        if xy is None and z is None:
+            rows.append(_DisplayRow(label=ch.name, channels=[ch]))
+            consumed_xy_z.add(up)
+            continue
+        rows.append(_DisplayRow(label=f"XYZ_{suffix}", channels=[item for item in (xy, z) if item is not None]))
+        if xy is not None:
+            consumed_xy_z.add(xy.name.upper())
+        if z is not None:
+            consumed_xy_z.add(z.name.upper())
+    return rows
+
+
 def pulse_ir_from_qasm(
     qasm_text: str,
     *,
     backend_config: BackendConfig | str | Path,
     hardware: dict | None = None,
+    schedule_policy: str | None = None,
+    reset_feedback_policy: str | None = None,
     canonicalize_names: bool = True,
     include_empty_z: bool = True,
 ) -> PulseIR:
@@ -289,12 +407,19 @@ def pulse_ir_from_qasm(
     - `qasm_text`: OpenQASM 3 program string.
     - `backend_config`: Backend config object or YAML path.
     - `hardware`: Optional hardware knobs consumed by lowering.
+    - `schedule_policy`: Optional lowering schedule policy: `serial|parallel|hybrid`.
+    - `reset_feedback_policy`: Optional reset feedback policy: `parallel|serial_global`.
     - `canonicalize_names`: Convert channel names to underscore style.
     - `include_empty_z`: Add missing `Z_i` channels for all declared qubits.
     """
     cfg = load_backend_config(backend_config) if isinstance(backend_config, (str, Path)) else backend_config
     circuit = CircuitAdapter.from_qasm(qasm_text)
-    pulse_ir, _exe = DefaultLowering().lower(circuit, hw=hardware or {}, cfg=cfg)
+    lowering_hw = dict(hardware or {})
+    if schedule_policy is not None:
+        lowering_hw["schedule_policy"] = str(schedule_policy)
+    if reset_feedback_policy is not None:
+        lowering_hw["reset_feedback_policy"] = str(reset_feedback_policy)
+    pulse_ir, _exe = DefaultLowering().lower(circuit, hw=lowering_hw, cfg=cfg)
     out = canonicalize_channel_names(pulse_ir) if canonicalize_names else pulse_ir
     if include_empty_z:
         out = ensure_z_channels(out, circuit.num_qubits)
@@ -329,7 +454,7 @@ def _parse_breaks(
 
 
 def _clip_interval(t0: float, t1: float, breaks: list[tuple[float, float]]) -> list[tuple[float, float]]:
-    """Subtract folded windows from `[t0, t1]` and return visible sub-intervals."""
+    """Subtract break windows from `[t0, t1]` and return visible sub-intervals."""
     segs = [(float(t0), float(t1))]
     for b0, b1 in breaks:
         new: list[tuple[float, float]] = []
@@ -386,7 +511,7 @@ def _nice_tick_step(raw: float) -> float:
 
 
 def _in_break(t: float, breaks: list[tuple[float, float]]) -> bool:
-    """Return whether a raw timestamp is inside any folded segment."""
+    """Return whether a raw timestamp is inside any break segment."""
     for b0, b1 in breaks:
         if b0 < t < b1:
             return True
@@ -398,7 +523,7 @@ def _build_time_ticks(
     breaks: list[tuple[float, float]],
     target_ticks: int = 9,
 ) -> list[float]:
-    """Build major ticks in raw time coordinates, skipping folded windows."""
+    """Build major ticks in raw time coordinates, skipping break windows."""
     visible_total = max(1e-9, t_end - sum((b1 - b0) for b0, b1 in breaks))
     step = _nice_tick_step(visible_total / max(1, target_ticks))
     ticks: list[float] = [0.0]
@@ -414,7 +539,7 @@ def _build_time_ticks(
 
 
 def _plot_broken_hline(ax, warp: _TimeWarp, y: float, breaks: list[tuple[float, float]]) -> None:
-    """Draw a baseline split around folded windows with default style."""
+    """Draw a baseline split around break windows with default style."""
     _plot_broken_hline_style(ax, warp, y, breaks, color="black", lw=0.6, alpha=0.55)
 
 
@@ -429,7 +554,7 @@ def _plot_broken_hline_style(
     alpha: float,
     t_end: float | None = None,
 ) -> None:
-    """Draw a baseline split around folded windows with caller-provided style."""
+    """Draw a baseline split around break windows with caller-provided style."""
     tend = float(warp.t_end if t_end is None else t_end)
     seg_start = 0.0
     for b0, b1 in breaks:
@@ -459,7 +584,7 @@ def _plot_break_dotted_segments(
     alpha: float,
     t_end: float | None = None,
 ) -> None:
-    """Draw dotted baseline segments inside folded windows."""
+    """Draw dotted baseline segments inside break windows."""
     tend = float(warp.t_end if t_end is None else t_end)
     for b0, b1 in breaks:
         if b0 >= tend:
@@ -508,11 +633,14 @@ def _plot_pulses_timing(
     pulse_label_fontsize: int,
     post_sequence_gap_ns: float,
     target_ticks: int,
+    XYZ_line_combine: bool,
 ):
-    """Render timing-layout pulse plot with folding, clock lane, and custom axis."""
+    """Render timing-layout pulse plot with time breaks, clock lane, and custom axis."""
     import matplotlib.pyplot as plt
     from matplotlib.font_manager import FontProperties
     plt.rcParams["font.family"] = font_family
+
+    display_rows = _build_display_rows(pulse_ir, XYZ_line_combine=XYZ_line_combine)
 
     max_amp = DEFAULT_MIN_CHANNEL_AMP_DRAW
     ch_amp_map: dict[str, float] = {}
@@ -539,9 +667,15 @@ def _plot_pulses_timing(
     breaks = [(max(0.0, b0), min(plot_t_end, b1)) for b0, b1 in breaks if min(plot_t_end, b1) > max(0.0, b0)]
     warp = _TimeWarp(t_end=float(plot_t_end), breaks=breaks, display_gap=float(break_display_gap_ns))
     x_end_plot = warp.map_scalar(plot_t_end)
-    n_rows = len(pulse_ir.channels) + (1 if show_clock else 0)
-    fig_w = max(8.0, 6.5 + x_end_plot / 220.0)
-    fig_h = max(3.8, 1.8 + 0.72 * max(1, n_rows))
+    n_rows = len(display_rows) + (1 if show_clock else 0)
+    fig_w = max(
+        DEFAULT_TIMING_FIGURE_MIN_WIDTH,
+        DEFAULT_TIMING_FIGURE_BASE_WIDTH + x_end_plot / DEFAULT_TIMING_FIGURE_WIDTH_NS_PER_INCH,
+    )
+    fig_h = max(
+        DEFAULT_TIMING_FIGURE_MIN_HEIGHT,
+        DEFAULT_TIMING_FIGURE_BASE_HEIGHT + DEFAULT_TIMING_FIGURE_ROW_HEIGHT * max(1, n_rows),
+    )
     fig, ax = plt.subplots(figsize=(fig_w, fig_h))
     baseline_color = "#808080"
 
@@ -551,7 +685,7 @@ def _plot_pulses_timing(
     pulse_idx = 1
 
     if show_clock:
-        y_clk = len(pulse_ir.channels) * row_gap
+        y_clk = len(display_rows) * row_gap
         _plot_broken_hline_style(ax, warp, y_clk, breaks, color=baseline_color, lw=0.8, alpha=1.0, t_end=plot_t_end)
         _plot_break_dotted_segments(ax, warp, y_clk, breaks, color=baseline_color, lw=0.8, alpha=1.0, t_end=plot_t_end)
         ax.hlines(y_clk, -1.0, warp.map_scalar(0.0), color=baseline_color, lw=0.8, alpha=1.0, zorder=0)
@@ -561,17 +695,22 @@ def _plot_pulses_timing(
         y_positions.append(y_clk)
         y_labels.append("CLK")
 
-    for idx, ch in enumerate(pulse_ir.channels):
-        y0 = (len(pulse_ir.channels) - 1 - idx) * row_gap
-        ch_amp = ch_amp_map.get(ch.name, 1.0)
+    for idx, row in enumerate(display_rows):
+        y0 = (len(display_rows) - 1 - idx) * row_gap
+        ch_amp = max([ch_amp_map.get(ch.name, DEFAULT_MIN_CHANNEL_AMP_DRAW) for ch in row.channels], default=1.0)
         env_color = "black" if black_white else f"C{idx % 10}"
         car_color = "black" if black_white else f"C{idx % 10}"
         _plot_broken_hline_style(ax, warp, y0, breaks, color=baseline_color, lw=0.7, alpha=1.0, t_end=plot_t_end)
         _plot_break_dotted_segments(ax, warp, y0, breaks, color=baseline_color, lw=0.7, alpha=1.0, t_end=plot_t_end)
         ax.hlines(y0, -1.0, warp.map_scalar(0.0), color=baseline_color, lw=0.7, alpha=1.0, zorder=0)
         ax.hlines(y0, -1.0, warp.map_scalar(0.0), color=car_color, lw=1.0, alpha=0.96, zorder=3)
-        shaped_pulses = [(p, make_shape(p.shape, p.params)) for p in ch.pulses]
-        for p, _shape in shaped_pulses:
+        shaped_pulses = [
+            (ch.name, p, make_shape(p.shape, p.params))
+            for ch in row.channels
+            for p in ch.pulses
+        ]
+        row_pulse_ids: list[str] = []
+        for source_channel, p, _shape in shaped_pulses:
             p_params = dict(p.params or {})
             rise_ns = (
                 float(p_params["rise_ns"])
@@ -584,16 +723,17 @@ def _plot_pulses_timing(
                 else (float(p_params["fall"]) if "fall" in p_params else 0.0)
             )
             shape_name = "rect" if str(p.shape).lower() == "dc" else str(p.shape)
-            amp_unit = _channel_amp_unit(ch.name)
+            amp_unit = _channel_amp_unit(source_channel)
             params_out = dict(p_params)
             params_out.pop("rise", None)
             params_out.pop("fall", None)
+            pulse_id = f"P{pulse_idx}"
             if shape_name.lower() in {"rect", "readout"}:
                 params_out["rise_ns"] = rise_ns
                 params_out["fall_ns"] = fall_ns
             meta = {
-                "id": f"P{pulse_idx}",
-                "channel": ch.name,
+                "id": pulse_id,
+                "channel": source_channel,
                 "t_start_ns": float(p.t0),
                 "t_end_ns": float(p.t1),
                 "duration_ns": float(p.t1) - float(p.t0),
@@ -610,6 +750,7 @@ def _plot_pulses_timing(
                     "phase_deg": float(p.carrier.phase) * 180.0 / math.pi,
                 }
             pulse_metadata.append(meta)
+            row_pulse_ids.append(pulse_id)
             pulse_idx += 1
         for a, b in _clip_interval(0.0, plot_t_end, breaks):
             dur = b - a
@@ -617,7 +758,7 @@ def _plot_pulses_timing(
             max_freq = 0.0
             has_carrier_overlap = False
             if show_carrier:
-                for p, _shape in shaped_pulses:
+                for _source_channel, p, _shape in shaped_pulses:
                     if p.t1 <= a or p.t0 >= b or p.carrier is None:
                         continue
                     has_carrier_overlap = True
@@ -636,7 +777,7 @@ def _plot_pulses_timing(
             env = np.zeros_like(t, dtype=float)
             env_carrier = np.zeros_like(t, dtype=float)
             car = np.zeros_like(t, dtype=float)
-            for p, shape in shaped_pulses:
+            for _source_channel, p, shape in shaped_pulses:
                 if p.t1 <= a or p.t0 >= b:
                     continue
                 penv = np.asarray([shape.sample(float(ti), p.t0, p.t1, p.amp) for ti in t], dtype=float)
@@ -659,8 +800,7 @@ def _plot_pulses_timing(
                 ax.plot(x, env_aux, ls="--", lw=1.0, alpha=0.95, color=env_color, zorder=2)
             ax.plot(x, y0 + body, ls="-", lw=1.0, alpha=0.96, color=car_color, zorder=3)
         if annotate_pulses:
-            for j, (p, _shape) in enumerate(shaped_pulses):
-                p_id = pulse_metadata[len(pulse_metadata) - len(shaped_pulses) + j]["id"]
+            for p_id, (_source_channel, p, _shape) in zip(row_pulse_ids, shaped_pulses):
                 vis = _clip_interval(float(p.t0), float(p.t1), breaks)
                 if not vis:
                     continue
@@ -676,7 +816,7 @@ def _plot_pulses_timing(
                     color="black",
                 )
         y_positions.append(y0)
-        y_labels.append(ch.name.upper() if uppercase else ch.name)
+        y_labels.append(row.label.upper() if uppercase else row.label)
 
     y_axis_gap = max_amp + pulse_label_height + DEFAULT_AXIS_GAP_EXTRA
     y_axis = min(y_positions) - y_axis_gap if y_positions else -y_axis_gap
@@ -997,7 +1137,10 @@ def plot_pulses(
     timing_layout: bool = False,
     title: str | None = None,
     breaks: list[tuple[float, float]] | list[dict] | None = None,
+    auto_break_idle: bool = False,
+    auto_break_pulses: bool = False,
     auto_fold_idle: bool = False,
+    auto_fold_breakable: bool = False,
     idle_threshold_ns: float = 50_000.0,
     keep_edge_ns: float = 1_500.0,
     show_clock: bool = False,
@@ -1024,13 +1167,14 @@ def plot_pulses(
     pulse_metadata_path: str | Path | None = None,
     post_sequence_gap_ns: float = DEFAULT_POST_SEQUENCE_GAP_NS,
     target_ticks: int = DEFAULT_TARGET_TICKS,
+    XYZ_line_combine: bool = False,
 ):
     """
     Plot pulse waveforms and optionally export a DXF engineering drawing.
 
     This function supports two plotting modes:
     - `timing_layout=False`: legacy compact waveform view sampled at fixed `sample_rate`.
-    - `timing_layout=True`: timing-diagram view with per-channel rows, optional break/folding,
+    - `timing_layout=True`: timing-diagram view with per-channel rows, optional time breaks,
       clock lane, custom typography/colors, and optional DXF export.
 
     Parameters
@@ -1041,12 +1185,16 @@ def plot_pulses(
     - `carrier_points_per_pulse`: Legacy mode sampling points per pulse for carrier.
     - `timing_layout`: Enable timing-diagram style plot.
     - `title`: Figure title. If `None`, a default title is used.
-    - `breaks`: Explicit folded time windows. Accepts `(t0, t1)` tuples or dicts with
+    - `breaks`: Explicit break windows. Accepts `(t0, t1)` tuples or dicts with
       `t0/t1`.
-    - `auto_fold_idle`: Auto-generate fold windows for long all-channel idle regions when
+    - `auto_break_idle`: Auto-generate break windows for long all-channel idle regions when
       `breaks` is not provided.
-    - `idle_threshold_ns`: Minimum idle duration for `auto_fold_idle`.
-    - `keep_edge_ns`: Keep this amount near both sides when folding idle windows.
+    - `auto_break_pulses`: Auto-generate break windows only from pulses explicitly marked
+      as breakable by lowering/catalog metadata.
+    - `auto_fold_idle`: Backward-compatible alias for `auto_break_idle`.
+    - `auto_fold_breakable`: Backward-compatible alias for `auto_break_pulses`.
+    - `idle_threshold_ns`: Minimum idle duration for `auto_break_idle`.
+    - `keep_edge_ns`: Keep this amount near both sides when inserting idle breaks.
     - `show_clock`: Add top `CLK` lane in timing mode.
     - `clock_mhz`: Clock frequency for the `CLK` lane.
     - `carrier_plot_max_hz`: Visualization cap for carrier frequency to avoid over-dense lines.
@@ -1058,7 +1206,7 @@ def plot_pulses(
     - `tick_fontsize`: Font size of custom time tick labels.
     - `title_fontsize`: Plot title font size.
     - `axis_label_fontsize`: Time axis label font size.
-    - `break_display_gap_ns`: Visual gap width for each folded segment in timing mode.
+    - `break_display_gap_ns`: Visual gap width for each break segment in timing mode.
     - `show_grid`: Whether to show background grid.
     - `hide_top_right_spines`: Hide matplotlib top/right frame spines.
     - `dxf_path`: If provided, export DXF using the same `pulse_ir` and break settings.
@@ -1076,12 +1224,14 @@ def plot_pulses(
     - `post_sequence_gap_ns`: Keep this zero-amplitude tail after the last pulse to
       indicate experiment end.
     - `target_ticks`: Target number of major ticks on time axis in timing layout.
+    - `XYZ_line_combine`: If `True`, display `XY_i` and `Z_i` on a merged `XYZ_i`
+      row in timing layout without changing the underlying metadata channels.
 
     Returns
     - `matplotlib.figure.Figure`: Generated figure object.
 
     Notes
-    - Timing-break markers use dotted lines in matplotlib output.
+    - Time-break markers use dotted lines in matplotlib output.
     """
     if timing_layout:
         resolved_theme = make_timing_theme(**(theme or {}))
@@ -1099,12 +1249,19 @@ def plot_pulses(
             resolved_theme["hide_top_right_spines"] = hide_top_right_spines
 
         parsed_breaks = _parse_breaks(breaks)
-        if auto_fold_idle and not parsed_breaks:
-            parsed_breaks = auto_fold_breaks(
-                pulse_ir,
-                idle_threshold_ns=idle_threshold_ns,
-                keep_edge_ns=keep_edge_ns,
+        use_auto_break_idle = bool(auto_break_idle or auto_fold_idle)
+        use_auto_break_pulses = bool(auto_break_pulses or auto_fold_breakable)
+        if use_auto_break_idle:
+            parsed_breaks.extend(
+                auto_break_idle_windows(
+                    pulse_ir,
+                    idle_threshold_ns=idle_threshold_ns,
+                    keep_edge_ns=keep_edge_ns,
+                )
             )
+        if use_auto_break_pulses:
+            parsed_breaks.extend(auto_break_long_pulses(pulse_ir))
+        parsed_breaks = _merge_intervals(parsed_breaks)
         # Keep DXF tick placement consistent with matplotlib timing axis.
         _last_t1 = 0.0
         for _ch in pulse_ir.channels:
@@ -1138,6 +1295,7 @@ def plot_pulses(
             pulse_label_fontsize=int(pulse_label_fontsize),
             post_sequence_gap_ns=float(post_sequence_gap_ns),
             target_ticks=max(2, int(target_ticks)),
+            XYZ_line_combine=bool(XYZ_line_combine),
         )
         if pulse_metadata_path is not None:
             payload = {

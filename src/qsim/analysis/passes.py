@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Composable analysis-pass helpers used by the workflow runner."""
+
+from __future__ import annotations
 
 from typing import Protocol
 

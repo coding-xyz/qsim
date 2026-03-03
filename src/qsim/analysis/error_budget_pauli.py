@@ -1,3 +1,5 @@
+"""Pauli-plus error-budget aggregation and ablation export helpers."""
+
 from __future__ import annotations
 
 import csv

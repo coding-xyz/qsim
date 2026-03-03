@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Circuit-to-executable compile pipeline orchestration."""
+
+from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path

@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Abstract base definitions for simulation engines."""
+
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 

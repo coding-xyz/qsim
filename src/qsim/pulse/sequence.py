@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Pulse-sequence compilation utilities."""
+
+from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path

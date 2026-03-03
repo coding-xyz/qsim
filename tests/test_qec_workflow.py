@@ -26,12 +26,14 @@ def test_workflow_emits_qec_core_artifacts():
             "syndrome_frame.json",
             "prior_model.json",
             "prior_report.json",
+            "prior_samples.npz",
             "decoder_input.json",
             "decoder_output.json",
             "decoder_report.json",
             "logical_error.json",
             "sensitivity_report.json",
             "error_budget_v2.json",
+            "figures/sensitivity_heatmap.png",
             "run_manifest.json",
         ]
         for name in expected:
@@ -42,12 +44,14 @@ def test_workflow_emits_qec_core_artifacts():
             "syndrome_frame",
             "prior_model",
             "prior_report",
+            "prior_samples",
             "decoder_input",
             "decoder_output",
             "decoder_report",
             "logical_error",
             "sensitivity_report",
             "error_budget_v2",
+            "sensitivity_heatmap",
         ]:
             assert key in manifest["outputs"]
     finally:
@@ -76,6 +80,7 @@ def test_prior_stim_fallback_and_bp_decoder():
         prior_report = json.loads((actual_out / "prior_report.json").read_text(encoding="utf-8"))
         decoder_output = json.loads((actual_out / "decoder_output.json").read_text(encoding="utf-8"))
         decoder_report = json.loads((actual_out / "decoder_report.json").read_text(encoding="utf-8"))
+        assert (actual_out / "prior_samples.npz").exists()
 
         assert prior_report["builder"] == "stim_prior"
         assert prior_report["status"] in {"ok", "fallback"}
@@ -112,6 +117,7 @@ def test_workflow_emits_decoder_eval_outputs():
         for name in [
             "decoder_eval_report.json",
             "decoder_eval_table.csv",
+            "figures/decoder_pareto.png",
             "batch_manifest.json",
             "resume_state.json",
             "failed_tasks.jsonl",
@@ -133,6 +139,7 @@ def test_workflow_emits_decoder_eval_outputs():
         assert resume_state["schema_version"] == "1.0"
         assert "decoder_eval_report" in manifest["outputs"]
         assert "decoder_eval_table" in manifest["outputs"]
+        assert "decoder_pareto" in manifest["outputs"]
         assert "batch_manifest" in manifest["outputs"]
         assert "resume_state" in manifest["outputs"]
         assert "failed_tasks" in manifest["outputs"]

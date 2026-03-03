@@ -1,4 +1,10 @@
+"""Sensitivity report builders and heatmap export helpers."""
+
 from __future__ import annotations
+
+from pathlib import Path
+
+import numpy as np
 
 from qsim.common.schemas import LogicalErrorSummary, Observables
 
@@ -105,3 +111,35 @@ def build_error_budget_v2(
         "ranking": ranking,
         "notes": "P1-M4 proxy budget; intended for relative comparison and regression tracking.",
     }
+
+
+def write_sensitivity_heatmap(sensitivity_report: dict, out_path: str | Path) -> Path:
+    """Render a compact heatmap for local sensitivity ranking."""
+    import matplotlib.pyplot as plt
+
+    local = sensitivity_report.get("local_sensitivity", {}) if isinstance(sensitivity_report, dict) else {}
+    labels = list(local.keys())
+    values = np.asarray([float(local[k]) for k in labels], dtype=float)
+    data = values.reshape(1, max(1, len(values))) if values.size else np.zeros((1, 1), dtype=float)
+    xlabels = labels if labels else ["none"]
+
+    fig_w = max(4.0, 1.4 * len(xlabels))
+    fig, ax = plt.subplots(figsize=(fig_w, 2.6))
+    vmax = float(np.max(data)) if data.size else 1.0
+    im = ax.imshow(data, cmap="Greys", aspect="auto", vmin=0.0, vmax=max(vmax, 1e-9))
+    ax.set_xticks(np.arange(len(xlabels)))
+    ax.set_xticklabels(xlabels, rotation=20, ha="right")
+    ax.set_yticks([0])
+    ax.set_yticklabels(["sensitivity"])
+    ax.set_title("Sensitivity Heatmap")
+
+    for col, value in enumerate(data[0]):
+        ax.text(col, 0, f"{float(value):.3f}", ha="center", va="center", color="black", fontsize=8)
+
+    fig.colorbar(im, ax=ax, fraction=0.05, pad=0.06, label="sensitivity")
+    fig.tight_layout()
+    out = Path(out_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    return out

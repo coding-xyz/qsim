@@ -1,3 +1,5 @@
+"""QuTiP-based dynamics engine implementation."""
+
 from __future__ import annotations
 
 import math

@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        exclude: ^.*\.md$
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: local
+    hooks:
+      - id: repo-text-rules
+        name: Enforce UTF-8 text files and block docs/site edits
+        entry: python scripts/check_repo_text_rules.py
+        language: system
+        pass_filenames: true
+        files: \.(py|md|txt|qasm|stim|json|toml|ya?ml|ipynb)$
+

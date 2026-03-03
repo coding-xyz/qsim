@@ -1,3 +1,5 @@
+"""Batch decoder evaluation, resume, and Pareto-export helpers."""
+
 from __future__ import annotations
 
 import csv
@@ -7,6 +9,8 @@ import hashlib
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
+
+import numpy as np
 
 from qsim.common.schemas import DecoderInput
 from qsim.qec.decoder import get_decoder, summarize_logical_error
@@ -313,4 +317,34 @@ def write_failed_tasks_jsonl(failed_tasks: list[dict[str, Any]], out_path: str |
     with out.open("w", encoding="utf-8") as f:
         for item in failed_tasks:
             f.write(json.dumps(item, ensure_ascii=False) + "\n")
+    return out
+
+
+def write_decoder_pareto_png(report: dict[str, Any], out_path: str | Path) -> Path:
+    """Render decoder Pareto scatter plot from eval report summary."""
+    import matplotlib.pyplot as plt
+
+    summary = report.get("summary", []) if isinstance(report, dict) else []
+    xs = np.asarray([float(item.get("avg_elapsed_s", 0.0)) for item in summary], dtype=float)
+    ys = np.asarray([float(item.get("avg_logical_x", 0.0)) for item in summary], dtype=float)
+    labels = [str(item.get("decoder", "")) for item in summary]
+
+    fig, ax = plt.subplots(figsize=(5.6, 4.0))
+    if xs.size > 0:
+        ax.scatter(xs, ys, color="black", s=36, zorder=3)
+        for x, y, label in zip(xs, ys, labels):
+            ax.text(float(x), float(y), f" {label}", ha="left", va="center", fontsize=8, color="black")
+    else:
+        ax.text(0.5, 0.5, "no data", ha="center", va="center", transform=ax.transAxes)
+
+    ax.set_title("Decoder Pareto")
+    ax.set_xlabel("avg elapsed (s)")
+    ax.set_ylabel("avg logical x")
+    ax.grid(True, alpha=0.2)
+    fig.tight_layout()
+
+    out = Path(out_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
     return out

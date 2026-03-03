@@ -25,6 +25,10 @@ qsim is a workflow-first quantum simulation project with reproducible artifacts,
 qsim run --qasm examples/bell.qasm --backend examples/backend.yaml --out runs/demo
 ```
 
+Use `--schedule-policy serial|parallel|hybrid` to control lowering-time gate scheduling.
+Use `--reset-feedback-policy parallel|serial_global` to control reset feedback scheduling.
+The notebook API also accepts `reset_feedback_policy=...`, or you can pass it through `hardware`.
+
 ## Complete QEC Demo (Python)
 
 ```python
@@ -58,8 +62,9 @@ print(result["out_dir"])
 
 Expected key artifacts:
 
-- `syndrome_frame.json`, `prior_model.json`, `decoder_output.json`, `logical_error.json`
-- `decoder_eval_report.json`, `decoder_eval_table.csv`, `batch_manifest.json`, `resume_state.json`
+- `syndrome_frame.json`, `prior_model.json`, `prior_samples.npz`, `decoder_output.json`, `logical_error.json`
+- `decoder_eval_report.json`, `decoder_eval_table.csv`, `figures/decoder_pareto.png`, `batch_manifest.json`, `resume_state.json`
+- `figures/sensitivity_heatmap.png`
 - `scaling_report.json`, `error_budget_pauli_plus.json`, `component_ablation.csv`
 - `error_budget_v2.json` (legacy compatibility)
 - `run_manifest.json`
@@ -71,9 +76,42 @@ pip install -e .[docs]
 mkdocs serve
 ```
 
-- Wiki entry: `docs/WIKI.md`
-- QEC chapter: `docs/wiki/qec_analysis.md`
-- API reference: `docs/api/`
+- Repository text encoding policy: use UTF-8 for source, docs, issues, and configuration files.
+- Editor and Git normalization rules live in `.editorconfig` and `.gitattributes`.
+- Markdown sources: `docs/src/`
+- Wiki entry: `docs/src/WIKI.md`
+
+## Text Encoding
+
+- Use UTF-8 for all text files in the repository.
+- Do not hand-edit generated site output under `docs/site/`.
+- When code changes affect behavior or API, update related docstrings and `docs/` content in the same change.
+
+## Pre-commit Checks
+
+Install the development hook tooling:
+
+```bash
+pip install -e .[dev]
+pre-commit install
+```
+
+Run all checks manually:
+
+```bash
+pre-commit run --all-files
+```
+
+Current automated checks cover:
+
+- UTF-8 validation for common text files
+- blocking accidental edits under `docs/site/`
+- merge-conflict markers
+- YAML validation
+- final newline, trailing whitespace, and LF normalization
+- QEC chapter: `docs/src/wiki/qec_analysis.md`
+- Generated website: `docs/site/`
+- API reference is generated from source docstrings during the MkDocs build
 
 ## Standard Update Workflow
 
@@ -93,3 +131,4 @@ All issue markdown files are organized under:
 
 - Current QEC support is **offline analysis only**.
 - Real-time decoding (streaming syndrome -> control feedback) is **not online yet**.
+- Current gate-to-pulse mapping catalog can be exported with `python scripts/pulse_gate_map_report.py --format json --out runs/tmp/pulse_gate_map.json`.

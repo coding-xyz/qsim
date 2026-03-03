@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Engineering drawing adapters for pulse timing artifacts."""
+
+from __future__ import annotations
 
 from pathlib import Path
 

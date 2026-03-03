@@ -1,3 +1,5 @@
+"""Executable-model to solver-model conversion utilities."""
+
 from __future__ import annotations
 
 import re

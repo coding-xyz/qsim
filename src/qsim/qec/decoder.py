@@ -1,3 +1,5 @@
+"""Decoder selection, execution, and report helpers for QEC workflows."""
+
 from __future__ import annotations
 
 import hashlib

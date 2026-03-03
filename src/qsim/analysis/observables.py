@@ -1,3 +1,5 @@
+"""Observable extraction helpers for simulation traces."""
+
 from __future__ import annotations
 
 from qsim.common.schemas import Observables, Trace

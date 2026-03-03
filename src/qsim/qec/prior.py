@@ -1,8 +1,14 @@
+"""Prior-model builders and prior artifact export helpers."""
+
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any
+
+import numpy as np
 
 from qsim.common.schemas import PriorModel, SyndromeFrame, utc_now_iso
 from qsim.qec.interfaces import IPriorBuilder
@@ -190,3 +196,35 @@ def build_prior_and_report(
         "prior_snapshot": asdict(model),
     }
     return model, report
+
+
+def write_prior_samples_npz(prior_model: PriorModel, out_path: str | Path) -> Path:
+    """Persist a lightweight NPZ cache derived from a prior graph model.
+
+    The file includes both compact numeric arrays for quick downstream loading
+    and JSON snapshots to preserve the full graph payload.
+    """
+    out = Path(out_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    node_ids = np.asarray([int(item.get("id", i)) for i, item in enumerate(prior_model.nodes)], dtype=np.int64)
+    node_kinds = np.asarray([str(item.get("kind", "")) for item in prior_model.nodes], dtype="<U32")
+    edge_u = np.asarray([int(item.get("u", 0)) for item in prior_model.edges], dtype=np.int64)
+    edge_v = np.asarray([int(item.get("v", 0)) for item in prior_model.edges], dtype=np.int64)
+    edge_weight = np.asarray([float(item.get("weight", 0.0)) for item in prior_model.edges], dtype=float)
+
+    np.savez_compressed(
+        out,
+        schema_version=np.asarray([str(prior_model.schema_version)], dtype="<U16"),
+        builder_name=np.asarray([str(prior_model.builder_name)], dtype="<U64"),
+        builder_rev=np.asarray([str(prior_model.builder_rev)], dtype="<U64"),
+        node_ids=node_ids,
+        node_kinds=node_kinds,
+        edge_u=edge_u,
+        edge_v=edge_v,
+        edge_weight=edge_weight,
+        nodes_json=np.asarray([json.dumps(prior_model.nodes, ensure_ascii=False)], dtype=object),
+        edges_json=np.asarray([json.dumps(prior_model.edges, ensure_ascii=False)], dtype=object),
+        metadata_json=np.asarray([json.dumps(prior_model.metadata, ensure_ascii=False)], dtype=object),
+    )
+    return out

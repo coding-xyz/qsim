@@ -1,0 +1,26 @@
+# Normalize text files consistently across platforms.
+* text=auto eol=lf
+
+# Source and configuration files should remain UTF-8 text.
+*.py text working-tree-encoding=UTF-8 eol=lf
+*.md text working-tree-encoding=UTF-8 eol=lf
+*.txt text working-tree-encoding=UTF-8 eol=lf
+*.qasm text working-tree-encoding=UTF-8 eol=lf
+*.stim text working-tree-encoding=UTF-8 eol=lf
+*.json text working-tree-encoding=UTF-8 eol=lf
+*.toml text working-tree-encoding=UTF-8 eol=lf
+*.yml text working-tree-encoding=UTF-8 eol=lf
+*.yaml text working-tree-encoding=UTF-8 eol=lf
+*.ipynb text working-tree-encoding=UTF-8 eol=lf
+
+# Binary artifacts must never be normalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.npz binary
+*.h5 binary
+*.dxf binary
+*.xlsx binary
+*.gz binary

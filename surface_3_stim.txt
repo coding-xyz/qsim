@@ -1,0 +1,124 @@
+OPENQASM 3.0;
+include "stdgates.inc";
+
+qubit[17] q;
+bit[8] m_anc;
+bit[9] m_data;
+
+reset q[0];
+reset q[2];
+reset q[3];
+reset q[4];
+reset q[6];
+reset q[8];
+reset q[11];
+reset q[13];
+reset q[15];
+
+reset q[1];
+reset q[5];
+reset q[7];
+reset q[9];
+reset q[10];
+reset q[12];
+reset q[14];
+reset q[16];
+
+h q[4];
+h q[6];
+h q[11];
+h q[15];
+
+h q[1];
+h q[7];
+h q[12];
+h q[16];
+
+cz q[1], q[2];
+h q[2];
+cz q[12], q[13];
+h q[13];
+cz q[7], q[8];
+h q[8];
+h q[10];
+cz q[11], q[10];
+h q[5];
+cz q[6], q[5];
+h q[14];
+cz q[15], q[14];
+
+cz q[1], q[0];
+h q[0];
+h q[11];
+cz q[12], q[11];
+h q[6];
+cz q[7], q[6];
+cz q[4], q[10];
+h q[10];
+cz q[2], q[5];
+cz q[8], q[14];
+
+cz q[12], q[6];
+h q[6];
+cz q[7], q[3];
+h q[3];
+h q[15];
+cz q[16], q[15];
+cz q[4], q[5];
+h q[5];
+cz q[13], q[14];
+h q[14];
+h q[9];
+cz q[8], q[9];
+
+h q[4];
+cz q[12], q[4];
+h q[2];
+cz q[7], q[2];
+h q[13];
+cz q[16], q[13];
+cz q[0], q[5];
+h q[5];
+cz q[6], q[14];
+h q[14];
+cz q[3], q[9];
+h q[9];
+
+h q[1];
+h q[7];
+h q[12];
+h q[16];
+
+h q[0];
+h q[6];
+h q[8];
+
+barrier q;
+
+measure q[0] -> m_data[0];
+measure q[2] -> m_data[1];
+measure q[3] -> m_data[2];
+measure q[4] -> m_data[3];
+measure q[6] -> m_data[4];
+measure q[8] -> m_data[5];
+measure q[11] -> m_data[6];
+measure q[13] -> m_data[7];
+measure q[15] -> m_data[8];
+
+measure q[1] -> m_anc[0];
+measure q[5] -> m_anc[1];
+measure q[7] -> m_anc[2];
+measure q[9] -> m_anc[3];
+measure q[10] -> m_anc[4];
+measure q[12] -> m_anc[5];
+measure q[14] -> m_anc[6];
+measure q[16] -> m_anc[7];
+
+reset q[1];
+reset q[5];
+reset q[7];
+reset q[9];
+reset q[10];
+reset q[12];
+reset q[14];
+reset q[16];

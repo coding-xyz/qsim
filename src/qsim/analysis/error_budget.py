@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Legacy error-budget report builders for simulation observables."""
+
+from __future__ import annotations
 
 from qsim.common.schemas import Observables, Report
 

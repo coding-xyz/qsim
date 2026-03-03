@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Pulse compilation helpers shared by backend workflows."""
+
+from __future__ import annotations
 
 from qsim.common.schemas import PulseIR
 from qsim.pulse.sequence import PulseCompiler

@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Primitive pulse sample containers."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 

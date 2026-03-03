@@ -1,4 +1,6 @@
-﻿from qsim.engines.base import Engine
+"""Public exports for qsim simulation and QEC engines."""
+
+from qsim.engines.base import Engine
 from qsim.engines.cirq_qec_engine import CirqQECAnalysisEngine
 from qsim.engines.julia_qoptics import JuliaQuantumOpticsEngine
 from qsim.engines.julia_qtoolbox import JuliaQuantumToolboxEngine

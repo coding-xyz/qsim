@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+"""Analysis pass registry and runner orchestration."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone

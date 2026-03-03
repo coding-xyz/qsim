@@ -1,3 +1,5 @@
+"""Protocol interfaces for prior builders and decoders."""
+
 from __future__ import annotations
 
 from typing import Protocol

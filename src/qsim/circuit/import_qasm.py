@@ -1,6 +1,10 @@
+"""OpenQASM 3 parsing and serialization helpers for CircuitIR."""
+
 from __future__ import annotations
 
+import ast
 from dataclasses import asdict
+import math
 import re
 
 from qsim.common.schemas import CircuitGate, CircuitIR
@@ -37,7 +41,44 @@ class CircuitAdapter:
         return m.group(1), int(m.group(2))
 
     @staticmethod
-    def from_qasm(qasm_text: str) -> CircuitIR:
+    def _eval_param_expr(expr: str, bindings: dict[str, float] | None = None) -> float:
+        """Evaluate a restricted numeric expression used in QASM gate parameters."""
+        bindings = bindings or {}
+        allowed_names = {"pi": math.pi, "tau": math.tau, "e": math.e}
+        allowed_names.update({str(k): float(v) for k, v in bindings.items()})
+
+        tree = ast.parse(expr, mode="eval")
+        for node in ast.walk(tree):
+            if isinstance(
+                node,
+                (
+                    ast.Expression,
+                    ast.BinOp,
+                    ast.UnaryOp,
+                    ast.Add,
+                    ast.Sub,
+                    ast.Mult,
+                    ast.Div,
+                    ast.Pow,
+                    ast.USub,
+                    ast.UAdd,
+                    ast.Constant,
+                    ast.Load,
+                    ast.Name,
+                ),
+            ):
+                continue
+            raise ValueError(f"Unsupported parameter expression: {expr}")
+        try:
+            value = eval(compile(tree, "<qasm-param>", "eval"), {"__builtins__": {}}, allowed_names)
+        except NameError as exc:
+            raise ValueError(f"Unbound parameter in expression '{expr}': {exc}") from exc
+        except Exception as exc:
+            raise ValueError(f"Invalid parameter expression '{expr}': {exc}") from exc
+        return float(value)
+
+    @staticmethod
+    def from_qasm(qasm_text: str, param_bindings: dict[str, float] | None = None) -> CircuitIR:
         """Parse a minimal OpenQASM 3 program into ``CircuitIR``.
 
         Example:
@@ -129,7 +170,7 @@ class CircuitAdapter:
             params: list[float] = []
             if params_raw:
                 for val in [x.strip() for x in params_raw.split(",") if x.strip()]:
-                    params.append(float(val))
+                    params.append(CircuitAdapter._eval_param_expr(val, bindings=param_bindings))
             gates.append(CircuitGate(name=name, qubits=qubits, params=params))
 
         return CircuitIR(num_qubits=next_q, num_clbits=next_c, gates=gates, source_qasm=qasm_text)

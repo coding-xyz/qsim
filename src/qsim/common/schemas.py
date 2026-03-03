@@ -1,3 +1,5 @@
+"""Dataclasses and JSON helpers for qsim workflow schemas."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
