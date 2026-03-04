@@ -11,3 +11,12 @@
 - `06_five_qubit_noise_propagation.ipynb`：五比特噪声传播闭环样例
 
 建议按 00 -> 06 顺序执行。
+
+补充说明：
+- 本目录已并入 `examples/noise_simulation_tests/`，与 tri-engine 7 项任务属于同一噪声仿真实验包。
+- 本目录 notebook 的运行结果统一写到 `examples/noise_simulation_tests/runs/roadmap_2026H1/`。
+
+
+?????
+- ?????? `examples/noise_simulation_tests/`?? tri-engine 7 ???????????????
+- ??? notebook ????????? `examples/noise_simulation_tests/runs/roadmap_2026H1/`?

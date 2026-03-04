@@ -14,6 +14,7 @@ from qsim.analysis.registry import AnalysisRegistry, AnalysisRunner
 from qsim.analysis.error_budget_pauli import build_component_budget, write_component_ablation_csv
 from qsim.analysis.pauli_plus import build_component_error_model, run_scaling_sweep
 from qsim.analysis.sensitivity import build_error_budget_v2, build_sensitivity_report, write_sensitivity_heatmap
+from qsim.analysis.trace_semantics import annotate_trace_metadata, pointwise_compare_compatibility, state_encoding
 from qsim.backend.compile_pipeline import CompilePipeline
 from qsim.backend.config import dump_backend_config, load_backend_config
 from qsim.backend.lowering import DefaultLowering
@@ -63,19 +64,27 @@ def _trace_summary(trace) -> dict:
         "state_dim": len(last),
         "final_state": [float(v) for v in last],
         "final_mean": final_mean,
+        "state_encoding": state_encoding(trace),
         "metadata": dict(getattr(trace, "metadata", {}) or {}),
     }
 
 
 def _trace_pair_metrics(ref, other) -> dict:
+    comparable, reason = pointwise_compare_compatibility(ref, other)
+    if not comparable:
+        return {
+            "comparable": False,
+            "reason": reason,
+            "samples_compared": 0,
+        }
     n = min(len(ref.times), len(other.times))
     if n <= 0:
-        return {"samples_compared": 0, "mse": 0.0, "mae": 0.0}
+        return {"comparable": True, "samples_compared": 0, "mse": 0.0, "mae": 0.0}
     d = 0
     if ref.states and other.states:
         d = min(len(ref.states[0]), len(other.states[0]))
     if d <= 0:
-        return {"samples_compared": n, "mse": 0.0, "mae": 0.0}
+        return {"comparable": True, "samples_compared": n, "mse": 0.0, "mae": 0.0}
     sq_sum = 0.0
     abs_sum = 0.0
     count = 0
@@ -90,6 +99,7 @@ def _trace_pair_metrics(ref, other) -> dict:
     if count <= 0:
         return {"samples_compared": n, "mse": 0.0, "mae": 0.0}
     return {
+        "comparable": True,
         "samples_compared": n,
         "state_dim_compared": d,
         "mse": float(sq_sum / count),
@@ -138,6 +148,12 @@ def _run_cross_engine_compare(
             model_spec,
             run_options=run_opts,
         )
+        annotate_trace_metadata(
+            trace,
+            num_qubits=int(model_spec.payload.get("num_qubits", 0) or 0) or None,
+            dimension=int(getattr(model_spec, "dimension", 0) or 0) or None,
+            engine_name=name,
+        )
         traces.append((name, trace))
         item = _trace_summary(trace)
         item["requested_engine"] = name
@@ -171,6 +187,11 @@ def _write_trace_h5(trace, out_path: Path) -> Path:
         h5.create_dataset("times", data=trace.times)
         h5.create_dataset("states", data=trace.states)
         h5.attrs["engine"] = trace.engine
+        metadata = dict(getattr(trace, "metadata", {}) or {})
+        for key in ("state_encoding", "num_qubits", "model_dimension"):
+            value = metadata.get(key, None)
+            if value is not None:
+                h5.attrs[key] = value
     return out_path
 
 
@@ -509,6 +530,12 @@ def run_workflow(
     if julia_depot_path:
         run_options["julia_depot_path"] = str(julia_depot_path)
     trace = selected.run(model_spec, run_options=run_options)
+    annotate_trace_metadata(
+        trace,
+        num_qubits=int(model_spec.payload.get("num_qubits", 0) or 0) or None,
+        dimension=int(getattr(model_spec, "dimension", 0) or 0) or None,
+        engine_name=engine,
+    )
     t0 = _tick("engine_run", t0)
 
     syndrome = SyndromeFrame(

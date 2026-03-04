@@ -104,10 +104,47 @@ def test_workflow_cross_engine_pairwise_metrics_with_mock_fallback():
         assert len(report["runs"]) >= 2
         assert len(report["pairwise"]) >= 1
         pair = report["pairwise"][0]
-        assert pair["samples_compared"] >= 1
-        assert "mse" in pair and "mae" in pair
+        assert pair["comparable"] is False
+        assert "state encoding" in pair["reason"]
         assert settings["workflow"]["allow_mock_fallback"] is True
         assert "julia_qoptics" in settings["workflow"]["compare_engines_requested"]
+    finally:
+        shutil.rmtree(out_dir, ignore_errors=True)
+        if actual_out != out_dir:
+            shutil.rmtree(actual_out, ignore_errors=True)
+
+
+def test_workflow_emits_state_encoding_metadata_in_outputs():
+    qasm_text = """
+OPENQASM 3;
+qubit[1] q;
+bit[1] c;
+x q[0];
+measure q[0] -> c[0];
+"""
+    out_dir = Path("runs") / f"pytest_dyn_stateenc_{uuid.uuid4().hex[:8]}"
+    actual_out = out_dir
+    try:
+        try:
+            result = run_workflow(
+                qasm_text=qasm_text,
+                backend_path="examples/backend.yaml",
+                out_dir=str(out_dir),
+                engine="julia_qtoolbox",
+                persist_artifacts=True,
+                export_dxf=False,
+                export_plots=False,
+                decoder="mock",
+            )
+        except RuntimeError as exc:
+            pytest.skip(f"julia runtime unavailable for state-encoding test: {exc}")
+        actual_out = Path(result["out_dir"])
+        trace = result["trace"]
+        observables = json.loads((actual_out / "observables.json").read_text(encoding="utf-8"))
+
+        assert trace.metadata["state_encoding"] == "basis_population_single_qubit"
+        assert "final_q1_excited" not in observables["values"]
+        assert float(observables["values"]["final_p1"]) >= 0.0
     finally:
         shutil.rmtree(out_dir, ignore_errors=True)
         if actual_out != out_dir:

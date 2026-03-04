@@ -27,4 +27,15 @@
 - `me` -> `mesolve`
 - `mcwf` -> `mcsolve`
 
-`julia_qtoolbox` 与 `julia_qoptics` 当前是占位实现（mock）。
+`julia_qtoolbox` 与 `julia_qoptics` 当前支持通过 Julia bridge 调用原生后端：
+
+- `julia_qtoolbox` -> `QuantumToolbox.jl`
+- `julia_qoptics` -> `QuantumOptics.jl`
+
+注意：
+
+- 三引擎都可以真实运行，但 `Trace.states` 的行语义不一定天然一致。
+- 工作流层会补充 `trace.metadata.state_encoding`，并据此决定：
+  - 是否可以安全生成逐比特观测量；
+  - 是否可以安全做跨引擎逐项误差比较。
+- 当结果被标记为 `ambiguous_population_vector` 时，应先做语义审查，而不是直接比较 `mse/mae`。
