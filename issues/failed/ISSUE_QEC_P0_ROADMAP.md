@@ -1,7 +1,12 @@
+﻿## Archive Status
+- Final status: Failed
+- Archived at: 2026-03-10
+- Reason: Results are incorrect; request switched to manual code audit.
+
 # QEC Roadmap (P0 -> P2)
 
 ## 0. 状态
-- 状态：In Progress
+- 状态：Failed
 - 负责人：待指派
 - 更新时间：2026-03-03
 
@@ -80,7 +85,7 @@
 - 对应 issue：
   [ISSUE_DYN_P0_TRI_ENGINE_DYNAMICS_FULLSTACK.md](./done/ISSUE_DYN_P0_TRI_ENGINE_DYNAMICS_FULLSTACK.md)
 - 必需目标：
-  三引擎 `qutip / julia_qoptics / julia_qtoolbox` 在同一参数化线路上均可完成 `me` 与 `mcwf` 运行，并导出 `trace.h5`、`run_manifest.json`、`circuit_diagram.png`、`pulse_timing.png`、`timing_diagram.dxf`、`trace.png`、`report.png`
+  三引擎 `qutip / julia_qoptics / julia_qtoolbox` 在同一参数化线路上均可完成 `me` 与 `mcwf` 运行，并导出 `trace.h5`、un_manifest.json`、`circuit_diagram.png`、`pulse_timing.png`、`timing_diagram.dxf`、`trace.png`、eport.png`
 - 结论：Done
 
 ## 5. 已验收结论
@@ -98,3 +103,6 @@
 1. 新 issue 默认放在 `issues/` 根目录。
 2. 只有在“代码 + 测试 + 产物 + 文档”全部完成后，才允许移入 `issues/done/`。
 3. roadmap 继续作为唯一总览文件维护状态，不单独视为已完成功能项。
+
+
+

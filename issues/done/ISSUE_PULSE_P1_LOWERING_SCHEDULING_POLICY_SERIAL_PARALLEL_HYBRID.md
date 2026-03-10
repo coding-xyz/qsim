@@ -1,4 +1,4 @@
-# [PULSE-P1] Lowering Scheduling Policy: Serial / Parallel / Hybrid
+﻿# [PULSE-P1] Lowering Scheduling Policy: Serial / Parallel / Hybrid
 
 ## Status
 - Status: Done
@@ -28,13 +28,13 @@ Turn scheduling from an implicit lowering implementation detail into an explicit
 - `serial`: preserves the previous simple serial scheduling behavior.
 - `parallel`: overlaps resource-disjoint operations when qubit, coupler, and readout resources do not conflict.
 - `hybrid`: parallelizes within compatible local regions while preserving a more conservative cross-family schedule.
-- `reset_feedback_policy=serial_global`: keeps reset measure/deplete aligned but serializes conditional feedback pulses globally.
+- eset_feedback_policy=serial_global`: keeps reset measure/deplete aligned but serializes conditional feedback pulses globally.
 
 ## Acceptance
 - Users can explicitly select scheduling behavior.
 - Disjoint `CZ` operations can overlap under `parallel`.
 - Shared-resource conflicts remain serialized and are explained in metadata.
-- `reset` feedback policy is configurable and externally reachable.
+- eset` feedback policy is configurable and externally reachable.
 - Scheduling decisions are inspectable through exported metadata.
 
 ## Validation
@@ -47,3 +47,4 @@ pytest -q -p no:cacheprovider tests/test_pulse_catalog.py tests/test_pulse_visua
 ## Notes
 - The default path remains compatible with existing serial behavior unless the user opts into other policies.
 - This issue stops short of a full hardware-controller microarchitecture model; it provides a practical scheduling layer for the current pulse stack.
+

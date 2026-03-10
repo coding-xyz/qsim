@@ -27,3 +27,7 @@
 ## `qsim.analysis.passes`
 
 ::: qsim.analysis.passes
+
+## `qsim.analysis.trace_semantics`
+
+::: qsim.analysis.trace_semantics

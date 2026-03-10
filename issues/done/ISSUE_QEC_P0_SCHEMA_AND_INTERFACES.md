@@ -1,4 +1,4 @@
-# [QEC-P0] 定义量子纠错数据模型与接口契约
+﻿# [QEC-P0] 定义量子纠错数据模型与接口契约
 
 ## 0. 状态
 - 状态：Done
@@ -14,7 +14,7 @@
 - In Scope：
   - 新增 QEC 相关 schema（如 `SyndromeFrame`、`DecoderInput`、`DecoderOutput`、`LogicalErrorSummary`）。
   - 定义解码器标准接口（输入输出、元数据、错误码约定）。
-  - 将新增产物纳入 `run_manifest.json` 引用体系。
+  - 将新增产物纳入 un_manifest.json` 引用体系。
 - Out of Scope：
   - 不实现具体解码算法（MWPM/BP/TN）。
   - 不引入 Stim/Cirq 实际计算逻辑（下一张 issue 做）。
@@ -37,7 +37,7 @@
 - 方案概述：
   - 在 `src/qsim/common/schemas.py` 中新增 dataclass。
   - 在 `src/qsim/analysis/` 或新建 `src/qsim/decoder/` 定义接口协议（Protocol/ABC）。
-  - 在 `src/qsim/ui/notebook.py` 的 `run_workflow` 中预留解码阶段挂载点（先空实现/透传）。
+  - 在 `src/qsim/ui/notebook.py` 的 un_workflow` 中预留解码阶段挂载点（先空实现/透传）。
 - 关键设计决策：
   - decoder 只依赖标准 `DecoderInput`，不直接读内部对象，降低耦合。
   - 输出必须带 `analysis_rev`/`decoder_rev` 等版本追踪字段。
@@ -53,8 +53,8 @@
 
 ## 6. 验收标准（DoD）
 - [ ] 新增 schema 可在本地序列化/反序列化成功。
-- [ ] `run_workflow` 运行后可生成新增占位产物（即使解码逻辑未实现）。
-- [ ] `run_manifest.json` 正确记录新增产物引用与哈希。
+- [ ] un_workflow` 运行后可生成新增占位产物（即使解码逻辑未实现）。
+- [ ] un_manifest.json` 正确记录新增产物引用与哈希。
 - [ ] 文档包含字段说明、样例 JSON、版本策略。
 
 ## 7. 测试计划
@@ -98,3 +98,4 @@
   - 后续：Stim/Cirq 先验接入、MWPM/BP 解码器实现
 - 相关文档：
   - `ISSUE_TEMPLATE.md`
+

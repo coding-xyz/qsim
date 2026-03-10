@@ -19,7 +19,7 @@
 
 ## In Progress
 
-- [ISSUE_QEC_P0_ROADMAP.md](./ISSUE_QEC_P0_ROADMAP.md)
+- none (closed on 2026-03-10)
 
 ## Done
 
@@ -41,3 +41,13 @@
 ## Template
 
 - [ISSUE_TEMPLATE.md](./ISSUE_TEMPLATE.md)
+
+## Failed (Archived 2026-03-10)
+
+- [ISSUE_DYN_P1_TASK1_SINGLE_QUBIT_VISUAL_AND_NATIVE_REFERENCE.md](./failed/ISSUE_DYN_P1_TASK1_SINGLE_QUBIT_VISUAL_AND_NATIVE_REFERENCE.md)
+- [ISSUE_QEC_P0_ROADMAP.md](./failed/ISSUE_QEC_P0_ROADMAP.md)
+- [ISSUE_UI_P1_NOTEBOOK_CONFIG_AND_RESULT_HELPERS.md](./failed/ISSUE_UI_P1_NOTEBOOK_CONFIG_AND_RESULT_HELPERS.md)
+
+Notes:
+- All active issues were closed as `Failed` on 2026-03-10.
+- Root copies may remain if the local filesystem blocks move/delete operations.

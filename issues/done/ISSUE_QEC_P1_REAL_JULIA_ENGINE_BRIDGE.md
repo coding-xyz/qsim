@@ -1,4 +1,4 @@
-# [QEC-P1] 将 Julia 引擎从 Mock 升级为真实桥接实现
+﻿# [QEC-P1] 将 Julia 引擎从 Mock 升级为真实桥接实现
 
 ## 0. 状态
 - 状态：Done
@@ -22,7 +22,7 @@
 ## 3. 输入与输出（I/O）
 - 输入：
   - `model_spec.json`
-  - `run_options`
+  - un_options`
 - 输出：
   - `trace.h5`（与现有结构兼容）
   - `engine_metadata`（记录 julia 版本、包版本、命令行）
@@ -50,7 +50,7 @@
 - [ ] 至少一个 Julia 后端在本地环境真实运行成功。
 - [ ] `trace` 结构与现有可视化/分析兼容。
 - [ ] 失败场景下有明确错误信息和回退行为。
-- [ ] `run_manifest.json` 记录 Julia 版本/依赖信息。
+- [ ] un_manifest.json` 记录 Julia 版本/依赖信息。
 
 ## 7. 测试计划
 - 单元测试：
@@ -79,3 +79,4 @@
 - `src/qsim/engines/julia_qtoolbox.py`
 - `src/qsim/engines/julia_qoptics.py`
 - `src/qsim/engines/base.py`
+

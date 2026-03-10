@@ -1,4 +1,4 @@
-# [DYN-P0] 打通三引擎全链路：参数化量子线路 -> 主方程/随机波函数仿真 -> 可视化产物
+﻿# [DYN-P0] 打通三引擎全链路：参数化量子线路 -> 主方程/随机波函数仿真 -> 可视化产物
 
 ## 0. 状态
 - 状态：Done
@@ -34,10 +34,10 @@
   - `solver_mode`（`me|mcwf`）
 - 输出：
   - `trace.h5`（统一 schema）
-  - `run_manifest.json`（记录引擎、Julia 包版本、solver、参数绑定）
+  - un_manifest.json`（记录引擎、Julia 包版本、solver、参数绑定）
   - `circuit_diagram.png`（Qiskit）
   - `pulse_timing.png` / `timing_diagram.dxf`
-  - `trace.png`、`report.png`
+  - `trace.png`、eport.png`
   - `cross_engine_compare.json`（可选：跨引擎关键指标对比）
 - schema/version：
   - 兼容现有 `Trace` 结构，metadata 增加 `engine_runtime`、`solver_mode`、`param_bindings`。
@@ -60,8 +60,8 @@
 ## 6. 验收标准（DoD）
 - [ ] 三引擎在同一参数化线路输入下均能完成 `me` 与 `mcwf` 仿真。
 - [ ] 两个 Julia 引擎不再走 mock 默认路径（mock 仅保留显式 fallback）。
-- [ ] 统一生成并落盘 `trace.h5` + `run_manifest.json`，且 metadata 完整。
-- [ ] 成功导出 `circuit_diagram.png`、`pulse_timing.png`（或等价）、`trace.png`、`report.png`。
+- [ ] 统一生成并落盘 `trace.h5` + un_manifest.json`，且 metadata 完整。
+- [ ] 成功导出 `circuit_diagram.png`、`pulse_timing.png`（或等价）、`trace.png`、eport.png`。
 - [ ] CLI/Notebook 可通过参数切换引擎与求解模式，不破坏现有 qutip 路径。
 - [ ] 关键集成测试在本地通过；无 Julia 环境时测试可 skip 且给出清晰原因。
 
@@ -98,3 +98,4 @@
 - `src/qsim/ui/notebook.py`
 - `src/qsim/pulse/visualize.py`
 - `issues/ISSUE_TEMPLATE.md`
+

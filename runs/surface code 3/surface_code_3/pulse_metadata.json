@@ -1,12 +1,12 @@
 {
   "schema": "qsim.pulse-metadata.v1",
-  "count": 112,
+  "count": 60,
   "pulses": [
     {
       "id": "P1",
       "channel": "XY_0",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
+      "t_start_ns": 100.0,
+      "t_end_ns": 120.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -21,8 +21,8 @@
     {
       "id": "P2",
       "channel": "XY_0",
-      "t_start_ns": 2410.0,
-      "t_end_ns": 2430.0,
+      "t_start_ns": 200.0,
+      "t_end_ns": 220.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -37,8 +37,8 @@
     {
       "id": "P3",
       "channel": "XY_1",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 2450.0,
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -53,8 +53,8 @@
     {
       "id": "P4",
       "channel": "XY_1",
-      "t_start_ns": 2490.0,
-      "t_end_ns": 2510.0,
+      "t_start_ns": 100.0,
+      "t_end_ns": 120.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -69,8 +69,8 @@
     {
       "id": "P5",
       "channel": "XY_2",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 2450.0,
+      "t_start_ns": 60.0,
+      "t_end_ns": 80.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -85,8 +85,8 @@
     {
       "id": "P6",
       "channel": "XY_2",
-      "t_start_ns": 2490.0,
-      "t_end_ns": 2510.0,
+      "t_start_ns": 120.0,
+      "t_end_ns": 140.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -101,8 +101,8 @@
     {
       "id": "P7",
       "channel": "XY_3",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
+      "t_start_ns": 160.0,
+      "t_end_ns": 180.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -117,8 +117,8 @@
     {
       "id": "P8",
       "channel": "XY_3",
-      "t_start_ns": 2410.0,
-      "t_end_ns": 2430.0,
+      "t_start_ns": 220.0,
+      "t_end_ns": 240.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -132,9 +132,9 @@
     },
     {
       "id": "P9",
-      "channel": "XY_3",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 2450.0,
+      "channel": "XY_4",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -148,9 +148,9 @@
     },
     {
       "id": "P10",
-      "channel": "XY_3",
-      "t_start_ns": 2530.0,
-      "t_end_ns": 2550.0,
+      "channel": "XY_4",
+      "t_start_ns": 160.0,
+      "t_end_ns": 180.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -164,7 +164,7 @@
     },
     {
       "id": "P11",
-      "channel": "XY_4",
+      "channel": "XY_5",
       "t_start_ns": 0.0,
       "t_end_ns": 20.0,
       "duration_ns": 20.0,
@@ -180,9 +180,9 @@
     },
     {
       "id": "P12",
-      "channel": "XY_4",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
+      "channel": "XY_5",
+      "t_start_ns": 200.0,
+      "t_end_ns": 220.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -196,9 +196,9 @@
     },
     {
       "id": "P13",
-      "channel": "XY_4",
-      "t_start_ns": 2550.0,
-      "t_end_ns": 2570.0,
+      "channel": "XY_6",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -212,9 +212,9 @@
     },
     {
       "id": "P14",
-      "channel": "XY_4",
-      "t_start_ns": 2610.0,
-      "t_end_ns": 2630.0,
+      "channel": "XY_6",
+      "t_start_ns": 60.0,
+      "t_end_ns": 80.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -228,9 +228,9 @@
     },
     {
       "id": "P15",
-      "channel": "XY_5",
-      "t_start_ns": 0.0,
-      "t_end_ns": 20.0,
+      "channel": "XY_6",
+      "t_start_ns": 160.0,
+      "t_end_ns": 180.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -244,9 +244,9 @@
     },
     {
       "id": "P16",
-      "channel": "XY_5",
-      "t_start_ns": 2390.0,
-      "t_end_ns": 2410.0,
+      "channel": "XY_6",
+      "t_start_ns": 220.0,
+      "t_end_ns": 240.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -260,39 +260,7 @@
     },
     {
       "id": "P17",
-      "channel": "XY_5",
-      "t_start_ns": 2590.0,
-      "t_end_ns": 2610.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
-      "params": {
-        "sigma": 3.3333333333333335
-      },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P18",
-      "channel": "XY_5",
-      "t_start_ns": 2650.0,
-      "t_end_ns": 2670.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
-      "params": {
-        "sigma": 3.3333333333333335
-      },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P19",
-      "channel": "XY_6",
+      "channel": "XY_7",
       "t_start_ns": 0.0,
       "t_end_ns": 20.0,
       "duration_ns": 20.0,
@@ -307,10 +275,42 @@
       }
     },
     {
+      "id": "P18",
+      "channel": "XY_7",
+      "t_start_ns": 200.0,
+      "t_end_ns": 220.0,
+      "duration_ns": 20.0,
+      "shape": "gaussian",
+      "params": {
+        "sigma": 3.3333333333333335
+      },
+      "amp_dbm": 1.0,
+      "carrier": {
+        "freq_hz": 5000000000.0,
+        "phase_deg": 0.0
+      }
+    },
+    {
+      "id": "P19",
+      "channel": "XY_8",
+      "t_start_ns": 60.0,
+      "t_end_ns": 80.0,
+      "duration_ns": 20.0,
+      "shape": "gaussian",
+      "params": {
+        "sigma": 3.3333333333333335
+      },
+      "amp_dbm": 1.0,
+      "carrier": {
+        "freq_hz": 5000000000.0,
+        "phase_deg": 0.0
+      }
+    },
+    {
       "id": "P20",
-      "channel": "XY_6",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
+      "channel": "XY_8",
+      "t_start_ns": 160.0,
+      "t_end_ns": 180.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -324,9 +324,9 @@
     },
     {
       "id": "P21",
-      "channel": "XY_7",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
+      "channel": "XY_9",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -340,9 +340,9 @@
     },
     {
       "id": "P22",
-      "channel": "XY_7",
-      "t_start_ns": 2470.0,
-      "t_end_ns": 2490.0,
+      "channel": "XY_9",
+      "t_start_ns": 220.0,
+      "t_end_ns": 240.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -356,7 +356,7 @@
     },
     {
       "id": "P23",
-      "channel": "XY_8",
+      "channel": "XY_10",
       "t_start_ns": 0.0,
       "t_end_ns": 20.0,
       "duration_ns": 20.0,
@@ -372,9 +372,9 @@
     },
     {
       "id": "P24",
-      "channel": "XY_8",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 2450.0,
+      "channel": "XY_10",
+      "t_start_ns": 100.0,
+      "t_end_ns": 120.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -388,16 +388,13 @@
     },
     {
       "id": "P25",
-      "channel": "XY_9",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
+      "channel": "XY_11",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
+        "sigma": 3.3333333333333335
       },
       "amp_dbm": 1.0,
       "carrier": {
@@ -407,9 +404,9 @@
     },
     {
       "id": "P26",
-      "channel": "XY_9",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
+      "channel": "XY_11",
+      "t_start_ns": 60.0,
+      "t_end_ns": 80.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -423,9 +420,9 @@
     },
     {
       "id": "P27",
-      "channel": "XY_9",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
+      "channel": "XY_12",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -439,9 +436,9 @@
     },
     {
       "id": "P28",
-      "channel": "XY_9",
-      "t_start_ns": 2370.0,
-      "t_end_ns": 2390.0,
+      "channel": "XY_12",
+      "t_start_ns": 220.0,
+      "t_end_ns": 240.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -455,9 +452,9 @@
     },
     {
       "id": "P29",
-      "channel": "XY_9",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 2450.0,
+      "channel": "XY_13",
+      "t_start_ns": 60.0,
+      "t_end_ns": 80.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -471,9 +468,9 @@
     },
     {
       "id": "P30",
-      "channel": "XY_9",
-      "t_start_ns": 2450.0,
-      "t_end_ns": 2470.0,
+      "channel": "XY_13",
+      "t_start_ns": 160.0,
+      "t_end_ns": 180.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -487,9 +484,9 @@
     },
     {
       "id": "P31",
-      "channel": "XY_9",
-      "t_start_ns": 2510.0,
-      "t_end_ns": 2530.0,
+      "channel": "XY_14",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -503,9 +500,9 @@
     },
     {
       "id": "P32",
-      "channel": "XY_9",
-      "t_start_ns": 2530.0,
-      "t_end_ns": 2550.0,
+      "channel": "XY_14",
+      "t_start_ns": 220.0,
+      "t_end_ns": 240.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -519,9 +516,9 @@
     },
     {
       "id": "P33",
-      "channel": "XY_9",
-      "t_start_ns": 2590.0,
-      "t_end_ns": 2610.0,
+      "channel": "XY_15",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -535,16 +532,13 @@
     },
     {
       "id": "P34",
-      "channel": "XY_10",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
+      "channel": "XY_15",
+      "t_start_ns": 60.0,
+      "t_end_ns": 80.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
+        "sigma": 3.3333333333333335
       },
       "amp_dbm": 1.0,
       "carrier": {
@@ -554,9 +548,9 @@
     },
     {
       "id": "P35",
-      "channel": "XY_10",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
+      "channel": "XY_16",
+      "t_start_ns": 0.0,
+      "t_end_ns": 20.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -570,9 +564,9 @@
     },
     {
       "id": "P36",
-      "channel": "XY_10",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
+      "channel": "XY_16",
+      "t_start_ns": 220.0,
+      "t_end_ns": 240.0,
       "duration_ns": 20.0,
       "shape": "gaussian",
       "params": {
@@ -586,774 +580,308 @@
     },
     {
       "id": "P37",
-      "channel": "XY_10",
-      "t_start_ns": 2370.0,
-      "t_end_ns": 2390.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_0",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P38",
-      "channel": "XY_10",
-      "t_start_ns": 2550.0,
-      "t_end_ns": 2570.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_1",
+      "t_start_ns": 60.0,
+      "t_end_ns": 100.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P39",
-      "channel": "XY_10",
-      "t_start_ns": 2570.0,
-      "t_end_ns": 2590.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_2",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P40",
-      "channel": "XY_10",
-      "t_start_ns": 2630.0,
-      "t_end_ns": 2650.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_3",
+      "t_start_ns": 80.0,
+      "t_end_ns": 120.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P41",
-      "channel": "XY_10",
-      "t_start_ns": 2650.0,
-      "t_end_ns": 2670.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_4",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P42",
-      "channel": "XY_10",
-      "t_start_ns": 2710.0,
-      "t_end_ns": 2730.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_5",
+      "t_start_ns": 80.0,
+      "t_end_ns": 120.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P43",
-      "channel": "XY_11",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_6",
+      "t_start_ns": 120.0,
+      "t_end_ns": 160.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P44",
-      "channel": "XY_11",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_7",
+      "t_start_ns": 160.0,
+      "t_end_ns": 200.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P45",
-      "channel": "XY_11",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_8",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P46",
-      "channel": "XY_11",
-      "t_start_ns": 2370.0,
-      "t_end_ns": 2390.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_9",
+      "t_start_ns": 60.0,
+      "t_end_ns": 100.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P47",
-      "channel": "XY_11",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 2450.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_10",
+      "t_start_ns": 120.0,
+      "t_end_ns": 160.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P48",
-      "channel": "XY_12",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_11",
+      "t_start_ns": 160.0,
+      "t_end_ns": 200.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P49",
-      "channel": "XY_12",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_12",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P50",
-      "channel": "XY_12",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2370.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_13",
+      "t_start_ns": 80.0,
+      "t_end_ns": 120.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P51",
-      "channel": "XY_12",
-      "t_start_ns": 2370.0,
-      "t_end_ns": 2390.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_14",
+      "t_start_ns": 120.0,
+      "t_end_ns": 160.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P52",
-      "channel": "XY_12",
-      "t_start_ns": 2490.0,
-      "t_end_ns": 2510.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_15",
+      "t_start_ns": 180.0,
+      "t_end_ns": 220.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P53",
-      "channel": "XY_13",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_16",
+      "t_start_ns": 20.0,
+      "t_end_ns": 60.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P54",
-      "channel": "XY_13",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_17",
+      "t_start_ns": 80.0,
+      "t_end_ns": 120.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P55",
-      "channel": "XY_13",
-      "t_start_ns": 2610.0,
-      "t_end_ns": 2630.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_18",
+      "t_start_ns": 120.0,
+      "t_end_ns": 160.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P56",
-      "channel": "XY_14",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_19",
+      "t_start_ns": 180.0,
+      "t_end_ns": 220.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P57",
-      "channel": "XY_14",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_20",
+      "t_start_ns": 120.0,
+      "t_end_ns": 160.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P58",
-      "channel": "XY_14",
-      "t_start_ns": 2470.0,
-      "t_end_ns": 2490.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_21",
+      "t_start_ns": 180.0,
+      "t_end_ns": 220.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "sigma": 3.3333333333333335
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P59",
-      "channel": "XY_15",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
+      "channel": "TC_22",
+      "t_start_ns": 80.0,
+      "t_end_ns": 120.0,
+      "duration_ns": 40.0,
+      "shape": "rect",
       "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
+        "rise_ns": 2.0,
+        "fall_ns": 2.0
       },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
+      "amp_uA": 0.75
     },
     {
       "id": "P60",
-      "channel": "XY_15",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
-      "params": {
-        "sigma": 3.3333333333333335
-      },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P61",
-      "channel": "XY_15",
-      "t_start_ns": 2410.0,
-      "t_end_ns": 2430.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
-      "params": {
-        "sigma": 3.3333333333333335
-      },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P62",
-      "channel": "XY_16",
-      "t_start_ns": 2270.0,
-      "t_end_ns": 2290.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
-      "params": {
-        "stage": "reset_conditional_pi",
-        "sigma": 3.3333333333333335,
-        "conditional": true,
-        "cond_on": 1
-      },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P63",
-      "channel": "XY_16",
-      "t_start_ns": 2290.0,
-      "t_end_ns": 2310.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
-      "params": {
-        "sigma": 3.3333333333333335
-      },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P64",
-      "channel": "XY_16",
-      "t_start_ns": 2650.0,
-      "t_end_ns": 2670.0,
-      "duration_ns": 20.0,
-      "shape": "gaussian",
-      "params": {
-        "sigma": 3.3333333333333335
-      },
-      "amp_dbm": 1.0,
-      "carrier": {
-        "freq_hz": 5000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P65",
-      "channel": "TC_0",
-      "t_start_ns": 2310.0,
-      "t_end_ns": 2350.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P66",
-      "channel": "TC_1",
-      "t_start_ns": 2310.0,
-      "t_end_ns": 2350.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P67",
-      "channel": "TC_2",
-      "t_start_ns": 2310.0,
-      "t_end_ns": 2350.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P68",
-      "channel": "TC_3",
-      "t_start_ns": 2390.0,
-      "t_end_ns": 2430.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P69",
-      "channel": "TC_4",
-      "t_start_ns": 2390.0,
-      "t_end_ns": 2430.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P70",
-      "channel": "TC_5",
-      "t_start_ns": 2350.0,
-      "t_end_ns": 2390.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P71",
-      "channel": "TC_6",
-      "t_start_ns": 2470.0,
-      "t_end_ns": 2510.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P72",
-      "channel": "TC_7",
-      "t_start_ns": 2310.0,
-      "t_end_ns": 2350.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P73",
-      "channel": "TC_8",
-      "t_start_ns": 2390.0,
-      "t_end_ns": 2430.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P74",
-      "channel": "TC_9",
-      "t_start_ns": 2550.0,
-      "t_end_ns": 2590.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P75",
-      "channel": "TC_10",
-      "t_start_ns": 2450.0,
-      "t_end_ns": 2490.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P76",
-      "channel": "TC_11",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 2470.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P77",
-      "channel": "TC_12",
-      "t_start_ns": 2310.0,
-      "t_end_ns": 2350.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P78",
-      "channel": "TC_13",
-      "t_start_ns": 2370.0,
-      "t_end_ns": 2410.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P79",
-      "channel": "TC_14",
-      "t_start_ns": 2310.0,
-      "t_end_ns": 2350.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P80",
-      "channel": "TC_15",
-      "t_start_ns": 2510.0,
-      "t_end_ns": 2550.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P81",
-      "channel": "TC_16",
-      "t_start_ns": 2450.0,
-      "t_end_ns": 2490.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P82",
-      "channel": "TC_17",
-      "t_start_ns": 2370.0,
-      "t_end_ns": 2410.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P83",
-      "channel": "TC_18",
-      "t_start_ns": 2590.0,
-      "t_end_ns": 2630.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P84",
-      "channel": "TC_19",
-      "t_start_ns": 2490.0,
-      "t_end_ns": 2530.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P85",
-      "channel": "TC_20",
-      "t_start_ns": 2450.0,
-      "t_end_ns": 2490.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P86",
-      "channel": "TC_21",
-      "t_start_ns": 2670.0,
-      "t_end_ns": 2710.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P87",
-      "channel": "TC_22",
-      "t_start_ns": 2570.0,
-      "t_end_ns": 2610.0,
-      "duration_ns": 40.0,
-      "shape": "rect",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0
-      },
-      "amp_uA": 0.75
-    },
-    {
-      "id": "P88",
       "channel": "TC_23",
-      "t_start_ns": 2610.0,
-      "t_end_ns": 2650.0,
+      "t_start_ns": 180.0,
+      "t_end_ns": 220.0,
       "duration_ns": 40.0,
       "shape": "rect",
       "params": {
@@ -1361,550 +889,6 @@
         "fall_ns": 2.0
       },
       "amp_uA": 0.75
-    },
-    {
-      "id": "P89",
-      "channel": "RO_9",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P90",
-      "channel": "RO_9",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P91",
-      "channel": "RO_9",
-      "t_start_ns": 2610.0,
-      "t_end_ns": 4610.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P92",
-      "channel": "RO_10",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P93",
-      "channel": "RO_10",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P94",
-      "channel": "RO_10",
-      "t_start_ns": 2730.0,
-      "t_end_ns": 4730.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P95",
-      "channel": "RO_11",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P96",
-      "channel": "RO_11",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P97",
-      "channel": "RO_11",
-      "t_start_ns": 2450.0,
-      "t_end_ns": 4450.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P98",
-      "channel": "RO_12",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P99",
-      "channel": "RO_12",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P100",
-      "channel": "RO_12",
-      "t_start_ns": 2510.0,
-      "t_end_ns": 4510.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P101",
-      "channel": "RO_13",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P102",
-      "channel": "RO_13",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P103",
-      "channel": "RO_13",
-      "t_start_ns": 2630.0,
-      "t_end_ns": 4630.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P104",
-      "channel": "RO_14",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P105",
-      "channel": "RO_14",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P106",
-      "channel": "RO_14",
-      "t_start_ns": 2490.0,
-      "t_end_ns": 4490.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P107",
-      "channel": "RO_15",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P108",
-      "channel": "RO_15",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P109",
-      "channel": "RO_15",
-      "t_start_ns": 2430.0,
-      "t_end_ns": 4430.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P110",
-      "channel": "RO_16",
-      "t_start_ns": 0.0,
-      "t_end_ns": 2000.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "stage": "reset_measure",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "reset",
-        "break_stage": "reset_measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P111",
-      "channel": "RO_16",
-      "t_start_ns": 2000.0,
-      "t_end_ns": 2150.0,
-      "duration_ns": 150.0,
-      "shape": "rect",
-      "params": {
-        "stage": "reset_deplete",
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 30.0,
-        "break_keep_tail_ns": 30.0,
-        "break_kind": "reset",
-        "break_stage": "reset_deplete"
-      },
-      "amp_dbm": 0.15,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
-    },
-    {
-      "id": "P112",
-      "channel": "RO_16",
-      "t_start_ns": 2670.0,
-      "t_end_ns": 4670.0,
-      "duration_ns": 2000.0,
-      "shape": "readout",
-      "params": {
-        "rise_ns": 2.0,
-        "fall_ns": 2.0,
-        "breakable": true,
-        "break_keep_head_ns": 60.0,
-        "break_keep_tail_ns": 60.0,
-        "break_kind": "readout",
-        "break_stage": "measure"
-      },
-      "amp_dbm": 0.8,
-      "carrier": {
-        "freq_hz": 8000000000.0,
-        "phase_deg": 0.0
-      }
     }
   ]
 }

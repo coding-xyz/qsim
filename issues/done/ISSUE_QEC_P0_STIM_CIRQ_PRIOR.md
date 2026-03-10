@@ -1,4 +1,4 @@
-# [QEC-P0] 接入 Stim/Cirq 噪声先验生成模块
+﻿# [QEC-P0] 接入 Stim/Cirq 噪声先验生成模块
 
 ## 0. 状态
 - 状态：Done
@@ -47,12 +47,12 @@
 ## 5. 任务拆分
 1. 定义 prior schema（节点、边/超边、权重、边界、元信息）。
 2. 实现 builder 接口与一个默认后端（Stim 或 Cirq）。
-3. 对接 `run_workflow` prior 阶段与产物落盘。
+3. 对接 un_workflow` prior 阶段与产物落盘。
 4. 增加失败回退策略（无依赖时提示安装，不中断主流程可选）。
 
 ## 6. 验收标准（DoD）
 - [ ] 最小样例可生成 `prior_model.json` 且字段完整。
-- [ ] `run_manifest.json` 包含 prior 相关文件及哈希。
+- [ ] un_manifest.json` 包含 prior 相关文件及哈希。
 - [ ] prior 可被下游 decoder 输入结构直接读取。
 - [ ] 缺少 Stim/Cirq 依赖时错误提示明确、可定位。
 
@@ -97,3 +97,4 @@
   - 后续：`ISSUE_QEC_P0_DECODER_MWPM_BP.md`
 - 相关文档：
   - `ISSUE_TEMPLATE.md`
+

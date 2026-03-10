@@ -102,6 +102,40 @@ def state_encoding(trace: Trace) -> str:
     return str(meta.get("state_encoding", "unknown")).strip().lower() or "unknown"
 
 
+def extract_p1_series(trace: Trace) -> list[float]:
+    """Extract a semantically safe single-qubit ``p1(t)`` series from a trace.
+
+    Supported encodings:
+    - ``per_qubit_excited_probability``: use ``row[0]`` for single-qubit case.
+    - ``basis_population_single_qubit``: use ``row[1]``.
+
+    Returns:
+        A list of ``p1`` values aligned with ``trace.times``.
+
+    Raises:
+        ValueError: If the trace encoding cannot be safely interpreted as
+        single-qubit ``p1(t)``.
+    """
+    enc = state_encoding(trace)
+    rows = [row for row in trace.states if row]
+    if not rows:
+        return []
+
+    if enc == "per_qubit_excited_probability":
+        if any(len(row) < 1 for row in rows):
+            raise ValueError("invalid per_qubit_excited_probability rows")
+        if any(len(row) > 1 for row in rows):
+            raise ValueError("per_qubit_excited_probability is not single-qubit")
+        return [float(row[0]) for row in rows]
+
+    if enc == "basis_population_single_qubit":
+        if any(len(row) < 2 for row in rows):
+            raise ValueError("invalid basis_population_single_qubit rows")
+        return [float(row[1]) for row in rows]
+
+    raise ValueError(f"trace encoding does not support single-qubit p1 extraction: {enc}")
+
+
 def pointwise_compare_compatibility(ref: Trace, other: Trace) -> tuple[bool, str]:
     """Return whether two traces support pointwise numeric comparison."""
     ref_enc = state_encoding(ref)

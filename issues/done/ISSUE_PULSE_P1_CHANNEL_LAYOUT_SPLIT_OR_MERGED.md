@@ -1,4 +1,4 @@
-# [PULSE-P1] 可视化支持 XY/Z 分线与 XYZ 并线切换
+﻿# [PULSE-P1] 可视化支持 XY/Z 分线与 XYZ 并线切换
 
 ## 0. 状态
 - 状态：Done
@@ -52,7 +52,7 @@
   - 该能力只应是显示层变换，不应修改输入 `PulseIR`。
   - `XYZ_line_combine=False` 保持当前行为，作为默认值保证兼容性。
   - `XYZ_line_combine=True` 时，仅对符合 `XY_i` / `Z_i` 命名规则的通道进行配对合并。
-  - `RO_i`、`TC_i` 及其他未知命名通道继续单独显示。
+  - O_i`、`TC_i` 及其他未知命名通道继续单独显示。
 - 可替换点/扩展点：
   - 可在 `src/qsim/pulse/visualize.py` 内新增内部 helper，例如：
     - `_build_display_rows(...)`
@@ -72,7 +72,7 @@
 - [ ] `XYZ_line_combine=False` 时，`XY_i` / `Z_i` 继续分线显示。
 - [ ] `XYZ_line_combine=True` 时，`XY_i` / `Z_i` 合并为一个显示行，标签为 `XYZ_i`。
 - [ ] 缺失一侧通道时不报错，仍能正常渲染。
-- [ ] `RO_i`、`TC_i`、其他非 XY/Z 通道不受影响。
+- [ ] O_i`、`TC_i`、其他非 XY/Z 通道不受影响。
 - [ ] DXF 导出与 matplotlib 输出使用一致布局。
 - [ ] metadata 输出仍保留原始 `XY_i` / `Z_i` 通道名。
 - [ ] 现有 notebook / workflow 调用不需要修改即可继续工作。
@@ -83,7 +83,7 @@
   - `XYZ_line_combine=True` 时 `XY_i` / `Z_i` 正确配对。
   - 仅有 `XY_i` 或仅有 `Z_i` 时兼容。
 - 集成测试：
-  - 对一个包含 `XY_0`、`Z_0`、`RO_0` 的 `PulseIR` 生成 timing figure，验证布局结果。
+  - 对一个包含 `XY_0`、`Z_0`、O_0` 的 `PulseIR` 生成 timing figure，验证布局结果。
   - 在启用 DXF 导出时验证不报错且输出成功。
 - 回归测试：
   - 现有 `plot_pulses(..., timing_layout=True)` 路径保持兼容。
@@ -120,3 +120,4 @@
 - `src/qsim/ui/notebook.py`
 - `issues/ISSUE_TEMPLATE.md`
 - `issues/ISSUE_DYN_P0_TRI_ENGINE_DYNAMICS_FULLSTACK.md`
+

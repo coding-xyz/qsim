@@ -1,4 +1,4 @@
-# [PULSE-P1] Breakable Pulse Policy From Lowering and Catalog
+﻿# [PULSE-P1] Breakable Pulse Policy From Lowering and Catalog
 
 ## Status
 - Status: Done
@@ -25,7 +25,7 @@ Define pulse breakability in the semantic recipe layer instead of guessing it in
 ## Current Policy
 - Breakable by default:
   - `measure` readout pulses
-  - selected `reset` stages such as `reset_measure` and `reset_deplete`
+  - selected eset` stages such as eset_measure` and eset_deplete`
 - Not breakable by default:
   - single-qubit gate pulses
   - two-qubit gate pulses
@@ -51,3 +51,4 @@ pytest -q -p no:cacheprovider tests/test_pulse_catalog.py tests/test_pulse_visua
 ## Notes
 - Compatibility aliases remain for old `fold` names, but the preferred public terminology is now `break`.
 - Future DD support can reuse the same semantic breakability mechanism without pushing more heuristics into visualization.
+

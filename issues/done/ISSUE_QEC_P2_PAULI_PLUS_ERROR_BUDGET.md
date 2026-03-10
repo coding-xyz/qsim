@@ -1,4 +1,4 @@
-# [QEC-P2] Pauli+/Kraus 误差预算重构 + Stim/Cirq 引擎接口
+﻿# [QEC-P2] Pauli+/Kraus 误差预算重构 + Stim/Cirq 引擎接口
 
 ## 0. 状态
 - 状态：Done
@@ -15,7 +15,7 @@
   - 定义组件级误差 schema（1Q/CZ/CZ-stray/Measure+Reset/Leakage/DD）
   - 新增 Pauli+ 分析链路与预算产物
   - 新增 Stim/Cirq 引擎接口与最小实现（可先 mock + fallback）
-  - 接入 `run_workflow` + `run_manifest`
+  - 接入 un_workflow` + un_manifest`
 - Out of Scope:
   - 实时解码在线链路（streaming syndrome -> control feedback）
   - 分布式大规模调度系统
@@ -45,7 +45,7 @@
 - 建议新增：`src/qsim/engines/qec_base.py`
 - 接口：
   - `class QECAnalysisEngine(Protocol):`
-    - `run_pauli_plus(model_spec, *, code_distance, shots, seed, options=None) -> dict`
+    - un_pauli_plus(model_spec, *, code_distance, shots, seed, options=None) -> dict`
     - 返回至少含：`epsilon_d`, `metadata`, `engine`, `engine_rev`
 
 ### 5.2 具体实现
@@ -63,7 +63,7 @@
 
 ## 6. 代码改造点
 1. `src/qsim/analysis/pauli_plus.py`
-  - `run_pauli_plus_sim(...)`
+  - un_pauli_plus_sim(...)`
   - `build_scaling_report(...)`
 2. `src/qsim/analysis/error_budget_pauli.py`
   - `build_component_budget(...)`
@@ -87,7 +87,7 @@
 - [ ] 固定 seed 下 `epsilon_3/epsilon_5` 可复现
 - [ ] `error_budget_pauli_plus.json` 至少包含 5 类组件贡献
 - [ ] `qec_engine=stim|cirq|auto|mock` 均可运行（不可用时有清晰 fallback）
-- [ ] `run_manifest.json` 正确登记新产物与引擎元数据
+- [ ] un_manifest.json` 正确登记新产物与引擎元数据
 - [ ] 保留旧 `error_budget_v2.json`，向后兼容
 - [ ] 测试覆盖：单元 + 集成 + 回归
 
@@ -118,3 +118,4 @@
 - `s41586-022-05434-1`（Nature）
 - `41586_2022_5434_MOESM1_ESM`（Supplementary）
 - 当前实现：`src/qsim/analysis/sensitivity.py`
+

@@ -1,4 +1,4 @@
-# [QEC-P0] 实现 MWPM/BP 解码器插件层并接入工作流
+﻿# [QEC-P0] 实现 MWPM/BP 解码器插件层并接入工作流
 
 ## 0. 状态
 - 状态：Done
@@ -14,7 +14,7 @@
 - In Scope：
   - 定义 `IDecoder` 接口与注册机制。
   - 实现 `MWPMDecoder`、`BPDecoder`（基础可运行版本）。
-  - 将 decoder 阶段接入 `run_workflow`，落盘标准结果。
+  - 将 decoder 阶段接入 un_workflow`，落盘标准结果。
 - Out of Scope：
   - 不做神经网络/张量网络解码（后续扩展）。
   - 不做多机分布式性能优化（先单机可复现）。
@@ -34,12 +34,12 @@
 
 ## 4. 技术方案
 - 方案概述：
-  - 新建 `src/qsim/decoder/` 模块：`base.py`, `registry.py`, `mwpm.py`, `bp.py`。
+  - 新建 `src/qsim/decoder/` 模块：`base.py`, egistry.py`, `mwpm.py`, `bp.py`。
   - `DecoderRegistry` 与现有 `AnalysisRegistry` 风格一致，支持版本化注册。
-  - 在 `run_workflow` 中新增 `decode_run` 阶段，并将结果写入 manifest。
+  - 在 un_workflow` 中新增 `decode_run` 阶段，并将结果写入 manifest。
 - 关键设计决策：
   - Decoder 输入输出全走 schema，不直连内部对象，便于替换算法。
-  - 解码失败要结构化输出（`status`, `reason`, `failed_samples`）。
+  - 解码失败要结构化输出（`status`, eason`, `failed_samples`）。
 - 可替换点/扩展点（接口、插件、引擎等）：
   - `IDecoder.run(decoder_input, options) -> DecoderOutput`
   - 后续可扩展 `TensorNetworkDecoder` / `NeuralDecoder`。
@@ -55,13 +55,13 @@
 - [ ] `mwpm` 可在最小样例上跑通并输出标准 `decoder_output.json`。
 - [ ] `bp` 至少具备基础可运行路径（即使精度暂不最优）。
 - [ ] `logical_error.json` 可稳定生成，字段齐全。
-- [ ] `run_manifest.json` 包含 decoder 产物、哈希与 decoder 元数据。
+- [ ] un_manifest.json` 包含 decoder 产物、哈希与 decoder 元数据。
 
 ## 7. 测试计划
 - 单元测试：
   - registry 注册/查找、schema 校验、异常输入处理。
 - 集成测试：
-  - `run_workflow` 含 decoder 全流程跑通（mwpm 与 bp 各一条）。
+  - un_workflow` 含 decoder 全流程跑通（mwpm 与 bp 各一条）。
 - 回归测试：
   - 固定 seed 下结果可重复；不影响无 decoder 的原有流程。
 - 样例数据/命令：
@@ -100,3 +100,4 @@
   - 后续：敏感度分析与误差预算升级
 - 相关文档：
   - `ISSUE_TEMPLATE.md`
+

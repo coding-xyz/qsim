@@ -1,4 +1,4 @@
-# [PULSE-P1] Gate-to-Pulse Mapping Catalog
+﻿# [PULSE-P1] Gate-to-Pulse Mapping Catalog
 
 ## Status
 - Status: Done
@@ -17,16 +17,16 @@ Make the mapping from logical operations to pulse recipes explicit, inspectable,
 
 ## Current Mapping Surface
 - `x`, `sx`, `h`: `XY_*` pulse recipes.
-- `z`, `rz`: `Z_*` pulse recipes.
+- `z`, z`: `Z_*` pulse recipes.
 - `cz`: `TC_*` pulse recipe.
 - `cx`: combined `XY_*` and `TC_*` recipe.
-- `measure`: `RO_*` readout recipe.
-- `reset`: staged recipe including `reset_measure`, `reset_deplete`, feedback latency, and `reset_conditional_pi`.
+- `measure`: O_*` readout recipe.
+- eset`: staged recipe including eset_measure`, eset_deplete`, feedback latency, and eset_conditional_pi`.
 - `barrier`: no-pulse, no-time-advance semantic entry.
 
 ## Acceptance
 - Catalog output distinguishes operation semantics from pulse `shape`.
-- `measure` and `reset` stage structure is explicit.
+- `measure` and eset` stage structure is explicit.
 - Shared recipes such as `x/sx/h` are visible in exported output instead of being hidden in code.
 - Export is available as a standalone artifact.
 - Tests fail if catalog and lowering drift apart.
@@ -44,3 +44,4 @@ pytest -q -p no:cacheprovider tests/test_pulse_catalog.py tests/test_pulse_visua
 ## Notes
 - This issue did not require a `PulseIR` schema redesign.
 - The catalog is now the single practical source of truth for default gate-to-pulse mapping in the current stack.
+

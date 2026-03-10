@@ -1,4 +1,4 @@
-# [QEC-P2] 并行扫描与可靠性增强（Scale + Retry + Repro）
+﻿# [QEC-P2] 并行扫描与可靠性增强（Scale + Retry + Repro）
 
 ## 0. 状态
 - 状态：Done
@@ -30,7 +30,7 @@
   - `decoder_eval_report.json`（增强字段）
   - `decoder_eval_table.csv`
   - `failed_tasks.jsonl`（失败任务明细）
-  - `resume_state.json`（断点状态）
+  - esume_state.json`（断点状态）
 - schema/version：
   - `schema_version: 1.0`
   - `batch_id`, `task_id`, `attempt`, `worker_id`, `input_hash`
@@ -39,7 +39,7 @@
 - 方案概述：
   - 新增 `src/qsim/runtime/executor.py`：任务拆分、并行执行、重试策略。
   - 新增 `src/qsim/runtime/resume.py`：状态落盘与恢复。
-  - 在 `run_workflow(... decoder_eval=True)` 或单独 `eval` 入口接入批执行模式。
+  - 在 un_workflow(... decoder_eval=True)` 或单独 `eval` 入口接入批执行模式。
 - 关键设计决策：
   - 任务最小粒度：`(decoder, seed, option_set)`。
   - 每个任务独立产生日志与结果，汇总层只做聚合，避免单点失败拖垮整批。
@@ -51,15 +51,15 @@
 ## 5. 任务拆分
 1. 设计批任务 schema（task_id、状态机、重试元数据）。
 2. 实现本地并行执行器与限流。
-3. 实现失败重试与 `resume_state.json`。
+3. 实现失败重试与 esume_state.json`。
 4. 增加批处理汇总输出（`batch_manifest.json`、失败明细）。
 5. 接入 CLI 参数（并行度、重试、resume 开关）。
 
 ## 6. 验收标准（DoD）
 - [ ] 同一批任务在并行模式下可稳定完成并输出完整汇总。
 - [ ] 人为注入失败后可自动重试并在可恢复场景成功续跑。
-- [ ] 中断后可基于 `resume_state.json` 从未完成任务继续执行。
-- [ ] `run_manifest/batch_manifest` 包含任务级输入签名与失败原因。
+- [ ] 中断后可基于 esume_state.json` 从未完成任务继续执行。
+- [ ] un_manifest/batch_manifest` 包含任务级输入签名与失败原因。
 
 ## 7. 测试计划
 - 单元测试：
@@ -100,3 +100,4 @@
 - `src/qsim/qec/eval.py`
 - `scripts/cleanup_test_artifacts.ps1`
 - `ISSUE_QEC_P0_ROADMAP.md`
+

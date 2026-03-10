@@ -1,4 +1,4 @@
-# [DYN-P1] 统一三引擎 trace / observables 语义，避免 Julia 结果被误解释为多比特观测量
+﻿# [DYN-P1] 统一三引擎 trace / observables 语义，避免 Julia 结果被误解释为多比特观测量
 ## 0. 状态
 - 状态：Done
 - 负责人：Codex
@@ -6,7 +6,7 @@
 
 ## 1. 背景与目标
 - 背景：
-  - `required_tasks.txt` 要求同一批动力学任务在 `qutip`、`quantumtoolbox.jl`、`quantumoptics.jl` 三个 backend 上做横向对比。
+  - equired_tasks.txt` 要求同一批动力学任务在 `qutip`、`quantumtoolbox.jl`、`quantumoptics.jl` 三个 backend 上做横向对比。
   - 2026-03-03 的本地探针显示，三引擎虽然都能真实运行，但 `trace.states` 的行语义并未对齐：
     - `qutip` 单比特常返回长度为 1 的激发概率向量，例如 `[p1]`。
     - `qutip` 两比特常返回长度为 2 的逐比特激发概率，例如 `[p1(q0), p1(q1)]`。
@@ -43,7 +43,7 @@
   - 对 `cross_engine_compare` 仅在语义同构时输出逐项误差。
 - 关键设计决策：
   - 不对多比特 Julia 输出做无依据强行投影；遇到无法安全解释的情况，标记为 `ambiguous_population_vector`。
-  - `cross_engine_compare` 用显式 `comparable: false` + `reason` 代替静默错误比较。
+  - `cross_engine_compare` 用显式 `comparable: false` + eason` 代替静默错误比较。
 - 可替换点 / 扩展点：
   - 后续如要做更强 canonicalization，可在 `trace_semantics.py` 上继续扩展。
 
@@ -74,7 +74,7 @@
   - `observables` 对不同 state encoding 的分支处理。
   - canonicalization helper 对 1Q / 2Q 输入的转换。
 - 集成测试：
-  - `run_workflow(..., engine=...)` 在三引擎下产出的 summary 字段对齐。
+  - un_workflow(..., engine=...)` 在三引擎下产出的 summary 字段对齐。
   - `cross_engine_compare.json` 在语义不一致时给出明确提示而非静默比较。
 - 回归测试：
   - 现有 QuTiP 工作流与 QEC 流程不回退。
@@ -125,3 +125,4 @@
 - [src/qsim/engines/julia_qtoolbox.py](/d:/超导量子计算机噪声抑制/qsim/src/qsim/engines/julia_qtoolbox.py)
 - [src/qsim/engines/julia_qoptics.py](/d:/超导量子计算机噪声抑制/qsim/src/qsim/engines/julia_qoptics.py)
 - [required_tasks.txt](/d:/超导量子计算机噪声抑制/qsim/required_tasks.txt)
+
