@@ -9,7 +9,7 @@
 
 ## 1. 离线处理全流程
 
-离线模式下，一次 `run_workflow(...)` 会生成可复现产物，按以下顺序执行：
+离线模式下，一次 `run_task(task)` 会生成可复现产物，按以下顺序执行：
 
 1. 读取电路和后端配置，完成编译/Lowering/求解，得到 `trace`。
 2. 从 `trace` 阈值化构造 `SyndromeFrame`（QEC 输入）。
@@ -22,7 +22,8 @@
 
 这条链路的入口在：
 
-- `src/qsim/ui/notebook.py::run_workflow`
+- 用户/程序入口：`src/qsim/workflow/__init__.py::run_task`
+- 执行主体：`src/qsim/workflow/pipeline.py::run_task`
 
 ## 2. 误差分析流程（逻辑层）
 
@@ -39,7 +40,7 @@
 ### Step A: 从 trace 生成 syndrome
 
 - 代码：
-  - `src/qsim/ui/notebook.py` 中 `SyndromeFrame(...)` 构造段
+  - `src/qsim/workflow/pipeline.py` 中 `SyndromeFrame(...)` 构造段
 - 输入：
   - `trace.times`, `trace.states`
 - 输出：
@@ -146,7 +147,7 @@
 - 代码：
   - `qsim.common.schemas.write_json`
   - `qsim.common.schemas.RunManifest`
-  - `src/qsim/ui/notebook.py` 的 artifact write + manifest write 段
+  - `src/qsim/workflow/pipeline.py` 的 artifact write + manifest write 段
 - 输出：
   - `run_manifest.json`
   - `timings.json`
@@ -184,5 +185,6 @@
 - Decoder：`src/qsim/qec/decoder.py`
 - Eval：`src/qsim/qec/eval.py`
 - Sensitivity：`src/qsim/analysis/sensitivity.py`
-- Workflow 入口：`src/qsim/ui/notebook.py`
+- Workflow 入口：`src/qsim/workflow/__init__.py`
+- Workflow 执行编排：`src/qsim/workflow/pipeline.py`
 

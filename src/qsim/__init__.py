@@ -1,5 +1,17 @@
-"""qsim public package exports."""
+﻿"""qsim public package exports."""
 
-from qsim.ui.notebook import run_workflow
+from qsim.workflow import (
+    load_hardware_config_file,
+    load_solver_config_file,
+    load_task_config_file,
+    run_task,
+    run_task_files,
+)
 
-__all__ = ["run_workflow"]
+__all__ = [
+    "load_task_config_file",
+    "load_solver_config_file",
+    "load_hardware_config_file",
+    "run_task",
+    "run_task_files",
+]

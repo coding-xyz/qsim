@@ -1,25 +1,19 @@
-# Issues Index
+﻿# Issues Index
 
 状态说明：
-- `In Progress`：已立项，但仍有未完成内容、未验证项或未落地产物。
-- `Done`：按 issue 中定义的必做项完成验收，并已移入 `issues/done/`。
-- `Template`：新建 issue 时使用的模板。
+- `In Progress`：已立项，仍在执行。
+- `Done`：按 issue 验收完成并已归档到 `issues/done/`。
+- `Failed`：历史失败项，仅留档参考。
+- `Template`：新建 issue 使用模板。
 
 完成规则：
-- issue 中列出的要求默认全部视为必做项，除非 issue 明确写出例外。
-- 只要实现、验证、文档或产物有缺项，该 issue 就不能进入 `Done`。
-- 验收完成后，issue 文件应移动到 `issues/done/`。
-
-固定流程：
-1. 先完成代码修改与必要测试。
-2. 每次改完提交前，都要检查并更新相关 `docstring`。
-3. 每次改完提交前，都要更新 `docs/` 下对应文档。
-4. `docs/site/` 视为构建产物，默认不直接手改；优先更新 `docs/src/` 或文档源文件。
-5. 只有当代码、测试、`docstring`、`docs/` 都同步完成后，issue 才能标记为完成。
+1. 代码、测试、`docstring`、`docs/` 都完成后，issue 才能标记完成。
+2. `docs/site/` 视为构建产物，优先维护 `docs/src/`，并通过构建同步。
+3. 标记完成后，issue 文件移动到 `issues/done/`。
 
 ## In Progress
 
-- none (closed on 2026-03-10)
+- （暂无）
 
 ## Done
 
@@ -37,17 +31,18 @@
 - [ISSUE_QEC_P1_SENSITIVITY_AND_ERROR_BUDGET.md](./done/ISSUE_QEC_P1_SENSITIVITY_AND_ERROR_BUDGET.md)
 - [ISSUE_QEC_P2_PAULI_PLUS_ERROR_BUDGET.md](./done/ISSUE_QEC_P2_PAULI_PLUS_ERROR_BUDGET.md)
 - [ISSUE_QEC_P2_SCALE_AND_RELIABILITY.md](./done/ISSUE_QEC_P2_SCALE_AND_RELIABILITY.md)
+- [ISSUE_UI_P0_WORKFLOW_FINAL_SHAPE_TASK_ONLY.md](./done/ISSUE_UI_P0_WORKFLOW_FINAL_SHAPE_TASK_ONLY.md)
+- [ISSUE_UI_P1_WORKFLOW_REFACTOR_TASK_DRIVEN_PIPELINE.md](./done/ISSUE_UI_P1_WORKFLOW_REFACTOR_TASK_DRIVEN_PIPELINE.md)
+- [ISSUE_UI_P1_WORKFLOW_TARGET_DEPENDENCY_TEMPLATE_PLAN.md](./done/ISSUE_UI_P1_WORKFLOW_TARGET_DEPENDENCY_TEMPLATE_PLAN.md)
+- [ISSUE_UI_P1_WORKFLOW_ARTIFACT_WRITER_STRUCTURED_SERVICE.md](./done/ISSUE_UI_P1_WORKFLOW_ARTIFACT_WRITER_STRUCTURED_SERVICE.md)
+- [ISSUE_UI_P0_WORKFLOW_TASK_SOLVER_HARDWARE_SPLIT_AND_TARGET_SCHEMA.md](./done/ISSUE_UI_P0_WORKFLOW_TASK_SOLVER_HARDWARE_SPLIT_AND_TARGET_SCHEMA.md)
 
 ## Template
 
 - [ISSUE_TEMPLATE.md](./ISSUE_TEMPLATE.md)
 
-## Failed (Archived 2026-03-10)
+## Failed
 
 - [ISSUE_DYN_P1_TASK1_SINGLE_QUBIT_VISUAL_AND_NATIVE_REFERENCE.md](./failed/ISSUE_DYN_P1_TASK1_SINGLE_QUBIT_VISUAL_AND_NATIVE_REFERENCE.md)
 - [ISSUE_QEC_P0_ROADMAP.md](./failed/ISSUE_QEC_P0_ROADMAP.md)
 - [ISSUE_UI_P1_NOTEBOOK_CONFIG_AND_RESULT_HELPERS.md](./failed/ISSUE_UI_P1_NOTEBOOK_CONFIG_AND_RESULT_HELPERS.md)
-
-Notes:
-- All active issues were closed as `Failed` on 2026-03-10.
-- Root copies may remain if the local filesystem blocks move/delete operations.

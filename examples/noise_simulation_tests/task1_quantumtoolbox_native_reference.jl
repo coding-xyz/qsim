@@ -37,7 +37,7 @@ function run_case(; delta::Float64, omega::Float64, T1::Float64, T2::Float64, t_
         push!(c_ops, sqrt(gamma_phi) * sz)
     end
 
-    p1_op = 0.5 * (qeye(2) - sz)
+    p1_op = 0.5 * (qeye(2) + sz)
     times = collect(0.0:dt:t_end)
     sol = mesolve(H, rho0, times, c_ops; e_ops=[p1_op], progress_bar=Val(false))
 
@@ -50,7 +50,7 @@ function run_case(; delta::Float64, omega::Float64, T1::Float64, T2::Float64, t_
     return times, p1
 end
 
-omega_eff = 0.08
+omega_eff = 0.2
 cases = Dict(
     "baseline" => (delta=5.0, T1=120.0, T2=90.0, t_end=240.0, dt=1.0),
     "detuned" => (delta=5.2, T1=80.0, T2=55.0, t_end=256.0, dt=1.0),

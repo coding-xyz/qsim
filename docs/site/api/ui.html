@@ -14,6 +14,8 @@
         <link rel="prev" href="session.html">
       
       
+        <link rel="next" href="workflow.html">
+      
       
         
       
@@ -383,6 +385,34 @@
     
   
     概览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/workflow_task_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow 用法
   
 
     
@@ -1058,11 +1088,61 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#qsim.ui.notebook.run_workflow" class="md-nav__link">
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimuiresult_summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        run_workflow
+        qsim.ui.result_summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        result_summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="result_summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary.attach_compare_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        attach_compare_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary.collect_pulse_metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        collect_pulse_metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary.summarize_workflow_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        summarize_workflow_result
       
     </span>
   </a>
@@ -1078,6 +1158,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="workflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1200,11 +1308,61 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#qsim.ui.notebook.run_workflow" class="md-nav__link">
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimuiresult_summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        run_workflow
+        qsim.ui.result_summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        result_summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="result_summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary.attach_compare_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        attach_compare_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary.collect_pulse_metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        collect_pulse_metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.ui.result_summary.summarize_workflow_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        summarize_workflow_result
       
     </span>
   </a>
@@ -1250,7 +1408,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>Command-line interface for running qsim workflows.</p>
+        <p>Command-line interface for task/solver/hardware-driven workflow execution.</p>
 
 
 
@@ -1283,7 +1441,7 @@
 
     <div class="doc doc-contents ">
 
-        <p>Build command-line parser for qsim workflow entrypoint.</p>
+        <p>Build parser for 3-config workflow execution.</p>
 
 
     </div>
@@ -1306,7 +1464,7 @@
 
 <details class="example" open>
   <summary>Example</summary>
-  <div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run<span class="w"> </span>--qasm<span class="w"> </span>examples/bell.qasm<span class="w"> </span>--backend<span class="w"> </span>examples/backend.yaml<span class="w"> </span>--out<span class="w"> </span>runs/demo
+  <div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>--task-config<span class="w"> </span>tasks/demo.yaml<span class="w"> </span>--solver-config<span class="w"> </span>solvers/qutip.yaml<span class="w"> </span>--hardware-config<span class="w"> </span>hw/default.yaml
 </code></pre></div>
 </details>
 
@@ -1335,7 +1493,9 @@
 
     <div class="doc doc-contents first">
 
-        <p>Notebook-oriented workflow orchestration and artifact export helpers.</p>
+        <p>Notebook helper utilities.</p>
+<p>Workflow execution entrypoint is <code>qsim.workflow.run_task</code>.
+This module keeps plotting helpers only.</p>
 
 
 
@@ -1368,9 +1528,70 @@
 
     <div class="doc doc-contents ">
 
-        <p>Create default plotting bundle from <code>run_workflow</code> result.</p>
+        <p>Create default plotting bundle from <code>run_task</code> result.</p>
 <p>Returns a dict containing matplotlib figures with keys:
 <code>pulses</code>, <code>trace</code>, and <code>report</code>.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimuiresult_summary"><code>qsim.ui.result_summary</code><a class="headerlink" href="#qsimuiresult_summary" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.ui.result_summary" class="doc doc-heading">
+            <code>qsim.ui.result_summary</code>
+
+
+<a href="#qsim.ui.result_summary" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Helpers for summarizing workflow results in notebooks and lightweight UIs.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.ui.result_summary.attach_compare_status" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">attach_compare_status</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></code>
+
+<a href="#qsim.ui.result_summary.attach_compare_status" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Annotate whether rows in a task/case group are pointwise comparable.</p>
 
 
     </div>
@@ -1380,597 +1601,34 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="qsim.ui.notebook.run_workflow" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">run_workflow</span><span class="p">(</span><span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">hardware</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">schedule_policy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reset_feedback_policy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;qutip&#39;</span><span class="p">,</span> <span class="n">solver_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">param_bindings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compare_engines</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">julia_bin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="o">=</span><span class="mf">120.0</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">prior_backend</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">decoder</span><span class="o">=</span><span class="s1">&#39;mwpm&#39;</span><span class="p">,</span> <span class="n">decoder_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">qec_engine</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">pauli_plus_analysis</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pauli_plus_code_distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pauli_plus_shots</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span> <span class="n">decoder_eval</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eval_decoders</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eval_seeds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eval_option_grid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eval_parallelism</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">eval_retries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">eval_resume</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">export_dxf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">export_plots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+<h3 id="qsim.ui.result_summary.collect_pulse_metrics" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">collect_pulse_metrics</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span></code>
 
-<a href="#qsim.ui.notebook.run_workflow" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#qsim.ui.result_summary.collect_pulse_metrics" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Run the full qsim workflow and optionally persist artifacts.</p>
+        <p>Extract simple per-channel pulse metrics from workflow artifacts.</p>
 
 
-<p><span class="doc-section-title">参数：</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>名称</th>
-          <th>类型</th>
-          <th>描述</th>
-          <th>默认</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>qasm_text</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>OpenQASM 3 program text.</p>
-              </div>
-            </td>
-            <td>
-                <em>必需</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>backend_path</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Path to backend YAML config.</p>
-              </div>
-            </td>
-            <td>
-                <em>必需</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>out_dir</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Output directory for generated artifacts.</p>
-              </div>
-            </td>
-            <td>
-                <em>必需</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>hardware</code>
-            </td>
-            <td>
-                  <code><span title="dict">dict</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional hardware/model override parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>schedule_policy</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional lowering schedule policy: <code>serial|parallel|hybrid</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>reset_feedback_policy</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional reset feedback policy: <code>parallel|serial_global</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>noise</code>
-            </td>
-            <td>
-                  <code><span title="dict">dict</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional noise override parameters.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>engine</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Engine name, e.g. <code>qutip</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>&#39;qutip&#39;</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>solver_mode</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional solver override: <code>se|me|mcwf</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>param_bindings</code>
-            </td>
-            <td>
-                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="float">float</span>] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional parameter bindings for OpenQASM expressions.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>compare_engines</code>
-            </td>
-            <td>
-                  <code><span title="list">list</span>[<span title="str">str</span>] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional engine list for cross-engine compare artifact.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>allow_mock_fallback</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Whether Julia engines may fallback to mock output.</p>
-              </div>
-            </td>
-            <td>
-                  <code>False</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>julia_bin</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional explicit Julia executable path.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>julia_depot_path</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional Julia depot path for package environment.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>julia_timeout_s</code>
-            </td>
-            <td>
-                  <code><span title="float">float</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Julia subprocess timeout in seconds.</p>
-              </div>
-            </td>
-            <td>
-                  <code>120.0</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>mcwf_ntraj</code>
-            </td>
-            <td>
-                  <code><span title="int">int</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>MCWF trajectories for engines that support trajectory solvers.</p>
-              </div>
-            </td>
-            <td>
-                  <code>128</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>prior_backend</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Prior backend selector: <code>auto|stim|cirq|mock</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>&#39;auto&#39;</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>decoder</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Decoder selector: <code>mwpm|bp|mock</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>&#39;mwpm&#39;</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>decoder_options</code>
-            </td>
-            <td>
-                  <code><span title="dict">dict</span> | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional decoder runtime options.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>qec_engine</code>
-            </td>
-            <td>
-                  <code><span title="str">str</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>QEC analysis engine selector: <code>auto|stim|cirq|mock</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>&#39;auto&#39;</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>pauli_plus_analysis</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Enable Pauli+/Kraus-aligned scaling and budget outputs.</p>
-              </div>
-            </td>
-            <td>
-                  <code>False</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>pauli_plus_code_distances</code>
-            </td>
-            <td>
-                  <code><span title="list">list</span>[<span title="int">int</span>] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Code distances for scaling report (defaults to <code>[3, 5]</code>).</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>pauli_plus_shots</code>
-            </td>
-            <td>
-                  <code><span title="int">int</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Shots per code distance for Pauli+ simulation.</p>
-              </div>
-            </td>
-            <td>
-                  <code>20000</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>decoder_eval</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Enable decoder benchmark sweep report generation.</p>
-              </div>
-            </td>
-            <td>
-                  <code>False</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>eval_decoders</code>
-            </td>
-            <td>
-                  <code><span title="list">list</span>[<span title="str">str</span>] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Decoder set for evaluation; defaults to <code>[decoder, "bp"]</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>eval_seeds</code>
-            </td>
-            <td>
-                  <code><span title="list">list</span>[<span title="int">int</span>] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Seeds for evaluation sweep; defaults to <code>[cfg.seed]</code>.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>eval_option_grid</code>
-            </td>
-            <td>
-                  <code><span title="list">list</span>[<span title="dict">dict</span>] | None</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Hyperparameter option grid for evaluation.</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>eval_parallelism</code>
-            </td>
-            <td>
-                  <code><span title="int">int</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Parallel workers for evaluation tasks.</p>
-              </div>
-            </td>
-            <td>
-                  <code>1</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>eval_retries</code>
-            </td>
-            <td>
-                  <code><span title="int">int</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Retry count for failed eval tasks.</p>
-              </div>
-            </td>
-            <td>
-                  <code>0</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>eval_resume</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Resume from <code>resume_state.json</code> if available.</p>
-              </div>
-            </td>
-            <td>
-                  <code>False</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>persist_artifacts</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Whether to write artifacts to disk.</p>
-              </div>
-            </td>
-            <td>
-                  <code>True</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>export_dxf</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Whether to export DXF timing diagram.</p>
-              </div>
-            </td>
-            <td>
-                  <code>True</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>export_plots</code>
-            </td>
-            <td>
-                  <code><span title="bool">bool</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Whether to export PNG figures for circuit/pulse/trace/report.</p>
-              </div>
-            </td>
-            <td>
-                  <code>True</code>
-            </td>
-          </tr>
-      </tbody>
-    </table>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
 
 
-    <p><span class="doc-section-title">返回：</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>类型</th>
-          <th>描述</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="dict">dict</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>A result dict containing circuit, model, trace, analysis, and timings.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
+<h3 id="qsim.ui.result_summary.summarize_workflow_result" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">summarize_workflow_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">task_tag</span><span class="p">,</span> <span class="n">task_title</span><span class="p">,</span> <span class="n">case_tag</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">hardware</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+
+<a href="#qsim.ui.result_summary.summarize_workflow_result" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
-<details class="example" open>
-  <summary>Example</summary>
-  <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qsim.ui.notebook</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_workflow</span>
+    <div class="doc doc-contents ">
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">run_workflow</span><span class="p">(</span>
-    <span class="n">qasm_text</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;examples/bell.qasm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">),</span>
-    <span class="n">backend_path</span><span class="o">=</span><span class="s2">&quot;examples/backend.yaml&quot;</span><span class="p">,</span>
-    <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;runs/demo_docs&quot;</span><span class="p">,</span>
-    <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;qutip&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;trace&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;timings&quot;</span><span class="p">][</span><span class="s2">&quot;total&quot;</span><span class="p">])</span>
-</code></pre></div>
-</details>
+        <p>Build one flat summary row from a <code>run_task</code> result payload.</p>
+
 
     </div>
 

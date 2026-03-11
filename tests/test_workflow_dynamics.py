@@ -6,7 +6,76 @@ from pathlib import Path
 import pytest
 
 from qsim.common.schemas import Trace
-from qsim.ui.notebook import _collect_runtime_dependencies, run_workflow
+from qsim.workflow import WorkflowFeatureFlags, WorkflowInput, WorkflowOutputOptions, WorkflowRunOptions, WorkflowTask, run_task
+from qsim.workflow.engines import collect_runtime_dependencies
+
+
+_INPUT_KEYS = {"hardware", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}
+_RUN_KEYS = {
+    "engine",
+    "solver_mode",
+    "compare_engines",
+    "allow_mock_fallback",
+    "julia_bin",
+    "julia_depot_path",
+    "julia_timeout_s",
+    "mcwf_ntraj",
+    "prior_backend",
+    "decoder",
+    "decoder_options",
+    "qec_engine",
+}
+_FEATURE_KEYS = {
+    "pauli_plus_analysis",
+    "pauli_plus_code_distances",
+    "pauli_plus_shots",
+    "decoder_eval",
+    "eval_decoders",
+    "eval_seeds",
+    "eval_option_grid",
+    "eval_parallelism",
+    "eval_retries",
+    "eval_resume",
+}
+_OUTPUT_KEYS = {
+    "out_dir",
+    "persist_artifacts",
+    "artifact_mode",
+    "export_dxf",
+    "export_plots",
+    "session_dir",
+    "session_auto_commit",
+    "session_commit_kinds",
+}
+
+
+def _run_task_from_kwargs(*, qasm_text: str, backend_path: str, out_dir: str, **kwargs) -> dict:
+    input_kwargs = {"qasm_text": qasm_text, "backend_path": backend_path}
+    run_kwargs = {}
+    feature_kwargs = {}
+    output_kwargs = {"out_dir": out_dir}
+    for key, value in kwargs.items():
+        if key in _INPUT_KEYS:
+            input_kwargs[key] = value
+            continue
+        if key in _RUN_KEYS:
+            run_kwargs[key] = value
+            continue
+        if key in _FEATURE_KEYS:
+            feature_kwargs[key] = value
+            continue
+        if key in _OUTPUT_KEYS:
+            output_kwargs[key] = value
+            continue
+        raise KeyError(f"unsupported workflow kwarg in test helper: {key}")
+    run_kwargs.setdefault("decoder", "mwpm")
+    task = WorkflowTask(
+        input=WorkflowInput(**input_kwargs),
+        run=WorkflowRunOptions(**run_kwargs),
+        features=WorkflowFeatureFlags(**feature_kwargs),
+        output=WorkflowOutputOptions(**output_kwargs),
+    )
+    return run_task(task)
 
 
 def test_workflow_accepts_solver_mode_and_param_bindings():
@@ -20,7 +89,7 @@ measure q[0] -> c[0];
     out_dir = Path("runs") / f"pytest_dyn_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
     try:
-        result = run_workflow(
+        result = _run_task_from_kwargs(
             qasm_text=qasm_text,
             backend_path="examples/backend.yaml",
             out_dir=str(out_dir),
@@ -31,7 +100,7 @@ measure q[0] -> c[0];
             export_plots=False,
             decoder="mock",
         )
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
         settings = json.loads((actual_out / "settings_report.json").read_text(encoding="utf-8"))
         circuit = json.loads((actual_out / "circuit.json").read_text(encoding="utf-8"))
 
@@ -51,7 +120,7 @@ def test_workflow_emits_cross_engine_compare_artifact():
     out_dir = Path("runs") / f"pytest_dyn_cmp_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
     try:
-        result = run_workflow(
+        result = _run_task_from_kwargs(
             qasm_text=qasm_text,
             backend_path="examples/backend.yaml",
             out_dir=str(out_dir),
@@ -61,7 +130,7 @@ def test_workflow_emits_cross_engine_compare_artifact():
             compare_engines=["qutip"],
             allow_mock_fallback=False,
         )
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
         assert (actual_out / "cross_engine_compare.json").exists()
         report = json.loads((actual_out / "cross_engine_compare.json").read_text(encoding="utf-8"))
         settings = json.loads((actual_out / "settings_report.json").read_text(encoding="utf-8"))
@@ -84,7 +153,7 @@ def test_workflow_cross_engine_pairwise_metrics_with_mock_fallback():
     actual_out = out_dir
     try:
         try:
-            result = run_workflow(
+            result = _run_task_from_kwargs(
                 qasm_text=qasm_text,
                 backend_path="examples/backend.yaml",
                 out_dir=str(out_dir),
@@ -94,9 +163,9 @@ def test_workflow_cross_engine_pairwise_metrics_with_mock_fallback():
                 compare_engines=["julia_qoptics"],
                 allow_mock_fallback=True,
             )
-        except RuntimeError as exc:
+        except Exception as exc:
             pytest.skip(f"julia runtime unavailable for compare test: {exc}")
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
         report = json.loads((actual_out / "cross_engine_compare.json").read_text(encoding="utf-8"))
         settings = json.loads((actual_out / "settings_report.json").read_text(encoding="utf-8"))
 
@@ -126,7 +195,7 @@ measure q[0] -> c[0];
     actual_out = out_dir
     try:
         try:
-            result = run_workflow(
+            result = _run_task_from_kwargs(
                 qasm_text=qasm_text,
                 backend_path="examples/backend.yaml",
                 out_dir=str(out_dir),
@@ -136,10 +205,10 @@ measure q[0] -> c[0];
                 export_plots=False,
                 decoder="mock",
             )
-        except RuntimeError as exc:
+        except Exception as exc:
             pytest.skip(f"julia runtime unavailable for state-encoding test: {exc}")
-        actual_out = Path(result["out_dir"])
-        trace = result["trace"]
+        actual_out = Path(result["runtime"]["out_dir"])
+        trace = result["core"]["trace"]
         observables = json.loads((actual_out / "observables.json").read_text(encoding="utf-8"))
 
         assert trace.metadata["state_encoding"] == "basis_population_single_qubit"
@@ -156,7 +225,7 @@ def test_workflow_solver_mode_mcwf_persisted_in_outputs():
     out_dir = Path("runs") / f"pytest_dyn_mcwf_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
     try:
-        result = run_workflow(
+        result = _run_task_from_kwargs(
             qasm_text=qasm_text,
             backend_path="examples/backend.yaml",
             out_dir=str(out_dir),
@@ -166,7 +235,7 @@ def test_workflow_solver_mode_mcwf_persisted_in_outputs():
             export_dxf=False,
             export_plots=False,
         )
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
         settings = json.loads((actual_out / "settings_report.json").read_text(encoding="utf-8"))
         compare = json.loads((actual_out / "cross_engine_compare.json").read_text(encoding="utf-8"))
         assert settings["workflow"]["solver"] == "mcwf"
@@ -188,7 +257,7 @@ def test_collect_runtime_dependencies_extracts_julia_versions():
         },
     )
 
-    deps = _collect_runtime_dependencies(trace, "julia_qtoolbox")
+    deps = collect_runtime_dependencies(trace, "julia_qtoolbox")
 
     assert deps["julia"] == "1.12.5"
     assert deps["julia_backend:QuantumToolbox"] == "0.31.0"

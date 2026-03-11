@@ -49,12 +49,12 @@ function run_case(; delta::Float64, omega::Float64, T1::Float64, T2::Float64, t_
         H,
         J;
         rates=rates,
-        fout=(t, rho) -> real((1.0 - expect(sz, rho)) / 2.0),
+        fout=(t, rho) -> real((1.0 + expect(sz, rho)) / 2.0),
     )
     return times, Float64.(p1)
 end
 
-omega_eff = 0.08
+omega_eff = 0.2
 cases = Dict(
     "baseline" => (delta=5.0, T1=120.0, T2=90.0, t_end=240.0, dt=1.0),
     "detuned" => (delta=5.2, T1=80.0, T2=55.0, t_end=256.0, dt=1.0),

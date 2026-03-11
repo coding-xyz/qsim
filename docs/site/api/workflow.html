@@ -1,0 +1,4767 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="qsim 使用指南、实现 Wiki 与自动生成 API 参考">
+      
+      
+      
+      
+        <link rel="prev" href="ui.html">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>workflow - qsim 文档</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-workflow" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../index.html" title="qsim 文档" class="md-header__button md-logo" aria-label="qsim 文档" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            qsim 文档
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              workflow
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../WIKI.html" class="md-tabs__link">
+          
+  
+  
+  Wiki
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="index.html" class="md-tabs__link">
+          
+  
+  
+  API 参考
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="qsim 文档" class="md-nav__button md-logo" aria-label="qsim 文档" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    qsim 文档
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wiki
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Wiki
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../WIKI.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    入口
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/overview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/workflow_task_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow 用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/circuit.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    电路层
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/backend_model.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    后端与模型
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/noise_engine.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    噪声与求解器
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/visualization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    可视化
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/io_session.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IO 与会话
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/qec_analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    量子纠错
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wiki/gaps.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    差距清单
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 参考
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API 参考
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    总览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="backend.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    backend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="circuit.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    circuit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="common.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    common
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="engines.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    engines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="pulse.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pulse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="qec.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    qec
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="session.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    session
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ui.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ui
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    workflow
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="workflow.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowcontracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.contracts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contracts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="contracts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.SolverBackendConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SolverBackendConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.TaskInputConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TaskInputConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowFeatureFlags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowFeatureFlags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowHardwareConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowHardwareConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowInput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowInput
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowOutputOptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowOutputOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowRunOptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowRunOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowSolverConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowSolverConfig
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WorkflowSolverConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowSolverConfig.to_backend_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_backend_config
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowTask" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowTask
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowTaskConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowTaskConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.compose_workflow_task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compose_workflow_task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.normalize_targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        normalize_targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowengines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.engines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        engines
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="engines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.canonical_engine_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        canonical_engine_name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.collect_runtime_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        collect_runtime_dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.run_cross_engine_compare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_cross_engine_compare
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.select_engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        select_engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.trace_pair_metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trace_pair_metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.trace_summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trace_summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        output
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.build_settings_report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_settings_report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.export_circuit_diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_circuit_diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.export_result_figures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_result_figures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.resolve_writable_out_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resolve_writable_out_dir
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.sha256_text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sha256_text
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.write_pulse_npz_with_fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_pulse_npz_with_fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.write_trace_h5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_trace_h5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowpersistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.persistence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        persistence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="persistence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactPayload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArtifactPayload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactWritePolicy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArtifactWritePolicy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactWriteReport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArtifactWriteReport
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ArtifactWriteReport">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactWriteReport.relpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        relpath
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.build_manifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_manifest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.export_visualizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_visualizations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.gather_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gather_dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.write_artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline.plot_default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline.run_task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline.run_task_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_task_files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowplanner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.planner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.planner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        planner
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="planner">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.planner.ExecutionPlan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.planner.TargetRule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetRule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.planner.build_execution_plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_execution_plan
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowplugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plugins
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="plugins">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins.run_cross_engine_compare_plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_cross_engine_compare_plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins.run_decoder_eval_plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_decoder_eval_plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins.run_pauli_plus_plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_pauli_plus_plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowsession_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.session_adapter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.session_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        session_adapter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="session_adapter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.session_adapter.commit_result_to_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        commit_result_to_session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowstages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.stages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="stages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.parse_compile_lower_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parse_compile_lower_model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.run_analysis_stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_analysis_stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.run_decode_stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_decode_stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.run_engine_stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_engine_stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowtask_io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.task_io
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        task_io
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="task_io">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_config_bundle_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_config_bundle_files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_hardware_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_hardware_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_solver_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_solver_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_task_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_task_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_task_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_task_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowcontracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.contracts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contracts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="contracts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.SolverBackendConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SolverBackendConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.TaskInputConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TaskInputConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowFeatureFlags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowFeatureFlags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowHardwareConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowHardwareConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowInput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowInput
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowOutputOptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowOutputOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowRunOptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowRunOptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowSolverConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowSolverConfig
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WorkflowSolverConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowSolverConfig.to_backend_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_backend_config
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowTask" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowTask
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowTaskConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowTaskConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.compose_workflow_task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compose_workflow_task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.normalize_targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        normalize_targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowengines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.engines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        engines
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="engines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.canonical_engine_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        canonical_engine_name
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.collect_runtime_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        collect_runtime_dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.run_cross_engine_compare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_cross_engine_compare
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.select_engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        select_engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.trace_pair_metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trace_pair_metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.engines.trace_summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trace_summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        output
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.build_settings_report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_settings_report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.export_circuit_diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_circuit_diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.export_result_figures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_result_figures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.resolve_writable_out_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resolve_writable_out_dir
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.sha256_text" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sha256_text
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.write_pulse_npz_with_fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_pulse_npz_with_fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.output.write_trace_h5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_trace_h5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowpersistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.persistence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        persistence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="persistence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactPayload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArtifactPayload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactWritePolicy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArtifactWritePolicy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactWriteReport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArtifactWriteReport
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ArtifactWriteReport">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.ArtifactWriteReport.relpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        relpath
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.build_manifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_manifest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.export_visualizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        export_visualizations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.gather_dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gather_dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.persistence.write_artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        write_artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline.plot_default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot_default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline.run_task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.pipeline.run_task_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_task_files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowplanner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.planner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.planner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        planner
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="planner">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.planner.ExecutionPlan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExecutionPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.planner.TargetRule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TargetRule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.planner.build_execution_plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_execution_plan
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowplugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plugins
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="plugins">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins.run_cross_engine_compare_plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_cross_engine_compare_plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins.run_decoder_eval_plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_decoder_eval_plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.plugins.run_pauli_plus_plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_pauli_plus_plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowsession_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.session_adapter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.session_adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        session_adapter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="session_adapter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.session_adapter.commit_result_to_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        commit_result_to_session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowstages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.stages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="stages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.parse_compile_lower_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        parse_compile_lower_model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.run_analysis_stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_analysis_stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.run_decode_stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_decode_stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.stages.run_engine_stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_engine_stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsimworkflowtask_io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qsim.workflow.task_io
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        task_io
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="task_io">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_config_bundle_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_config_bundle_files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_hardware_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_hardware_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_solver_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_solver_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_task_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_task_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_task_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_task_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="api-workflow">API - workflow<a class="headerlink" href="#api-workflow" title="Permanent link">&para;</a></h1>
+<p>Modules under <code>src/qsim/workflow</code>:</p>
+<h2 id="qsimworkflowcontracts"><code>qsim.workflow.contracts</code><a class="headerlink" href="#qsimworkflowcontracts" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.contracts" class="doc doc-heading">
+            <code>qsim.workflow.contracts</code>
+
+
+<a href="#qsim.workflow.contracts" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Workflow contracts for task/solver/hardware-driven execution.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.SolverBackendConfig" class="doc doc-heading">
+            <code>SolverBackendConfig</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.SolverBackendConfig" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Solver-side backend model configuration.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.TaskInputConfig" class="doc doc-heading">
+            <code>TaskInputConfig</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.TaskInputConfig" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Task-level input with references to solver/hardware config files.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowFeatureFlags" class="doc doc-heading">
+            <code>WorkflowFeatureFlags</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowFeatureFlags" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Optional feature branches toggles and settings.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowHardwareConfig" class="doc doc-heading">
+            <code>WorkflowHardwareConfig</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowHardwareConfig" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Hardware/noise config independent from task and solver.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowInput" class="doc doc-heading">
+            <code>WorkflowInput</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowInput" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Merged runtime input payload used by pipeline stages.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowOutputOptions" class="doc doc-heading">
+            <code>WorkflowOutputOptions</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowOutputOptions" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Output and persistence policy.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowRunOptions" class="doc doc-heading">
+            <code>WorkflowRunOptions</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowRunOptions" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Runtime engine and decoder options.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowSolverConfig" class="doc doc-heading">
+            <code>WorkflowSolverConfig</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowSolverConfig" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Solver config: backend model + engine/runtime controls.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="qsim.workflow.contracts.WorkflowSolverConfig.to_backend_config" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">to_backend_config</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.contracts.WorkflowSolverConfig.to_backend_config" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Convert to <code>BackendConfig</code> dataclass for pipeline internals.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowTask" class="doc doc-heading">
+            <code>WorkflowTask</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowTask" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Canonical merged runtime contract consumed by pipeline.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowTaskConfig" class="doc doc-heading">
+            <code>WorkflowTaskConfig</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowTaskConfig" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Task config: target + input/output/features.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.contracts.compose_workflow_task" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compose_workflow_task</span><span class="p">(</span><span class="n">task_cfg</span><span class="p">,</span> <span class="n">solver_cfg</span><span class="p">,</span> <span class="n">hardware_cfg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backend_source</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.contracts.compose_workflow_task" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compose 3-way configs into one canonical runtime task contract.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.contracts.normalize_targets" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">normalize_targets</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.contracts.normalize_targets" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Normalize one-or-many target field to deduplicated lowercase list.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowengines"><code>qsim.workflow.engines</code><a class="headerlink" href="#qsimworkflowengines" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.engines" class="doc doc-heading">
+            <code>qsim.workflow.engines</code>
+
+
+<a href="#qsim.workflow.engines" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Engine-level workflow helpers.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.engines.canonical_engine_name" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">canonical_engine_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.engines.canonical_engine_name" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Normalize an engine name alias to canonical form.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.engines.collect_runtime_dependencies" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">collect_runtime_dependencies</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">selected_engine_name</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.engines.collect_runtime_dependencies" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Extract runtime dependency details from engine trace metadata.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.engines.run_cross_engine_compare" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_cross_engine_compare</span><span class="p">(</span><span class="n">model_spec</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">engines</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.engines.run_cross_engine_compare" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run model on selected engines and build a compact consistency report.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.engines.select_engine" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">select_engine</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.engines.select_engine" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return an engine instance by user-facing name.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.engines.trace_pair_metrics" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">trace_pair_metrics</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.engines.trace_pair_metrics" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compute pointwise trace deltas when comparable.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.engines.trace_summary" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">trace_summary</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.engines.trace_summary" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build compact summary for trace payload.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowoutput"><code>qsim.workflow.output</code><a class="headerlink" href="#qsimworkflowoutput" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.output" class="doc doc-heading">
+            <code>qsim.workflow.output</code>
+
+
+<a href="#qsim.workflow.output" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Output helpers for workflow artifacts and visualization.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.output.build_settings_report" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_settings_report</span><span class="p">(</span><span class="n">backend_path</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">hardware</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">selected_engine_name</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">compare_engines</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.output.build_settings_report" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build settings_report payload for post-run auditing.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.output.export_circuit_diagram" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">export_circuit_diagram</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.output.export_circuit_diagram" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export Qiskit-backed circuit diagram as PNG; return relative filename or empty.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.output.export_result_figures" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">export_result_figures</span><span class="p">(</span><span class="n">pulse_ir</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">export_dxf</span><span class="p">,</span> <span class="n">selected_outputs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.output.export_result_figures" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export pulse/trace/report figures and return produced filename map.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.output.resolve_writable_out_dir" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">resolve_writable_out_dir</span><span class="p">(</span><span class="n">preferred</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.output.resolve_writable_out_dir" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a writable output directory, falling back if needed.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.output.sha256_text" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">sha256_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.output.sha256_text" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Calculate SHA-256 of UTF-8 text.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.output.write_pulse_npz_with_fallback" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">write_pulse_npz_with_fallback</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.output.write_pulse_npz_with_fallback" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Write pulse samples NPZ, falling back to a unique filename if locked.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.output.write_trace_h5" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">write_trace_h5</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.output.write_trace_h5" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Persist a <code>Trace</code> object into a minimal HDF5 file.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowpersistence"><code>qsim.workflow.persistence</code><a class="headerlink" href="#qsimworkflowpersistence" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.persistence" class="doc doc-heading">
+            <code>qsim.workflow.persistence</code>
+
+
+<a href="#qsim.workflow.persistence" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Persistence services for workflow artifacts, viz, and manifest.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.persistence.ArtifactPayload" class="doc doc-heading">
+            <code>ArtifactPayload</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.persistence.ArtifactPayload" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Structured payload for artifact writers.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.persistence.ArtifactWritePolicy" class="doc doc-heading">
+            <code>ArtifactWritePolicy</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.persistence.ArtifactWritePolicy" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Artifact persistence policy.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.persistence.ArtifactWriteReport" class="doc doc-heading">
+            <code>ArtifactWriteReport</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.persistence.ArtifactWriteReport" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Structured write result with logical output map.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="qsim.workflow.persistence.ArtifactWriteReport.relpath" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">relpath</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.persistence.ArtifactWriteReport.relpath" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return relative output path by logical key.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.persistence.build_manifest" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_manifest</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">cfg_seed</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">qasm_text</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.persistence.build_manifest" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build run manifest object without persisting.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.persistence.export_visualizations" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">export_visualizations</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">export_plots</span><span class="p">,</span> <span class="n">export_dxf</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">pulse_ir</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">analysis</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.persistence.export_visualizations" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export optional figure artifacts and return produced logical output map.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.persistence.gather_dependencies" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">gather_dependencies</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">selected_engine_name</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.persistence.gather_dependencies" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Collect package/runtime dependency fingerprints for manifest.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.persistence.write_artifacts" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">write_artifacts</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.persistence.write_artifacts" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Persist workflow JSON/H5/CSV artifacts using structured payload.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowpipeline"><code>qsim.workflow.pipeline</code><a class="headerlink" href="#qsimworkflowpipeline" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.pipeline" class="doc doc-heading">
+            <code>qsim.workflow.pipeline</code>
+
+
+<a href="#qsim.workflow.pipeline" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Workflow pipeline implementation and artifact export helpers.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.pipeline.plot_default" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">plot_default</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.pipeline.plot_default" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Create default plotting bundle from <code>run_task</code> result.</p>
+<p>Returns a dict containing matplotlib figures with keys:
+<code>pulses</code>, <code>trace</code>, and <code>report</code>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.pipeline.run_task" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_task</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hardware_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.pipeline.run_task" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run qsim workflow from merged task or 3-way task/solver/hardware configs.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.pipeline.run_task_files" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_task_files</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">task_config</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hardware_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.pipeline.run_task_files" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run workflow from task config, with optional solver/hardware overrides.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowplanner"><code>qsim.workflow.planner</code><a class="headerlink" href="#qsimworkflowplanner" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.planner" class="doc doc-heading">
+            <code>qsim.workflow.planner</code>
+
+
+<a href="#qsim.workflow.planner" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Target/template-driven execution planning for workflow pipeline.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.planner.ExecutionPlan" class="doc doc-heading">
+            <code>ExecutionPlan</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.planner.ExecutionPlan" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Resolved execution plan derived from task template/targets/features.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.planner.TargetRule" class="doc doc-heading">
+            <code>TargetRule</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.planner.TargetRule" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Dependency rule for one high-level target.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.planner.build_execution_plan" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_execution_plan</span><span class="p">(</span><span class="n">task</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.planner.build_execution_plan" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build minimal execution plan from task template/targets/features.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowplugins"><code>qsim.workflow.plugins</code><a class="headerlink" href="#qsimworkflowplugins" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.plugins" class="doc doc-heading">
+            <code>qsim.workflow.plugins</code>
+
+
+<a href="#qsim.workflow.plugins" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Optional workflow plugin branches.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.plugins.run_cross_engine_compare_plugin" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_cross_engine_compare_plugin</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">compare_engines</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">cfg_seed</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.plugins.run_cross_engine_compare_plugin" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run optional cross-engine compare branch.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.plugins.run_decoder_eval_plugin" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_decoder_eval_plugin</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">enabled</span><span class="p">,</span> <span class="n">decoder_input</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">cfg_seed</span><span class="p">,</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">eval_decoders</span><span class="p">,</span> <span class="n">eval_seeds</span><span class="p">,</span> <span class="n">eval_option_grid</span><span class="p">,</span> <span class="n">eval_parallelism</span><span class="p">,</span> <span class="n">eval_retries</span><span class="p">,</span> <span class="n">eval_resume</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.plugins.run_decoder_eval_plugin" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run optional decoder benchmark sweep branch.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.plugins.run_pauli_plus_plugin" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_pauli_plus_plugin</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">enabled</span><span class="p">,</span> <span class="n">logical_error_obj</span><span class="p">,</span> <span class="n">observables_obj</span><span class="p">,</span> <span class="n">qec_engine</span><span class="p">,</span> <span class="n">pauli_plus_code_distances</span><span class="p">,</span> <span class="n">pauli_plus_shots</span><span class="p">,</span> <span class="n">cfg_seed</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.plugins.run_pauli_plus_plugin" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run optional Pauli+ scaling and component budget branch.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowsession_adapter"><code>qsim.workflow.session_adapter</code><a class="headerlink" href="#qsimworkflowsession_adapter" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.session_adapter" class="doc doc-heading">
+            <code>qsim.workflow.session_adapter</code>
+
+
+<a href="#qsim.workflow.session_adapter" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Session integration for workflow results.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.session_adapter.commit_result_to_session" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">commit_result_to_session</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">session_dir</span><span class="p">,</span> <span class="n">run_out_dir</span><span class="p">,</span> <span class="n">result_payload</span><span class="p">,</span> <span class="n">commit_kinds</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.session_adapter.commit_result_to_session" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Commit selected result artifacts into a session store.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowstages"><code>qsim.workflow.stages</code><a class="headerlink" href="#qsimworkflowstages" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.stages" class="doc doc-heading">
+            <code>qsim.workflow.stages</code>
+
+
+<a href="#qsim.workflow.stages" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Core workflow stages (mandatory execution path).</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.stages.parse_compile_lower_model" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">parse_compile_lower_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">backend_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">hardware</span><span class="p">,</span> <span class="n">schedule_policy</span><span class="p">,</span> <span class="n">reset_feedback_policy</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.stages.parse_compile_lower_model" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Parse input and build simulation model artifacts.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.stages.run_analysis_stage" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_analysis_stage</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">logical_error</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.stages.run_analysis_stage" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run observables/report analysis and build sensitivity budgets.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.stages.run_decode_stage" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_decode_stage</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">prior_backend</span><span class="p">,</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">decoder_options</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.stages.run_decode_stage" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run syndrome build, prior build, decoder, and logical error summary.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.stages.run_engine_stage" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_engine_stage</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.stages.run_engine_stage" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run selected engine and annotate trace metadata.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="qsimworkflowtask_io"><code>qsim.workflow.task_io</code><a class="headerlink" href="#qsimworkflowtask_io" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="qsim.workflow.task_io" class="doc doc-heading">
+            <code>qsim.workflow.task_io</code>
+
+
+<a href="#qsim.workflow.task_io" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Task/Solver/Hardware config loading, template merge, and validation.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.task_io.load_config_bundle_files" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_config_bundle_files</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">task_config</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hardware_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.task_io.load_config_bundle_files" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load and compose task/solver/hardware file triplet into <code>WorkflowTask</code>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.task_io.load_hardware_config_file" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_hardware_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.task_io.load_hardware_config_file" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load hardware/noise config from JSON/YAML file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.task_io.load_solver_config_file" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_solver_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.task_io.load_solver_config_file" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load solver config (backend+run) from JSON/YAML file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.task_io.load_task_config_file" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_task_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.task_io.load_task_config_file" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load task config (target/input/output/features) from JSON/YAML file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.task_io.load_task_file" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_task_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.task_io.load_task_file" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compatibility alias: load task-config only.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

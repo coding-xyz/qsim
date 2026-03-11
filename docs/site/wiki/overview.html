@@ -14,7 +14,7 @@
         <link rel="prev" href="../WIKI.html">
       
       
-        <link rel="next" href="circuit.html">
+        <link rel="next" href="workflow_task_config.html">
       
       
         
@@ -391,6 +391,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    概览
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="overview.html" class="md-nav__link md-nav__link--active">
         
   
@@ -408,6 +426,108 @@
 
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 入口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-top-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Top-Down 结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 主链路与分支链路
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 依赖约束边界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 相关阅读
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="workflow_task_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow 用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -948,6 +1068,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/workflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -975,6 +1123,69 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 入口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-top-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Top-Down 结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 主链路与分支链路
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 依赖约束边界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 相关阅读
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -991,24 +1202,102 @@
 
 
 <h1 id="wiki">Wiki 概览<a class="headerlink" href="#wiki" title="Permanent link">&para;</a></h1>
-<p>主入口是 <code>qsim.ui.notebook.run_workflow(...)</code>，主流程如下：</p>
+<h2 id="1">1. 入口<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>Workflow 入口统一为两种调用方式：</p>
+<ul>
+<li>Python：<code>qsim.workflow.run_task_files(task_config=...)</code></li>
+<li>CLI：<code>qsim run-task --task-config ...</code></li>
+</ul>
+<p><code>task</code> 主配置内通过 <code>input.solver_config</code> / <code>input.hardware_config</code> 引用另外两个文件；
+也支持在调用时传 <code>solver_config</code>/<code>hardware_config</code> 做覆盖。</p>
+<p>核心原则：配置职责拆分为 <code>task / solver / hardware</code> 三个文件。</p>
+<h2 id="2-top-down">2. Top-Down 结构<a class="headerlink" href="#2-top-down" title="Permanent link">&para;</a></h2>
+<p><code>src/qsim/workflow/</code> 按分层组织：</p>
 <ol>
-<li>电路导入（QASM / Qiskit）</li>
-<li>归一化编译（<code>CompilePipeline</code>）</li>
-<li>Lowering 到脉冲（<code>PulseIR</code>）</li>
-<li>构建物理模型（<code>ModelSpec</code>）</li>
-<li>数值求解（<code>Engine.run</code>）</li>
-<li>分析与产物落盘（analysis + qec）</li>
+<li>应用层（入口）</li>
+<li><code>pipeline.py</code></li>
+<li>
+<p>负责：加载/合成配置、生成执行计划、串联主链路与分支链路</p>
+</li>
+<li>
+<p>编排层（计划）</p>
+</li>
+<li><code>planner.py</code></li>
+<li>
+<p>负责：<code>target -&gt; stages/artifacts</code> 裁剪、基础依赖校验</p>
+</li>
+<li>
+<p>阶段层（主链路）</p>
+</li>
+<li><code>stages.py</code></li>
+<li>
+<p>负责：<code>parse/compile/lower/model -&gt; engine -&gt; decode -&gt; analysis</code></p>
+</li>
+<li>
+<p>分支层（可选能力）</p>
+</li>
+<li><code>plugins.py</code></li>
+<li>
+<p>负责：<code>decoder_eval</code>、<code>pauli_plus</code>、<code>cross_engine_compare</code></p>
+</li>
+<li>
+<p>基础设施层</p>
+</li>
+<li><code>task_io.py</code>：三配置加载、模板合并、target/engine 字段校验</li>
+<li><code>persistence.py</code>：结构化写盘与 manifest 输出</li>
+<li><code>output.py</code>：图形与文件导出辅助</li>
+<li><code>session_adapter.py</code>：结果提交 session</li>
+<li><code>engines.py</code>：引擎选择与跨引擎比较辅助</li>
 </ol>
-<p>建议优先查看以下产物：</p>
+<h2 id="3">3. 主链路与分支链路<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>主链路（始终执行至少 parse+engine）：</p>
 <ol>
-<li><code>settings_report.json</code></li>
-<li><code>model_spec.json</code></li>
-<li><code>timings.json</code></li>
-<li><code>trace.h5</code> / <code>observables.json</code> / <code>report.json</code></li>
-<li><code>prior_report.json</code> / <code>decoder_report.json</code> / <code>logical_error.json</code></li>
-<li><code>sensitivity_report.json</code> / <code>error_budget_v2.json</code> / <code>decoder_eval_report.json</code></li>
+<li><code>parse_compile_lower_model</code></li>
+<li><code>run_engine_stage</code></li>
+<li><code>run_decode_stage</code>（按 target/plan 触发）</li>
+<li><code>run_analysis_stage</code>（按 target/plan 触发）</li>
 </ol>
+<p>分支链路（按 target/features 触发）：</p>
+<ol>
+<li><code>run_decoder_eval_plugin</code></li>
+<li><code>run_pauli_plus_plugin</code></li>
+<li><code>run_cross_engine_compare_plugin</code></li>
+</ol>
+<p>收口：</p>
+<ol>
+<li><code>write_artifacts</code></li>
+<li><code>export_visualizations</code></li>
+<li><code>build_manifest</code></li>
+<li><code>commit_result_to_session</code>（可选）</li>
+</ol>
+<h2 id="4">4. 依赖约束边界<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>target</code> 决定：</li>
+<li>可执行阶段</li>
+<li>可开启分支</li>
+<li><code>task.features</code> 支持键</li>
+<li>
+<p><code>targeted</code> 模式下可写产物</p>
+</li>
+<li>
+<p><code>engine</code> 决定：</p>
+</li>
+<li>
+<p><code>solver.run</code> 可用参数集合（例如 julia 专属键）</p>
+</li>
+<li>
+<p><code>task/solver/hardware</code> 职责不交叉：</p>
+</li>
+<li><code>task</code> 不承载 engine/hardware 细节</li>
+<li><code>solver</code> 不承载具体噪声场景</li>
+<li><code>hardware</code> 不承载任务目标与输出策略</li>
+</ol>
+<h2 id="5">5. 相关阅读<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="workflow_task_config.html">Workflow 用法（三配置 + key 支持矩阵）</a></li>
+<li><a href="io_session.html">IO 与会话</a></li>
+<li><a href="backend_model.html">后端与模型</a></li>
+</ul>
 
 
 

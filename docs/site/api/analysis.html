@@ -405,6 +405,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wiki/workflow_task_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow 用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../wiki/circuit.html" class="md-nav__link">
         
   
@@ -1193,6 +1221,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#qsim.analysis.trace_semantics.extract_p1_series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extract_p1_series
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qsim.analysis.trace_semantics.infer_state_encoding" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1450,6 +1489,34 @@
     
   
     ui
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="workflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    workflow
   
 
     
@@ -1930,6 +1997,17 @@
     <span class="md-ellipsis">
       
         annotate_trace_metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.analysis.trace_semantics.extract_p1_series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        extract_p1_series
       
     </span>
   </a>
@@ -3418,6 +3496,74 @@ completeness and is suited for ranking and regression tracking.</p>
     <div class="doc doc-contents ">
 
         <p>Attach canonical state semantics metadata to a trace in-place.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.analysis.trace_semantics.extract_p1_series" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">extract_p1_series</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span></code>
+
+<a href="#qsim.analysis.trace_semantics.extract_p1_series" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Extract a semantically safe single-qubit <code>p1(t)</code> series from a trace.</p>
+<p>Supported encodings:
+- <code>per_qubit_excited_probability</code>: use <code>row[0]</code> for single-qubit case.
+- <code>basis_population_single_qubit</code>: use <code>row[1]</code>.</p>
+
+
+    <p><span class="doc-section-title">返回：</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>类型</th>
+          <th>描述</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A list of <code>p1</code> values aligned with <code>trace.times</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">引发：</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>类型</th>
+          <th>描述</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the trace encoding cannot be safely interpreted as a
+single-qubit p1(t) series.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>

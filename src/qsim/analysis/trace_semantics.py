@@ -113,8 +113,8 @@ def extract_p1_series(trace: Trace) -> list[float]:
         A list of ``p1`` values aligned with ``trace.times``.
 
     Raises:
-        ValueError: If the trace encoding cannot be safely interpreted as
-        single-qubit ``p1(t)``.
+        ValueError: If the trace encoding cannot be safely interpreted as a
+            single-qubit p1(t) series.
     """
     enc = state_encoding(trace)
     rows = [row for row in trace.states if row]

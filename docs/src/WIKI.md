@@ -3,6 +3,7 @@
 按主题阅读：
 
 - [概览](wiki/overview.md)
+- [Workflow 用法](wiki/workflow_task_config.md)
 - [电路层](wiki/circuit.md)
 - [后端与模型](wiki/backend_model.md)
 - [噪声与求解器](wiki/noise_engine.md)

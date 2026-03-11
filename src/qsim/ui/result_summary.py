@@ -11,6 +11,14 @@ import pandas as pd
 from qsim.analysis.trace_semantics import state_encoding
 
 
+def _integrate_abs(y: np.ndarray, t: np.ndarray) -> float:
+    """Integrate ``|y|`` over ``t`` with NumPy-version fallback."""
+    abs_y = np.abs(y)
+    if hasattr(np, "trapezoid"):
+        return float(np.trapezoid(abs_y, t))
+    return float(np.trapz(abs_y, t))
+
+
 def collect_pulse_metrics(out_dir: str | Path) -> dict[str, float]:
     """Extract simple per-channel pulse metrics from workflow artifacts."""
     out_dir = Path(out_dir)
@@ -35,7 +43,7 @@ def collect_pulse_metrics(out_dir: str | Path) -> dict[str, float]:
             continue
         metrics[f"{prefix}_samples"] = float(len(t))
         metrics[f"{prefix}_duration"] = float(t[-1] - t[0]) if len(t) > 1 else 0.0
-        metrics[f"{prefix}_abs_area"] = float(np.trapezoid(np.abs(y), t)) if len(t) > 1 else float(np.abs(y).sum())
+        metrics[f"{prefix}_abs_area"] = _integrate_abs(y, t) if len(t) > 1 else float(np.abs(y).sum())
         metrics[f"{prefix}_peak"] = float(np.max(np.abs(y)))
     return metrics
 
@@ -51,10 +59,16 @@ def summarize_workflow_result(
     noise: dict | None = None,
     note: str = "",
 ) -> dict:
-    """Build one flat summary row from a ``run_workflow`` result payload."""
-    trace = result["trace"]
+    """Build one flat summary row from a ``run_task`` result payload."""
+    core = dict(result.get("core", {}))
+    runtime = dict(result.get("runtime", {}))
+    analysis_group = dict(result.get("analysis", {}))
+    trace = core.get("trace", result.get("trace"))
+    if trace is None:
+        raise KeyError("result missing core.trace")
     final_state = [float(x) for x in (trace.states[-1] if trace.states else [])]
-    obs = result.get("analysis", {}).get("observables", {}).get("values", {})
+    analysis_payload = dict(analysis_group.get("analysis", result.get("analysis", {})))
+    obs = analysis_payload.get("observables", {}).get("values", {})
     meta = dict(getattr(trace, "metadata", {}) or {})
     details = dict(meta.get("details", {}) or {})
     hardware = dict(hardware or {})
@@ -77,15 +91,15 @@ def summarize_workflow_result(
         "final_p1_obs": float(obs.get("final_p1", np.nan)),
         "final_p0_obs": float(obs.get("final_p0", np.nan)),
         "mean_excited_obs": float(obs.get("mean_excited", np.nan)),
-        "solver": str(meta.get("solver", result.get("solver_mode", ""))),
+        "solver": str(meta.get("solver", runtime.get("solver_mode", result.get("solver_mode", "")))),
         "solver_impl": str(details.get("solver_impl", "")),
         "native_solver": bool(meta.get("native_solver", False)),
         "note": str(note),
         "hardware_json": json.dumps(hardware, ensure_ascii=False, sort_keys=True),
         "noise_json": json.dumps(noise, ensure_ascii=False, sort_keys=True),
-        "out_dir": str(result["out_dir"]),
+        "out_dir": str(runtime.get("out_dir", result.get("out_dir", ""))),
     }
-    row.update(collect_pulse_metrics(result["out_dir"]))
+    row.update(collect_pulse_metrics(row["out_dir"]))
     return row
 
 

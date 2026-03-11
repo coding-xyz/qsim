@@ -1,0 +1,13 @@
+﻿backend:
+  level: qubit
+  analysis_pipeline: default
+  truncation: {}
+run:
+  engine: julia_qtoolbox
+  solver_mode: me
+  sweep: []
+  seed: 1234
+  dt: 1.0
+  schedule_policy: serial
+  reset_feedback_policy: parallel
+  julia_timeout_s: 120.0

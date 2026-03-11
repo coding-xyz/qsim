@@ -410,6 +410,34 @@
   
   
     <li class="md-nav__item">
+      <a href="workflow_task_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow 用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="circuit.html" class="md-nav__link">
         
   
@@ -1123,6 +1151,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/workflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1319,7 +1375,7 @@
 <li>当前不支持：实时解码（在线流式 syndrome 输入与实时反馈控制）尚未上线。</li>
 </ul>
 <h2 id="1">1. 离线处理全流程<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<p>离线模式下，一次 <code>run_workflow(...)</code> 会生成可复现产物，按以下顺序执行：</p>
+<p>离线模式下，一次 <code>run_task(task)</code> 会生成可复现产物，按以下顺序执行：</p>
 <ol>
 <li>读取电路和后端配置，完成编译/Lowering/求解，得到 <code>trace</code>。</li>
 <li>从 <code>trace</code> 阈值化构造 <code>SyndromeFrame</code>（QEC 输入）。</li>
@@ -1332,7 +1388,8 @@
 </ol>
 <p>这条链路的入口在：</p>
 <ul>
-<li><code>src/qsim/ui/notebook.py::run_workflow</code></li>
+<li>用户/程序入口：<code>src/qsim/workflow/__init__.py::run_task</code></li>
+<li>执行主体：<code>src/qsim/workflow/pipeline.py::run_task</code></li>
 </ul>
 <h2 id="2">2. 误差分析流程（逻辑层）<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
 <p>误差分析由三层组成：</p>
@@ -1346,7 +1403,7 @@
 <h3 id="step-a-trace-syndrome">Step A: 从 trace 生成 syndrome<a class="headerlink" href="#step-a-trace-syndrome" title="Permanent link">&para;</a></h3>
 <ul>
 <li>代码：</li>
-<li><code>src/qsim/ui/notebook.py</code> 中 <code>SyndromeFrame(...)</code> 构造段</li>
+<li><code>src/qsim/workflow/pipeline.py</code> 中 <code>SyndromeFrame(...)</code> 构造段</li>
 <li>输入：</li>
 <li><code>trace.times</code>, <code>trace.states</code></li>
 <li>输出：</li>
@@ -1451,7 +1508,7 @@
 <li>代码：</li>
 <li><code>qsim.common.schemas.write_json</code></li>
 <li><code>qsim.common.schemas.RunManifest</code></li>
-<li><code>src/qsim/ui/notebook.py</code> 的 artifact write + manifest write 段</li>
+<li><code>src/qsim/workflow/pipeline.py</code> 的 artifact write + manifest write 段</li>
 <li>输出：</li>
 <li><code>run_manifest.json</code></li>
 <li><code>timings.json</code></li>
@@ -1487,7 +1544,8 @@
 <li>Decoder：<code>src/qsim/qec/decoder.py</code></li>
 <li>Eval：<code>src/qsim/qec/eval.py</code></li>
 <li>Sensitivity：<code>src/qsim/analysis/sensitivity.py</code></li>
-<li>Workflow 入口：<code>src/qsim/ui/notebook.py</code></li>
+<li>Workflow 入口：<code>src/qsim/workflow/__init__.py</code></li>
+<li>Workflow 执行编排：<code>src/qsim/workflow/pipeline.py</code></li>
 </ul>
 
 

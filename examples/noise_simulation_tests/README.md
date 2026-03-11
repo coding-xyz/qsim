@@ -6,7 +6,7 @@
 
 - `required_tasks_tri_engine.ipynb`
   - 对应 `required_tasks.txt` 的 7 个任务。
-  - 现在改为“配置文件 + 直接调用 `run_workflow`”的工作范式，不再在 notebook 里定义专用的参数扫描函数。
+  - 现在改为“配置文件 + `run_task(task)`”的工作范式，不再在 notebook 里定义专用的参数扫描函数。
 - `required_tasks_tri_engine/`
   - `required_tasks_tri_engine.ipynb` 使用的任务配置目录。
   - 每个任务一个 JSON 文件，文件内直接包含 QASM、case、引擎列表以及展示指标。

@@ -5,7 +5,75 @@ from pathlib import Path
 
 from qsim.common.schemas import DecoderInput, PriorModel, SyndromeFrame
 from qsim.qec.eval import run_decoder_eval
-from qsim.ui.notebook import run_workflow
+from qsim.workflow import WorkflowFeatureFlags, WorkflowInput, WorkflowOutputOptions, WorkflowRunOptions, WorkflowTask, run_task
+
+
+_INPUT_KEYS = {"hardware", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}
+_RUN_KEYS = {
+    "engine",
+    "solver_mode",
+    "compare_engines",
+    "allow_mock_fallback",
+    "julia_bin",
+    "julia_depot_path",
+    "julia_timeout_s",
+    "mcwf_ntraj",
+    "prior_backend",
+    "decoder",
+    "decoder_options",
+    "qec_engine",
+}
+_FEATURE_KEYS = {
+    "pauli_plus_analysis",
+    "pauli_plus_code_distances",
+    "pauli_plus_shots",
+    "decoder_eval",
+    "eval_decoders",
+    "eval_seeds",
+    "eval_option_grid",
+    "eval_parallelism",
+    "eval_retries",
+    "eval_resume",
+}
+_OUTPUT_KEYS = {
+    "out_dir",
+    "persist_artifacts",
+    "artifact_mode",
+    "export_dxf",
+    "export_plots",
+    "session_dir",
+    "session_auto_commit",
+    "session_commit_kinds",
+}
+
+
+def _run_task_from_kwargs(*, qasm_text: str, backend_path: str, out_dir: str, **kwargs) -> dict:
+    input_kwargs = {"qasm_text": qasm_text, "backend_path": backend_path}
+    run_kwargs = {}
+    feature_kwargs = {}
+    output_kwargs = {"out_dir": out_dir}
+    for key, value in kwargs.items():
+        if key in _INPUT_KEYS:
+            input_kwargs[key] = value
+            continue
+        if key in _RUN_KEYS:
+            run_kwargs[key] = value
+            continue
+        if key in _FEATURE_KEYS:
+            feature_kwargs[key] = value
+            continue
+        if key in _OUTPUT_KEYS:
+            output_kwargs[key] = value
+            continue
+        raise KeyError(f"unsupported workflow kwarg in test helper: {key}")
+    run_kwargs.setdefault("decoder", "mwpm")
+    task = WorkflowTask(
+        input=WorkflowInput(**input_kwargs),
+        run=WorkflowRunOptions(**run_kwargs),
+        features=WorkflowFeatureFlags(**feature_kwargs),
+        output=WorkflowOutputOptions(**output_kwargs),
+    )
+    return run_task(task)
 
 
 def test_workflow_emits_qec_core_artifacts():
@@ -13,14 +81,14 @@ def test_workflow_emits_qec_core_artifacts():
     out_dir = Path("runs") / f"pytest_qec_core_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
     try:
-        result = run_workflow(
+        result = _run_task_from_kwargs(
             qasm_text=qasm_text,
             backend_path="examples/backend.yaml",
             out_dir=str(out_dir),
             persist_artifacts=True,
             export_dxf=False,
         )
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
 
         expected = [
             "syndrome_frame.json",
@@ -65,7 +133,7 @@ def test_prior_stim_fallback_and_bp_decoder():
     out_dir = Path("runs") / f"pytest_qec_m23_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
     try:
-        result = run_workflow(
+        result = _run_task_from_kwargs(
             qasm_text=qasm_text,
             backend_path="examples/backend.yaml",
             out_dir=str(out_dir),
@@ -75,7 +143,7 @@ def test_prior_stim_fallback_and_bp_decoder():
             decoder="bp",
             decoder_options={"max_iter": 4, "damping": 0.4},
         )
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
 
         prior_report = json.loads((actual_out / "prior_report.json").read_text(encoding="utf-8"))
         decoder_output = json.loads((actual_out / "decoder_output.json").read_text(encoding="utf-8"))
@@ -98,7 +166,7 @@ def test_workflow_emits_decoder_eval_outputs():
     out_dir = Path("runs") / f"pytest_qec_eval_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
     try:
-        result = run_workflow(
+        result = _run_task_from_kwargs(
             qasm_text=qasm_text,
             backend_path="examples/backend.yaml",
             out_dir=str(out_dir),
@@ -112,7 +180,7 @@ def test_workflow_emits_decoder_eval_outputs():
             eval_retries=1,
             eval_resume=True,
         )
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
 
         for name in [
             "decoder_eval_report.json",
@@ -187,7 +255,7 @@ def test_workflow_emits_pauli_plus_budget_outputs():
     out_dir = Path("runs") / f"pytest_qec_pp_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
     try:
-        result = run_workflow(
+        result = _run_task_from_kwargs(
             qasm_text=qasm_text,
             backend_path="examples/backend.yaml",
             out_dir=str(out_dir),
@@ -199,7 +267,7 @@ def test_workflow_emits_pauli_plus_budget_outputs():
             pauli_plus_code_distances=[3, 5],
             pauli_plus_shots=1000,
         )
-        actual_out = Path(result["out_dir"])
+        actual_out = Path(result["runtime"]["out_dir"])
 
         for name in ["scaling_report.json", "error_budget_pauli_plus.json", "component_ablation.csv", "run_manifest.json"]:
             assert (actual_out / name).exists(), f"missing artifact: {name}"

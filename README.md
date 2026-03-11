@@ -22,42 +22,65 @@ qsim is a workflow-first quantum simulation project with reproducible artifacts,
 ## Quick Start (CLI)
 
 ```bash
-qsim run --qasm examples/bell.qasm --backend examples/backend.yaml --out runs/demo
+qsim run-task --task-config tasks/demo.json
 ```
 
-Use `--schedule-policy serial|parallel|hybrid` to control lowering-time gate scheduling.
-Use `--reset-feedback-policy parallel|serial_global` to control reset feedback scheduling.
-The notebook API also accepts `reset_feedback_policy=...`, or you can pass it through `hardware`.
+Optional runtime overrides:
+
+```bash
+qsim run-task --task-config tasks/demo.json \
+  --out runs/demo_override \
+  --session-dir runs/session \
+  --session-auto-commit \
+  --session-kinds settings,timings,logical_error
+```
 
 ## Complete QEC Demo (Python)
 
 ```python
 from pathlib import Path
-from qsim.ui.notebook import run_workflow
+
+from qsim.workflow import (
+    WorkflowFeatureFlags,
+    WorkflowInput,
+    WorkflowOutputOptions,
+    WorkflowRunOptions,
+    WorkflowTask,
+    run_task,
+)
 
 qasm = Path("examples/bell.qasm").read_text(encoding="utf-8")
-result = run_workflow(
-    qasm_text=qasm,
-    backend_path="examples/backend.yaml",
-    out_dir="runs/demo_qec_complete",
-    persist_artifacts=True,
-    export_dxf=False,
-    prior_backend="stim",
-    decoder="bp",
-    decoder_options={"max_iter": 4, "damping": 0.4},
-    decoder_eval=True,
-    eval_decoders=["mwpm", "bp", "mock"],
-    eval_seeds=[11, 12],
-    eval_option_grid=[{}, {"max_iter": 2, "damping": 0.4}],
-    eval_parallelism=2,
-    eval_retries=1,
-    eval_resume=True,
-    pauli_plus_analysis=True,
-    qec_engine="auto",
-    pauli_plus_code_distances=[3, 5],
-    pauli_plus_shots=1000,
+task = WorkflowTask(
+    input=WorkflowInput(
+        qasm_text=qasm,
+        backend_path="examples/backend.yaml",
+        out_dir="runs/demo_qec_complete",
+    ),
+    run=WorkflowRunOptions(
+        prior_backend="stim",
+        decoder="bp",
+        decoder_options={"max_iter": 4, "damping": 0.4},
+        qec_engine="auto",
+    ),
+    features=WorkflowFeatureFlags(
+        decoder_eval=True,
+        eval_decoders=["mwpm", "bp", "mock"],
+        eval_seeds=[11, 12],
+        eval_option_grid=[{}, {"max_iter": 2, "damping": 0.4}],
+        eval_parallelism=2,
+        eval_retries=1,
+        eval_resume=True,
+        pauli_plus_analysis=True,
+        pauli_plus_code_distances=[3, 5],
+        pauli_plus_shots=1000,
+    ),
+    output=WorkflowOutputOptions(
+        persist_artifacts=True,
+        export_dxf=False,
+    ),
 )
-print(result["out_dir"])
+result = run_task(task)
+print(result["runtime"]["out_dir"])
 ```
 
 Expected key artifacts:

@@ -410,6 +410,34 @@
   
   
     <li class="md-nav__item">
+      <a href="workflow_task_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow 用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="circuit.html" class="md-nav__link">
         
   
@@ -582,10 +610,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#run_workflow" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        run_workflow 产物
+        常见产物
       
     </span>
   </a>
@@ -596,7 +624,7 @@
   <a href="#traceh5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        trace.h5 与状态语义
+        trace.h5
       
     </span>
   </a>
@@ -604,10 +632,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#observablesjson-cross_engine_comparejson" class="md-nav__link">
+  <a href="#manifest" class="md-nav__link">
     <span class="md-ellipsis">
       
-        observables.json 与 cross_engine_compare.json
+        Manifest
       
     </span>
   </a>
@@ -615,10 +643,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#session" class="md-nav__link">
     <span class="md-ellipsis">
       
-        会话存储
+        Session 自动提交
       
     </span>
   </a>
@@ -1029,6 +1057,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/workflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1063,10 +1119,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#run_workflow" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        run_workflow 产物
+        常见产物
       
     </span>
   </a>
@@ -1077,7 +1133,7 @@
   <a href="#traceh5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        trace.h5 与状态语义
+        trace.h5
       
     </span>
   </a>
@@ -1085,10 +1141,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#observablesjson-cross_engine_comparejson" class="md-nav__link">
+  <a href="#manifest" class="md-nav__link">
     <span class="md-ellipsis">
       
-        observables.json 与 cross_engine_compare.json
+        Manifest
       
     </span>
   </a>
@@ -1096,10 +1152,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#session" class="md-nav__link">
     <span class="md-ellipsis">
       
-        会话存储
+        Session 自动提交
       
     </span>
   </a>
@@ -1124,65 +1180,42 @@
 
 
 <h1 id="io">IO 与会话<a class="headerlink" href="#io" title="Permanent link">&para;</a></h1>
-<h2 id="run_workflow"><code>run_workflow</code> 产物<a class="headerlink" href="#run_workflow" title="Permanent link">&para;</a></h2>
-<p>典型输出：</p>
+<p><code>run_task_files(task, solver, hardware)</code> 与 CLI <code>qsim run-task --task-config ... --solver-config ... --hardware-config ...</code> 的产物一致。</p>
+<h2 id="_1">常见产物<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>circuit.json</code></li>
 <li><code>backend_config.json</code></li>
-<li><code>normalized_circuit.json</code></li>
-<li><code>compile_report.json</code></li>
 <li><code>pulse_ir.json</code></li>
-<li><code>pulse_samples.npz</code></li>
-<li><code>executable_model.json</code></li>
 <li><code>model_spec.json</code></li>
 <li><code>trace.h5</code></li>
-<li><code>observables.json</code></li>
-<li><code>report.json</code></li>
+<li><code>logical_error.json</code>（按 target）</li>
+<li><code>sensitivity_report.json</code>（按 target）</li>
 <li><code>settings_report.json</code></li>
 <li><code>run_manifest.json</code></li>
 <li><code>timings.json</code></li>
-<li><code>timing_diagram.dxf</code>（可选）</li>
 </ul>
-<h2 id="traceh5"><code>trace.h5</code> 与状态语义<a class="headerlink" href="#traceh5" title="Permanent link">&para;</a></h2>
-<p><code>trace.h5</code> 保存求解器输出的时间轴与状态采样：</p>
+<p>启用图形导出时还会生成 <code>trace.png</code>、<code>report.png</code>、<code>pulse_timing.png</code>、<code>timing_diagram.dxf</code> 等。</p>
+<h2 id="traceh5"><code>trace.h5</code><a class="headerlink" href="#traceh5" title="Permanent link">&para;</a></h2>
+<p><code>trace.h5</code> 保存求解输出的时间轴与状态采样：</p>
 <ul>
-<li><code>times</code></li>
-<li><code>states</code></li>
-<li>HDF5 attributes:</li>
-<li><code>engine</code></li>
-<li><code>state_encoding</code>（若工作流已完成语义标注）</li>
-<li><code>num_qubits</code>（若可确定）</li>
-<li><code>model_dimension</code>（若可确定）</li>
+<li>dataset: <code>times</code></li>
+<li>dataset: <code>states</code></li>
+<li>attrs: <code>engine</code>, <code>state_encoding</code>, <code>num_qubits</code>, <code>model_dimension</code></li>
 </ul>
-<p>当前工作流会显式区分以下几类 <code>state_encoding</code>：</p>
+<h2 id="manifest">Manifest<a class="headerlink" href="#manifest" title="Permanent link">&para;</a></h2>
+<p><code>run_manifest.json</code> 记录：</p>
 <ul>
-<li><code>per_qubit_excited_probability</code></li>
-<li>每一列表示一个量子比特的激发概率。</li>
-<li>这种表示可以安全用于逐项跨引擎比较。</li>
-<li><code>basis_population_single_qubit</code></li>
-<li>单比特基态/激发态人口分布，典型形式为 <code>[p0, p1]</code>。</li>
-<li>可以解释 <code>final_p0/final_p1</code>，但不能误当成“两比特逐比特概率”。</li>
-<li><code>ambiguous_population_vector</code></li>
-<li>向量本身是人口分布或等价代理，但当前无法安全映射到逐比特激发概率。</li>
-<li>对这类结果，<code>cross_engine_compare.json</code> 不会输出逐项 <code>mse/mae</code>。</li>
+<li>输入摘要（qasm 摘要、solver 配置来源）</li>
+<li>产物映射（逻辑产物名 -&gt; 相对路径）</li>
+<li>依赖版本与指纹</li>
 </ul>
-<h2 id="observablesjson-cross_engine_comparejson"><code>observables.json</code> 与 <code>cross_engine_compare.json</code><a class="headerlink" href="#observablesjson-cross_engine_comparejson" title="Permanent link">&para;</a></h2>
+<h2 id="session">Session 自动提交<a class="headerlink" href="#session" title="Permanent link">&para;</a></h2>
+<p>当 <code>task.output.session_auto_commit=true</code> 且设置 <code>task.output.session_dir</code> 时：</p>
 <ul>
-<li><code>observables.json</code></li>
-<li>只在语义明确时生成对应观测量。</li>
-<li>例如单比特 <code>basis_population_single_qubit</code> 会生成 <code>final_p0/final_p1</code>，但不会伪造 <code>final_q1_excited</code>。</li>
-<li><code>cross_engine_compare.json</code></li>
-<li>只有当两条 trace 都是 <code>per_qubit_excited_probability</code> 且维度兼容时，才会输出逐项误差。</li>
-<li>若语义不兼容，会返回 <code>comparable: false</code> 和原因说明，供 notebook 或下游报表显式展示。</li>
+<li>运行结束后自动把选定结果提交到 session</li>
+<li>在 run 输出目录写 <code>session_commit_report.json</code></li>
 </ul>
-<h2 id="_1">会话存储<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>会话接口：</p>
-<ul>
-<li><code>Session.open(path)</code></li>
-<li><code>Session.commit(kind, payload, ...)</code></li>
-<li><code>Session.get(rev_id)</code></li>
-</ul>
-<p>底层由 <code>ArtifactStore</code> 和 <code>SessionManifest</code> 负责版本化与索引。</p>
+<p>可通过 <code>task.output.session_commit_kinds</code> 限制提交类别。</p>
 
 
 

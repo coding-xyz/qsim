@@ -1,5 +1,5 @@
-"""Public exports for qsim user-facing entry points."""
+"""Public exports for qsim.ui helpers."""
 
-from qsim.ui.notebook import run_workflow
+from qsim.ui.notebook import plot_default
 
-__all__ = ["run_workflow"]
+__all__ = ["plot_default"]

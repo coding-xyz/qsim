@@ -36,7 +36,7 @@ def run_case(delta: float, omega: float, T1: float, T2: float, t_end: float, dt:
     if gamma_phi > 0:
         c_ops.append(np.sqrt(gamma_phi) * sz)
 
-    p1_op = 0.5 * (qt.qeye(2) - sz)
+    p1_op = 0.5 * (qt.qeye(2) + sz)
     res = qt.mesolve(H, psi0 * psi0.dag(), tlist, c_ops=c_ops, e_ops=[p1_op])
     p1 = np.asarray(res.expect[0], dtype=float)
     return tlist, p1
@@ -44,7 +44,7 @@ def run_case(delta: float, omega: float, T1: float, T2: float, t_end: float, dt:
 
 if __name__ == "__main__":
     # Use this omega estimate from pulse controls for trend check.
-    omega_eff = 0.08
+    omega_eff = 0.2
     cases = {
         "baseline": {"delta": 5.0, "T1": 120.0, "T2": 90.0, "t_end": 240.0, "dt": 1.0},
         "detuned": {"delta": 5.2, "T1": 80.0, "T2": 55.0, "t_end": 256.0, "dt": 1.0},

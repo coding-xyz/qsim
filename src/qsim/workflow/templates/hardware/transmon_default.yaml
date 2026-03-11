@@ -1,0 +1,5 @@
+﻿hardware: {}
+noise:
+  model: markovian_lindblad
+  t1: 5.0e-5
+  t2: 3.0e-5
