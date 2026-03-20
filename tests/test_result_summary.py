@@ -54,7 +54,7 @@ def test_summarize_workflow_result_builds_flat_row(tmp_path: Path):
         task_title="Task 1",
         case_tag="baseline",
         engine="qutip",
-        hardware={"gate_duration": 20.0},
+        device={"qubit_freqs_Hz": [5.0e9]},
         noise={"model": "markovian_lindblad"},
         note="demo",
     )

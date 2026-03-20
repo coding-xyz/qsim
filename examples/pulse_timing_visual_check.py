@@ -64,10 +64,10 @@ def generate_case(case_name: str, qasm_text: str, out_dir: Path) -> None:
         qasm_path.read_text(encoding="utf-8"),
         backend_config=backend_path,
         hardware={
-            "xy_freq_hz": 5.0e9,
-            "ro_freq_hz": 8.0e9,
-            "gate_duration": 20.0,
-            "measure_duration": 2000.0,
+            "xy_freq_Hz": 5.0e9,
+            "ro_freq_Hz": 8.0e9,
+            "gate_duration_ns": 20.0,
+            "measure_duration_ns": 2000.0,
         },
     )
     pulse_ir = reorder_xy_z_channels(pulse_ir)

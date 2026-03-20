@@ -1,0 +1,3 @@
+﻿engine,case,samples,final_p1,mean_p1,status,note
+qutip_native,baseline,241,0.13622533559707675,0.4329816035791413,ok,
+qutip_native,detuned,257,0.042165552362894355,0.30111004942889535,ok,

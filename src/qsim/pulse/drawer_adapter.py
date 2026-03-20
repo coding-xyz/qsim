@@ -36,7 +36,7 @@ class EngineeringDrawer:
                 kind = p.shape.lower()
                 if kind == "drag":
                     kind = "gaussian"
-                pulses.append(DrawerPulse(t0=p.t0, t1=p.t1, amp=p.amp, kind=kind, carrier=carrier))
+                pulses.append(DrawerPulse(t0=p.t0_ns, t1=p.t1_ns, amp=p.amp, kind=kind, carrier=carrier))
             channels.append(DrawerChannel(name=ch.name, pulses=pulses))
 
         raw_breaks = style.get("breaks", [])
@@ -52,7 +52,7 @@ class EngineeringDrawer:
 
         seq = DrawerSequence(
             title=style.get("title", "qsim timing"),
-            t_end=pulse_ir.t_end,
+            t_end=pulse_ir.t_end_ns,
             channels=channels,
             clk_mhz=style.get("clk_mhz"),
             breaks=drawer_breaks,

@@ -1,0 +1,13 @@
+{
+    "schema_version": "1.0",
+    "target": "trace",
+    "input": {
+        "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[1] q;\nbit[1] c;\nx q[0];\nmeasure q[0] -> c[0];\n"
+    },
+    "output": {
+        "out_dir": "./runs/task1_workflow",
+        "artifact_mode": "targeted"
+    },
+    "features": {},
+    "tags": ["task1"]
+}

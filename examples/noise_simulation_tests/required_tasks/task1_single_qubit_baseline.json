@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "tag": "task1_single_qubit_baseline",
+  "title": "Task 1 单比特基准模型",
+  "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[1] q;\nbit[1] c;\nh q[0];\nx q[0];\nmeasure q[0] -> c[0];\n",
+  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "solver_mode": "me",
+  "display_metrics": ["final_p1_obs", "final_state_last"],
+  "cases": [
+    {
+      "tag": "baseline",
+      "device": {"qubit_freqs_Hz": [5.0e9]},
+      "pulse": {"gate_duration_ns": 20.0},
+      "noise": {"model": "markovian_lindblad", "T1_s": 1.2e-4, "T2_s": 9.0e-5},
+      "note": "baseline single-qubit model"
+    },
+    {
+      "tag": "detuned",
+      "device": {"qubit_freqs_Hz": [5.2e9]},
+      "pulse": {"gate_duration_ns": 28.0},
+      "noise": {"model": "markovian_lindblad", "T1_s": 8.0e-5, "T2_s": 5.5e-5},
+      "note": "detuned and slower gate"
+    }
+  ]
+}

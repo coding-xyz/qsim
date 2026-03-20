@@ -18,6 +18,7 @@ from qsim.qec.decoder import build_decoder_report, get_decoder, summarize_logica
 from qsim.qec.prior import build_prior_and_report
 from qsim.workflow.engines import select_engine
 from qsim.workflow.output import write_pulse_npz_with_fallback
+from qsim.workflow.contracts import normalize_device_payload
 
 
 def parse_compile_lower_model(
@@ -26,10 +27,13 @@ def parse_compile_lower_model(
     backend_path: str | None,
     backend_config=None,
     out,
-    hardware: dict | None,
+    device: dict | None,
+    pulse: dict | None,
+    frame: dict | None,
     schedule_policy: str | None,
     reset_feedback_policy: str | None,
     noise: dict | None,
+    solver_run: dict | None,
     solver_mode: str | None,
     param_bindings: dict[str, float] | None,
     persist_artifacts: bool,
@@ -49,20 +53,24 @@ def parse_compile_lower_model(
     t2 = time.perf_counter()
     stage_timings["backend_load"] = t2 - t1
 
-    lowering_hw = dict(hardware or {})
+    raw_device = dict(device or {})
+    model_device = normalize_device_payload(raw_device)
+    pulse_cfg = dict(pulse or {})
+    lowering_device = dict(model_device)
+    lowering_device.update(pulse_cfg)
     if schedule_policy is not None:
-        lowering_hw["schedule_policy"] = str(schedule_policy).strip().lower()
+        lowering_device["schedule_policy"] = str(schedule_policy).strip().lower()
     if reset_feedback_policy is not None:
-        lowering_hw["reset_feedback_policy"] = str(reset_feedback_policy).strip().lower()
+        lowering_device["reset_feedback_policy"] = str(reset_feedback_policy).strip().lower()
 
-    normalized, compile_report = CompilePipeline().run(circuit, cfg, hardware=lowering_hw)
+    normalized, compile_report = CompilePipeline().run(circuit, cfg, hardware=lowering_device)
     t3 = time.perf_counter()
     stage_timings["compile_pipeline"] = t3 - t2
-    pulse_ir, executable = DefaultLowering().lower(normalized, hw=lowering_hw, cfg=cfg)
+    pulse_ir, executable = DefaultLowering().lower(normalized, hw=lowering_device, cfg=cfg)
     t4 = time.perf_counter()
     stage_timings["lowering"] = t4 - t3
 
-    pulse_samples = PulseCompiler.compile(pulse_ir, sample_rate=1.0)
+    pulse_samples = PulseCompiler.compile(pulse_ir, sample_rate_Hz=1.0e9)
     t5 = time.perf_counter()
     stage_timings["pulse_compile"] = t5 - t4
     pulse_npz = out / "pulse_samples.npz"
@@ -71,7 +79,14 @@ def parse_compile_lower_model(
     t6 = time.perf_counter()
     stage_timings["pulse_npz_write"] = t6 - t5
 
-    model_spec = DefaultModelBuilder().build(executable, hw=lowering_hw, noise=noise, pulse_samples=pulse_samples)
+    model_spec = DefaultModelBuilder().build(
+        executable,
+        hw=model_device,
+        noise=noise,
+        pulse_samples=pulse_samples,
+        frame=frame,
+        solver_run=solver_run,
+    )
     if solver_mode:
         model_spec.solver = str(solver_mode).strip().lower()
     t7 = time.perf_counter()
@@ -80,7 +95,10 @@ def parse_compile_lower_model(
     return {
         "circuit": circuit,
         "cfg": cfg,
-        "lowering_hw": lowering_hw,
+        "device_cfg": raw_device,
+        "model_device": model_device,
+        "pulse_cfg": pulse_cfg,
+        "frame_cfg": dict(frame or {}),
         "normalized": normalized,
         "compile_report": compile_report,
         "pulse_ir": pulse_ir,

@@ -65,10 +65,10 @@ def test_lowering_and_catalog_instantiation_stay_in_sync_for_mixed_circuit():
     pulse_ir, executable = DefaultLowering().lower(circuit, hw={}, cfg=BackendConfig())
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
-    assert pulse_ir.t_end == 950.0
+    assert pulse_ir.t_end_ns == 950.0
     assert len(executable.metadata["reset_events"]) == 1
     assert by_channel["XY_0"][0].shape == "gaussian"
-    assert by_channel["TC_0"][0].t1 - by_channel["TC_0"][0].t0 == 40.0
+    assert by_channel["TC_0"][0].duration_ns == 40.0
     assert [pulse.shape for pulse in by_channel["RO_0"]] == ["readout", "readout", "rect"]
     assert by_channel["XY_0"][-1].params["stage"] == "reset_conditional_pi"
 
@@ -86,9 +86,9 @@ def test_parallel_policy_allows_disjoint_cz_to_overlap():
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
     assert executable.metadata["schedule_policy"] == "parallel"
-    assert pulse_ir.t_end == 40.0
-    assert by_channel["TC_0"][0].t0 == 0.0
-    assert by_channel["TC_1"][0].t0 == 0.0
+    assert pulse_ir.t_end_ns == 40.0
+    assert by_channel["TC_0"][0].t0_ns == 0.0
+    assert by_channel["TC_1"][0].t0_ns == 0.0
     assert executable.metadata["schedule_debug"][0]["layer_id"] == 0
     assert executable.metadata["schedule_debug"][1]["layer_id"] == 0
     assert executable.metadata["schedule_debug"][0]["blocked_by_resources"] == []
@@ -111,12 +111,12 @@ def test_hybrid_policy_parallelizes_consecutive_same_family_only():
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
     assert executable.metadata["schedule_policy"] == "hybrid"
-    assert pulse_ir.t_end == 100.0
-    assert by_channel["TC_0"][0].t0 == 0.0
-    assert by_channel["TC_1"][0].t0 == 0.0
-    assert by_channel["XY_0"][0].t0 == 40.0
-    assert by_channel["XY_2"][0].t0 == 40.0
-    assert by_channel["TC_0"][1].t0 == 60.0
+    assert pulse_ir.t_end_ns == 100.0
+    assert by_channel["TC_0"][0].t0_ns == 0.0
+    assert by_channel["TC_1"][0].t0_ns == 0.0
+    assert by_channel["XY_0"][0].t0_ns == 40.0
+    assert by_channel["XY_2"][0].t0_ns == 40.0
+    assert by_channel["TC_0"][1].t0_ns == 60.0
     debug = executable.metadata["schedule_debug"]
     assert [item["layer_id"] for item in debug] == [0, 0, 1, 1, 2]
 
@@ -138,11 +138,11 @@ def test_serial_global_reset_feedback_keeps_measurement_parallel_but_staggers_fe
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
     assert executable.metadata["reset_feedback_policy"] == "serial_global"
-    assert pulse_ir.t_end == 710.0
-    assert by_channel["RO_0"][0].t0 == 0.0
-    assert by_channel["RO_1"][0].t0 == 0.0
-    assert by_channel["XY_0"][0].t0 == 670.0
-    assert by_channel["XY_1"][0].t0 == 690.0
+    assert pulse_ir.t_end_ns == 710.0
+    assert by_channel["RO_0"][0].t0_ns == 0.0
+    assert by_channel["RO_1"][0].t0_ns == 0.0
+    assert by_channel["XY_0"][0].t0_ns == 670.0
+    assert by_channel["XY_1"][0].t0_ns == 690.0
     assert executable.metadata["reset_events"][0]["feedback_offset_ns"] == 0.0
     assert executable.metadata["reset_events"][1]["feedback_offset_ns"] == 20.0
     assert executable.metadata["schedule_debug"][0]["reset_feedback_mode"] == "serial_global"
@@ -167,12 +167,12 @@ def test_hybrid_reset_feedback_policy_serial_global_is_respected():
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
     assert executable.metadata["schedule_policy"] == "hybrid"
-    assert pulse_ir.t_end == 730.0
+    assert pulse_ir.t_end_ns == 730.0
     assert by_channel["XY_0"][0].params["stage"] == "reset_conditional_pi"
     assert by_channel["XY_1"][0].params["stage"] == "reset_conditional_pi"
-    assert by_channel["XY_0"][0].t0 == 670.0
-    assert by_channel["XY_1"][0].t0 == 690.0
-    assert by_channel["XY_0"][1].t0 == 710.0
+    assert by_channel["XY_0"][0].t0_ns == 670.0
+    assert by_channel["XY_1"][0].t0_ns == 690.0
+    assert by_channel["XY_0"][1].t0_ns == 710.0
 
 
 def test_parallel_conflict_reason_is_recorded_for_shared_qubit_gate():
@@ -187,7 +187,7 @@ def test_parallel_conflict_reason_is_recorded_for_shared_qubit_gate():
 
     pulse_ir, executable = DefaultLowering().lower(circuit, hw={"schedule_policy": "parallel"}, cfg=BackendConfig())
 
-    assert pulse_ir.t_end == 40.0
+    assert pulse_ir.t_end_ns == 40.0
     debug = executable.metadata["schedule_debug"]
     assert [item["start_ns"] for item in debug] == [0.0, 20.0, 0.0]
     assert debug[1]["blocked_by_resources"] == ["Q0"]

@@ -7,7 +7,7 @@ run:
   solver_mode: me
   sweep: []
   seed: 1234
-  dt: 1.0
+  dt_s: 1.0e-9
   schedule_policy: serial
   reset_feedback_policy: parallel
   julia_timeout_s: 120.0

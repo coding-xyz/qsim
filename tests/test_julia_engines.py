@@ -14,9 +14,9 @@ def _minimal_spec(solver: str = "me") -> ModelSpec:
         payload={
             "model_type": "qubit_network",
             "num_qubits": 1,
-            "qubit_freqs_hz": [0.05],
+            "qubit_omega_rad_s": [0.05],
             "controls": [{"target": 0, "axis": "x", "times": [0.0, 5.0, 10.0], "values": [0.0, 1.0, 0.0], "scale": 1.0}],
-            "collapse_operators": [{"target": 0, "kind": "relaxation", "rate": 0.01}],
+            "collapse_operators": [{"target": 0, "kind": "relaxation", "rate_rad_s": 0.01}],
         },
     )
 

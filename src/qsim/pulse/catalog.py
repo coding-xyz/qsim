@@ -2,29 +2,39 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
+from qsim.common.unit_schema import MODEL_HARDWARE_KEYS, reject_unknown_keys
 from qsim.common.schemas import Carrier, PulseSpec
+from qsim.pulse.shapes import make_shape
 
 PULSE_GATE_MAP_SCHEMA = "qsim.pulse-gate-map.v1"
-DEFAULT_BREAK_KEEP_HEAD_NS = 60.0
-DEFAULT_BREAK_KEEP_TAIL_NS = 60.0
-DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_NS = 30.0
-DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_NS = 30.0
+NS_TO_S = 1e-9
+DEFAULT_BREAK_KEEP_HEAD_S = 60.0 * NS_TO_S
+DEFAULT_BREAK_KEEP_TAIL_S = 60.0 * NS_TO_S
+DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_S = 30.0 * NS_TO_S
+DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_S = 30.0 * NS_TO_S
+
+# Backward-compatible aliases for display-layer code still phrased in ns.
+DEFAULT_BREAK_KEEP_HEAD_NS = DEFAULT_BREAK_KEEP_HEAD_S * 1e9
+DEFAULT_BREAK_KEEP_TAIL_NS = DEFAULT_BREAK_KEEP_TAIL_S * 1e9
+DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_NS = DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_S * 1e9
+DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_NS = DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_S * 1e9
 
 
 def breakable_params(
     *,
-    keep_head_ns: float,
-    keep_tail_ns: float,
+    keep_head_s: float,
+    keep_tail_s: float,
     break_kind: str,
     break_stage: str | None = None,
 ) -> dict[str, Any]:
     """Return standard breakability metadata stored on pulse params."""
     out: dict[str, Any] = {
         "breakable": True,
-        "break_keep_head_ns": float(keep_head_ns),
-        "break_keep_tail_ns": float(keep_tail_ns),
+        "break_keep_head_s": float(keep_head_s),
+        "break_keep_tail_s": float(keep_tail_s),
         "break_kind": str(break_kind),
     }
     if break_stage is not None:
@@ -37,33 +47,61 @@ def pulse_break_window(channel_name: str, pulse: PulseSpec) -> tuple[float, floa
     params = dict(getattr(pulse, "params", {}) or {})
     if not bool(params.get("breakable", False)):
         return None
-    keep_head_ns = float(params.get("break_keep_head_ns", DEFAULT_BREAK_KEEP_HEAD_NS))
-    keep_tail_ns = float(params.get("break_keep_tail_ns", DEFAULT_BREAK_KEEP_TAIL_NS))
-    t0 = float(pulse.t0)
-    t1 = float(pulse.t1)
-    b0 = t0 + max(0.0, keep_head_ns)
-    b1 = t1 - max(0.0, keep_tail_ns)
+    keep_head_s = float(params.get("break_keep_head_s", DEFAULT_BREAK_KEEP_HEAD_S))
+    keep_tail_s = float(params.get("break_keep_tail_s", DEFAULT_BREAK_KEEP_TAIL_S))
+    t0 = float(pulse.t0_s)
+    t1 = float(pulse.t1_s)
+    b0 = t0 + max(0.0, keep_head_s)
+    b1 = t1 - max(0.0, keep_tail_s)
     return (b0, b1) if b1 > b0 else None
 
 
+def _normalized_pulse_area_s(shape: str, duration_s: float, params: dict[str, Any]) -> float:
+    sampler = make_shape(shape, params)
+    n = 257
+    if duration_s <= 0.0:
+        return 0.0
+    dt = duration_s / (n - 1)
+    values = [sampler.sample(i * dt, 0.0, duration_s, 1.0) for i in range(n)]
+    area = 0.0
+    for i in range(n - 1):
+        area += 0.5 * (values[i] + values[i + 1]) * dt
+    return max(area, 1e-18)
+
+
+def _xy_rotation_amp_rad_s(*, shape: str, duration_s: float, params: dict[str, Any], rotation_rad: float) -> float:
+    area_s = _normalized_pulse_area_s(shape, duration_s, params)
+    return float(rotation_rad) / (2.0 * area_s)
+
+
+def _single_qubit_rotation_rad(gate_name: str) -> float:
+    gate = str(gate_name).lower()
+    if gate == "x":
+        return math.pi
+    if gate in {"sx", "h"}:
+        return 0.5 * math.pi
+    return 0.0
+
+
 def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Normalize lowering hardware knobs into one resolved config."""
+    """Normalize lowering device/pulse knobs into one resolved config."""
     hw = hw or {}
-    gate_dur = float(hw.get("gate_duration", 20.0))
-    measure_dur = float(hw.get("measure_duration", 200.0))
+    reject_unknown_keys("device", hw, MODEL_HARDWARE_KEYS)
+    gate_dur = float(hw.get("gate_duration_ns", 20.0))
+    measure_dur = float(hw.get("measure_duration_ns", 200.0))
     edge_ns = float(hw.get("rect_edge_ns", 2.0))
     return {
-        "xy_freq_hz": float(hw.get("xy_freq_hz", 5.0e9)),
-        "ro_freq_hz": float(hw.get("ro_freq_hz", 6.5e9)),
+        "xy_freq_Hz": float(hw.get("xy_freq_Hz", 5.0e9)),
+        "ro_freq_Hz": float(hw.get("ro_freq_Hz", 6.5e9)),
         "schedule_policy": str(hw.get("schedule_policy", "serial")).strip().lower() or "serial",
-        "gate_duration": gate_dur,
-        "measure_duration": measure_dur,
+        "gate_duration_ns": gate_dur,
+        "measure_duration_ns": measure_dur,
         "rect_edge_ns": edge_ns,
         "readout_edge_ns": float(hw.get("readout_edge_ns", edge_ns)),
-        "reset_measure_duration": float(hw.get("reset_measure_duration", max(measure_dur, 400.0))),
-        "reset_deplete_duration": float(hw.get("reset_deplete_duration", 150.0)),
-        "reset_latency_duration": float(hw.get("reset_latency_duration", 120.0)),
-        "reset_pi_duration": float(hw.get("reset_pi_duration", gate_dur)),
+        "reset_measure_duration_ns": float(hw.get("reset_measure_duration_ns", max(measure_dur, 400.0))),
+        "reset_deplete_duration_ns": float(hw.get("reset_deplete_duration_ns", 150.0)),
+        "reset_latency_duration_ns": float(hw.get("reset_latency_duration_ns", 120.0)),
+        "reset_pi_duration_ns": float(hw.get("reset_pi_duration_ns", gate_dur)),
         "reset_measure_amp": float(hw.get("reset_measure_amp", 0.8)),
         "reset_deplete_amp": float(hw.get("reset_deplete_amp", 0.15)),
         "reset_pi_amp": float(hw.get("reset_pi_amp", 1.0)),
@@ -74,15 +112,16 @@ def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any
 
 
 def _xy_carrier(cfg: dict[str, Any], phase: float = 0.0) -> dict[str, float]:
-    return {"freq": float(cfg["xy_freq_hz"]), "phase": float(phase)}
+    return {"freq": float(cfg["xy_freq_Hz"]), "phase": float(phase)}
 
 
 def _ro_carrier(cfg: dict[str, Any], phase: float = 0.0) -> dict[str, float]:
-    return {"freq": float(cfg["ro_freq_hz"]), "phase": float(phase)}
+    return {"freq": float(cfg["ro_freq_Hz"]), "phase": float(phase)}
 
 
 def _shared_single_qubit_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    gate_dur = float(cfg["gate_duration"])
+    gate_dur = float(cfg["gate_duration_ns"])
+    gate_dur_s = gate_dur * NS_TO_S
     return [
         {
             "kind": "pulse",
@@ -92,17 +131,17 @@ def _shared_single_qubit_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "end_ns": gate_dur,
             "duration_ns": gate_dur,
             "shape": "gaussian",
-            "amp": 1.0,
-            "params": {"sigma": gate_dur / 6.0},
+            "amp": 0.0,
+            "params": {"sigma_s": gate_dur_s / 6.0},
             "carrier": _xy_carrier(cfg),
-            "hardware_keys": ["gate_duration", "xy_freq_hz"],
+            "hardware_keys": ["gate_duration_ns", "xy_freq_Hz"],
         }
     ]
 
 
 def _z_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    gate_dur = float(cfg["gate_duration"])
-    edge_ns = float(cfg["rect_edge_ns"])
+    gate_dur = float(cfg["gate_duration_ns"])
+    edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
     return [
         {
             "kind": "pulse",
@@ -113,16 +152,16 @@ def _z_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "duration_ns": gate_dur,
             "shape": "rect",
             "amp": 0.2,
-            "params": {"rise_ns": edge_ns, "fall_ns": edge_ns},
+            "params": {"rise_s": edge_s, "fall_s": edge_s},
             "carrier": None,
-            "hardware_keys": ["gate_duration", "rect_edge_ns"],
+            "hardware_keys": ["gate_duration_ns", "rect_edge_ns"],
         }
     ]
 
 
 def _cz_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    gate_dur = float(cfg["gate_duration"])
-    edge_ns = float(cfg["rect_edge_ns"])
+    gate_dur = float(cfg["gate_duration_ns"])
+    edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
     duration = 2.0 * gate_dur
     return [
         {
@@ -134,16 +173,17 @@ def _cz_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "duration_ns": duration,
             "shape": "rect",
             "amp": 0.75,
-            "params": {"rise_ns": edge_ns, "fall_ns": edge_ns},
+            "params": {"rise_s": edge_s, "fall_s": edge_s},
             "carrier": None,
-            "hardware_keys": ["gate_duration", "rect_edge_ns"],
+            "hardware_keys": ["gate_duration_ns", "rect_edge_ns"],
         }
     ]
 
 
 def _cx_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    gate_dur = float(cfg["gate_duration"])
-    edge_ns = float(cfg["rect_edge_ns"])
+    gate_dur = float(cfg["gate_duration_ns"])
+    gate_dur_s = gate_dur * NS_TO_S
+    edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
     duration = 2.0 * gate_dur
     return [
         {
@@ -155,9 +195,9 @@ def _cx_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "duration_ns": duration,
             "shape": "drag",
             "amp": 1.2,
-            "params": {"beta": 0.35, "sigma": gate_dur / 4.0},
+            "params": {"beta": 0.35, "sigma_s": gate_dur_s / 4.0},
             "carrier": _xy_carrier(cfg, phase=0.0),
-            "hardware_keys": ["gate_duration", "xy_freq_hz"],
+            "hardware_keys": ["gate_duration_ns", "xy_freq_Hz"],
         },
         {
             "kind": "pulse",
@@ -168,9 +208,9 @@ def _cx_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "duration_ns": duration,
             "shape": "drag",
             "amp": 1.2,
-            "params": {"beta": 0.35, "sigma": gate_dur / 4.0},
+            "params": {"beta": 0.35, "sigma_s": gate_dur_s / 4.0},
             "carrier": _xy_carrier(cfg, phase=0.2),
-            "hardware_keys": ["gate_duration", "xy_freq_hz"],
+            "hardware_keys": ["gate_duration_ns", "xy_freq_Hz"],
         },
         {
             "kind": "pulse",
@@ -181,16 +221,16 @@ def _cx_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "duration_ns": duration,
             "shape": "rect",
             "amp": 0.75,
-            "params": {"rise_ns": edge_ns, "fall_ns": edge_ns},
+            "params": {"rise_s": edge_s, "fall_s": edge_s},
             "carrier": None,
-            "hardware_keys": ["gate_duration", "rect_edge_ns"],
+            "hardware_keys": ["gate_duration_ns", "rect_edge_ns"],
         },
     ]
 
 
 def _measure_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    measure_dur = float(cfg["measure_duration"])
-    edge_ns = float(cfg["readout_edge_ns"])
+    measure_dur = float(cfg["measure_duration_ns"])
+    edge_s = float(cfg["readout_edge_ns"]) * NS_TO_S
     return [
         {
             "kind": "pulse",
@@ -202,27 +242,27 @@ def _measure_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "shape": "readout",
             "amp": 0.8,
             "params": {
-                "rise_ns": edge_ns,
-                "fall_ns": edge_ns,
+                "rise_s": edge_s,
+                "fall_s": edge_s,
                 **breakable_params(
-                    keep_head_ns=DEFAULT_BREAK_KEEP_HEAD_NS,
-                    keep_tail_ns=DEFAULT_BREAK_KEEP_TAIL_NS,
+                    keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
+                    keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
                     break_kind="readout",
                     break_stage="measure",
                 ),
             },
             "carrier": _ro_carrier(cfg),
-            "hardware_keys": ["measure_duration", "readout_edge_ns", "ro_freq_hz"],
+            "hardware_keys": ["measure_duration_ns", "readout_edge_ns", "ro_freq_Hz"],
         }
     ]
 
 
 def _reset_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    t1 = float(cfg["reset_measure_duration"])
-    t2 = t1 + float(cfg["reset_deplete_duration"])
-    t3 = t2 + float(cfg["reset_latency_duration"])
-    t4 = t3 + (float(cfg["reset_pi_duration"]) if bool(cfg["reset_apply_feedback"]) else 0.0)
-    edge_ns = float(cfg["readout_edge_ns"])
+    t1 = float(cfg["reset_measure_duration_ns"])
+    t2 = t1 + float(cfg["reset_deplete_duration_ns"])
+    t3 = t2 + float(cfg["reset_latency_duration_ns"])
+    t4 = t3 + (float(cfg["reset_pi_duration_ns"]) if bool(cfg["reset_apply_feedback"]) else 0.0)
+    edge_s = float(cfg["readout_edge_ns"]) * NS_TO_S
     steps: list[dict[str, Any]] = [
         {
             "kind": "pulse",
@@ -236,17 +276,17 @@ def _reset_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "amp": float(cfg["reset_measure_amp"]),
             "params": {
                 "stage": "reset_measure",
-                "rise_ns": edge_ns,
-                "fall_ns": edge_ns,
+                "rise_s": edge_s,
+                "fall_s": edge_s,
                 **breakable_params(
-                    keep_head_ns=DEFAULT_BREAK_KEEP_HEAD_NS,
-                    keep_tail_ns=DEFAULT_BREAK_KEEP_TAIL_NS,
+                    keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
+                    keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
                     break_kind="reset",
                     break_stage="reset_measure",
                 ),
             },
             "carrier": _ro_carrier(cfg),
-            "hardware_keys": ["reset_measure_duration", "reset_measure_amp", "readout_edge_ns", "ro_freq_hz"],
+            "hardware_keys": ["reset_measure_duration_ns", "reset_measure_amp", "readout_edge_ns", "ro_freq_Hz"],
         },
         {
             "kind": "pulse",
@@ -260,17 +300,17 @@ def _reset_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "amp": float(cfg["reset_deplete_amp"]),
             "params": {
                 "stage": "reset_deplete",
-                "rise_ns": edge_ns,
-                "fall_ns": edge_ns,
+                "rise_s": edge_s,
+                "fall_s": edge_s,
                 **breakable_params(
-                    keep_head_ns=DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_NS,
-                    keep_tail_ns=DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_NS,
+                    keep_head_s=DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_S,
+                    keep_tail_s=DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_S,
                     break_kind="reset",
                     break_stage="reset_deplete",
                 ),
             },
             "carrier": _ro_carrier(cfg),
-            "hardware_keys": ["reset_deplete_duration", "reset_deplete_amp", "readout_edge_ns", "ro_freq_hz"],
+            "hardware_keys": ["reset_deplete_duration_ns", "reset_deplete_amp", "readout_edge_ns", "ro_freq_Hz"],
         },
         {
             "kind": "wait",
@@ -280,7 +320,7 @@ def _reset_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "start_ns": t2,
             "end_ns": t3,
             "duration_ns": t3 - t2,
-            "hardware_keys": ["reset_latency_duration"],
+            "hardware_keys": ["reset_latency_duration_ns"],
         },
     ]
     if bool(cfg["reset_apply_feedback"]) and t4 > t3:
@@ -297,12 +337,12 @@ def _reset_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
                 "amp": float(cfg["reset_pi_amp"]),
                 "params": {
                     "stage": "reset_conditional_pi",
-                    "sigma": max(float(cfg["reset_pi_duration"]) / 6.0, 1e-9),
+                    "sigma_s": max(float(cfg["reset_pi_duration_ns"]) * NS_TO_S / 6.0, 1e-18),
                     "conditional": True,
                     "cond_on": int(cfg["reset_cond_on"]),
                 },
                 "carrier": _xy_carrier(cfg),
-                "hardware_keys": ["reset_pi_duration", "reset_pi_amp", "reset_cond_on", "xy_freq_hz"],
+                "hardware_keys": ["reset_pi_duration_ns", "reset_pi_amp", "reset_cond_on", "xy_freq_Hz"],
             }
         )
     return steps
@@ -337,13 +377,13 @@ def _catalog_entry(
 def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return a machine-readable catalog of supported gate-to-pulse mappings."""
     cfg = resolve_lowering_hardware(hw)
-    gate_dur = float(cfg["gate_duration"])
-    measure_dur = float(cfg["measure_duration"])
+    gate_dur = float(cfg["gate_duration_ns"])
+    measure_dur = float(cfg["measure_duration_ns"])
     reset_total = (
-        float(cfg["reset_measure_duration"])
-        + float(cfg["reset_deplete_duration"])
-        + float(cfg["reset_latency_duration"])
-        + (float(cfg["reset_pi_duration"]) if bool(cfg["reset_apply_feedback"]) else 0.0)
+        float(cfg["reset_measure_duration_ns"])
+        + float(cfg["reset_deplete_duration_ns"])
+        + float(cfg["reset_latency_duration_ns"])
+        + (float(cfg["reset_pi_duration_ns"]) if bool(cfg["reset_apply_feedback"]) else 0.0)
     )
     operations = [
         _catalog_entry(
@@ -352,7 +392,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=gate_dur,
             steps=_shared_single_qubit_steps(cfg),
             summary="Single-qubit XY Gaussian pulse.",
-            hardware_keys=["gate_duration", "xy_freq_hz"],
+            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
             shared_recipe_group="single_qubit_xy_gaussian",
             note="Current lowering uses the same recipe as sx and h.",
         ),
@@ -362,7 +402,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=gate_dur,
             steps=_shared_single_qubit_steps(cfg),
             summary="Single-qubit XY Gaussian pulse.",
-            hardware_keys=["gate_duration", "xy_freq_hz"],
+            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
             shared_recipe_group="single_qubit_xy_gaussian",
             note="Current lowering uses the same recipe as x and h.",
         ),
@@ -372,7 +412,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=gate_dur,
             steps=_shared_single_qubit_steps(cfg),
             summary="Single-qubit XY Gaussian pulse.",
-            hardware_keys=["gate_duration", "xy_freq_hz"],
+            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
             shared_recipe_group="single_qubit_xy_gaussian",
             note="Current lowering uses the same recipe as x and sx.",
         ),
@@ -382,7 +422,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=gate_dur,
             steps=_z_steps(cfg),
             summary="Single-qubit rectangular Z pulse.",
-            hardware_keys=["gate_duration", "rect_edge_ns"],
+            hardware_keys=["gate_duration_ns", "rect_edge_ns"],
             shared_recipe_group="single_qubit_z_rect",
             note="Current lowering uses the same recipe as rz.",
         ),
@@ -392,7 +432,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=gate_dur,
             steps=_z_steps(cfg),
             summary="Single-qubit rectangular Z pulse.",
-            hardware_keys=["gate_duration", "rect_edge_ns"],
+            hardware_keys=["gate_duration_ns", "rect_edge_ns"],
             shared_recipe_group="single_qubit_z_rect",
             note="Current lowering uses the same recipe as z.",
         ),
@@ -402,7 +442,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=2.0 * gate_dur,
             steps=_cz_steps(cfg),
             summary="Two-qubit coupler pulse on TC_*.",
-            hardware_keys=["gate_duration", "rect_edge_ns"],
+            hardware_keys=["gate_duration_ns", "rect_edge_ns"],
         ),
         _catalog_entry(
             name="cx",
@@ -410,7 +450,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=2.0 * gate_dur,
             steps=_cx_steps(cfg),
             summary="Two XY DRAG pulses plus one coupler pulse.",
-            hardware_keys=["gate_duration", "rect_edge_ns", "xy_freq_hz"],
+            hardware_keys=["gate_duration_ns", "rect_edge_ns", "xy_freq_Hz"],
         ),
         _catalog_entry(
             name="measure",
@@ -418,7 +458,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=measure_dur,
             steps=_measure_steps(cfg),
             summary="Readout pulse on RO_* for each measured qubit.",
-            hardware_keys=["measure_duration", "readout_edge_ns", "ro_freq_hz"],
+            hardware_keys=["measure_duration_ns", "readout_edge_ns", "ro_freq_Hz"],
             note="Consecutive measure instructions are aligned in parallel by lowering.",
         ),
         _catalog_entry(
@@ -428,18 +468,18 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             steps=_reset_steps(cfg),
             summary="Measurement-driven active reset with depletion, latency, and optional feedback pi.",
             hardware_keys=[
-                "reset_measure_duration",
-                "reset_deplete_duration",
-                "reset_latency_duration",
-                "reset_pi_duration",
+                "reset_measure_duration_ns",
+                "reset_deplete_duration_ns",
+                "reset_latency_duration_ns",
+                "reset_pi_duration_ns",
                 "reset_measure_amp",
                 "reset_deplete_amp",
                 "reset_pi_amp",
                 "reset_cond_on",
                 "reset_apply_feedback",
                 "readout_edge_ns",
-                "xy_freq_hz",
-                "ro_freq_hz",
+                "xy_freq_Hz",
+                "ro_freq_Hz",
             ],
             note="Consecutive reset instructions are aligned in parallel by lowering.",
         ),
@@ -475,13 +515,13 @@ def instantiate_operation_recipe(
     pulses: list[tuple[str, PulseSpec]] = []
     events: list[dict[str, Any]] = []
 
-    def add(channel: str, t0: float, t1: float, amp: float, shape: str, params: dict[str, Any], carrier: dict[str, float] | None) -> None:
+    def add(channel: str, t0_ns: float, t1_ns: float, amp: float, shape: str, params: dict[str, Any], carrier: dict[str, float] | None) -> None:
         pulses.append(
             (
                 channel,
                 PulseSpec(
-                    t0=t0,
-                    t1=t1,
+                    t0_s=float(t0_ns) * NS_TO_S,
+                    t1_s=float(t1_ns) * NS_TO_S,
                     amp=amp,
                     shape=shape,
                     params=dict(params),
@@ -490,35 +530,44 @@ def instantiate_operation_recipe(
             )
         )
 
-    gate_dur = float(cfg["gate_duration"])
+    gate_dur = float(cfg["gate_duration_ns"])
+    gate_dur_s = gate_dur * NS_TO_S
     if gate in {"x", "sx", "h"}:
+        params = {"sigma_s": gate_dur_s / 6.0, "rotation_rad": _single_qubit_rotation_rad(gate)}
+        amp = _xy_rotation_amp_rad_s(
+            shape="gaussian",
+            duration_s=gate_dur_s,
+            params=params,
+            rotation_rad=float(params["rotation_rad"]),
+        )
         for q in qubits:
-            add(f"XY_{q}", start_ns, start_ns + gate_dur, 1.0, "gaussian", {"sigma": gate_dur / 6.0}, _xy_carrier(cfg))
+            add(f"XY_{q}", start_ns, start_ns + gate_dur, amp, "gaussian", params, _xy_carrier(cfg))
         return pulses, gate_dur, events
 
     if gate in {"rz", "z"}:
-        edge_ns = float(cfg["rect_edge_ns"])
+        edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
         for q in qubits:
-            add(f"Z_{q}", start_ns, start_ns + gate_dur, 0.2, "rect", {"rise_ns": edge_ns, "fall_ns": edge_ns}, None)
+            add(f"Z_{q}", start_ns, start_ns + gate_dur, 0.2, "rect", {"rise_s": edge_s, "fall_s": edge_s}, None)
         return pulses, gate_dur, events
 
     if gate == "cz":
-        edge_ns = float(cfg["rect_edge_ns"])
+        edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
         duration = 2.0 * gate_dur
-        add(f"TC_{0 if tc_index is None else int(tc_index)}", start_ns, start_ns + duration, 0.75, "rect", {"rise_ns": edge_ns, "fall_ns": edge_ns}, None)
+        add(f"TC_{0 if tc_index is None else int(tc_index)}", start_ns, start_ns + duration, 0.75, "rect", {"rise_s": edge_s, "fall_s": edge_s}, None)
         return pulses, duration, events
 
     if gate == "cx":
         qs = qubits or [0, 1]
         duration = 2.0 * gate_dur
-        edge_ns = float(cfg["rect_edge_ns"])
-        add(f"XY_{qs[0]}", start_ns, start_ns + duration, 1.2, "drag", {"beta": 0.35, "sigma": gate_dur / 4.0}, _xy_carrier(cfg, phase=0.0))
-        add(f"XY_{qs[-1]}", start_ns, start_ns + duration, 1.2, "drag", {"beta": 0.35, "sigma": gate_dur / 4.0}, _xy_carrier(cfg, phase=0.2))
-        add(f"TC_{0 if tc_index is None else int(tc_index)}", start_ns, start_ns + duration, 0.75, "rect", {"rise_ns": edge_ns, "fall_ns": edge_ns}, None)
+        gate_sigma_s = gate_dur_s / 4.0
+        edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
+        add(f"XY_{qs[0]}", start_ns, start_ns + duration, 1.2, "drag", {"beta": 0.35, "sigma_s": gate_sigma_s}, _xy_carrier(cfg, phase=0.0))
+        add(f"XY_{qs[-1]}", start_ns, start_ns + duration, 1.2, "drag", {"beta": 0.35, "sigma_s": gate_sigma_s}, _xy_carrier(cfg, phase=0.2))
+        add(f"TC_{0 if tc_index is None else int(tc_index)}", start_ns, start_ns + duration, 0.75, "rect", {"rise_s": edge_s, "fall_s": edge_s}, None)
         return pulses, duration, events
 
     if gate == "measure":
-        duration = float(cfg["measure_duration"])
+        duration = float(cfg["measure_duration_ns"])
         edge_ns = float(cfg["readout_edge_ns"])
         for q in qubits:
             add(
@@ -528,11 +577,11 @@ def instantiate_operation_recipe(
                 0.8,
                 "readout",
                 {
-                    "rise_ns": edge_ns,
-                    "fall_ns": edge_ns,
+                    "rise_s": edge_ns * NS_TO_S,
+                    "fall_s": edge_ns * NS_TO_S,
                     **breakable_params(
-                        keep_head_ns=DEFAULT_BREAK_KEEP_HEAD_NS,
-                        keep_tail_ns=DEFAULT_BREAK_KEEP_TAIL_NS,
+                        keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
+                        keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
                         break_kind="readout",
                         break_stage="measure",
                     ),
@@ -544,11 +593,11 @@ def instantiate_operation_recipe(
     if gate == "reset":
         qs = qubits or [0]
         t0 = start_ns
-        t1 = t0 + float(cfg["reset_measure_duration"])
-        t2 = t1 + float(cfg["reset_deplete_duration"])
-        t3 = t2 + float(cfg["reset_latency_duration"]) + max(0.0, float(reset_feedback_offset_ns))
-        t4 = t3 + (float(cfg["reset_pi_duration"]) if bool(cfg["reset_apply_feedback"]) else 0.0)
-        edge_ns = float(cfg["readout_edge_ns"])
+        t1 = t0 + float(cfg["reset_measure_duration_ns"])
+        t2 = t1 + float(cfg["reset_deplete_duration_ns"])
+        t3 = t2 + float(cfg["reset_latency_duration_ns"]) + max(0.0, float(reset_feedback_offset_ns))
+        t4 = t3 + (float(cfg["reset_pi_duration_ns"]) if bool(cfg["reset_apply_feedback"]) else 0.0)
+        edge_s = float(cfg["readout_edge_ns"]) * NS_TO_S
         for q in qs:
             add(
                 f"RO_{q}",
@@ -558,11 +607,11 @@ def instantiate_operation_recipe(
                 "readout",
                 {
                     "stage": "reset_measure",
-                    "rise_ns": edge_ns,
-                    "fall_ns": edge_ns,
+                    "rise_s": edge_s,
+                    "fall_s": edge_s,
                     **breakable_params(
-                        keep_head_ns=DEFAULT_BREAK_KEEP_HEAD_NS,
-                        keep_tail_ns=DEFAULT_BREAK_KEEP_TAIL_NS,
+                        keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
+                        keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
                         break_kind="reset",
                         break_stage="reset_measure",
                     ),
@@ -577,11 +626,11 @@ def instantiate_operation_recipe(
                 "rect",
                 {
                     "stage": "reset_deplete",
-                    "rise_ns": edge_ns,
-                    "fall_ns": edge_ns,
+                    "rise_s": edge_s,
+                    "fall_s": edge_s,
                     **breakable_params(
-                        keep_head_ns=DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_NS,
-                        keep_tail_ns=DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_NS,
+                        keep_head_s=DEFAULT_RESET_DEPL_BREAK_KEEP_HEAD_S,
+                        keep_tail_s=DEFAULT_RESET_DEPL_BREAK_KEEP_TAIL_S,
                         break_kind="reset",
                         break_stage="reset_deplete",
                     ),
@@ -589,13 +638,27 @@ def instantiate_operation_recipe(
                 _ro_carrier(cfg),
             )
             if bool(cfg["reset_apply_feedback"]) and t4 > t3:
+                reset_pi_duration_s = float(cfg["reset_pi_duration_ns"]) * NS_TO_S
+                params = {
+                    "stage": "reset_conditional_pi",
+                    "sigma_s": max(reset_pi_duration_s / 6.0, 1e-18),
+                    "conditional": True,
+                    "cond_on": int(cfg["reset_cond_on"]),
+                    "rotation_rad": math.pi,
+                }
+                amp = _xy_rotation_amp_rad_s(
+                    shape="gaussian",
+                    duration_s=max(t4 - t3, 0.0) * NS_TO_S,
+                    params=params,
+                    rotation_rad=float(params["rotation_rad"]),
+                )
                 add(
                     f"XY_{q}",
                     t3,
                     t4,
-                    float(cfg["reset_pi_amp"]),
+                    amp,
                     "gaussian",
-                    {"stage": "reset_conditional_pi", "sigma": max(float(cfg["reset_pi_duration"]) / 6.0, 1e-9), "conditional": True, "cond_on": int(cfg["reset_cond_on"])},
+                    params,
                     _xy_carrier(cfg),
                 )
             events.append(

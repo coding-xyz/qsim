@@ -12,7 +12,7 @@ def _run_task_from_kwargs(*, qasm_text: str, backend_path: str, out_dir: str, **
     feature_kwargs = {}
     output_kwargs = {"out_dir": out_dir}
     for key, value in kwargs.items():
-        if key in {"hardware", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}:
+        if key in {"device", "pulse", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}:
             input_kwargs[key] = value
             continue
         if key in {

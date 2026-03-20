@@ -41,7 +41,7 @@ function _extract_rates(payload)
     gamma_phi = 0.0
     for item in get(payload, "collapse_operators", Any[])
         kind = lowercase(String(get(item, "kind", "")))
-        rate = max(0.0, _safe_float(get(item, "rate", 0.0), 0.0))
+        rate = max(0.0, _safe_float(get(item, "rate_rad_s", get(item, "rate", 0.0)), 0.0))
         if kind == "relaxation"
             gamma_down += rate
         elseif kind == "excitation"
@@ -68,7 +68,11 @@ function _effective_omega(payload)
     if !isempty(vals)
         return sum(vals) / length(vals)
     end
-    freqs = get(payload, "qubit_freqs_hz", Any[0.02])
+    freqs = get(
+        payload,
+        "qubit_omega_rad_s",
+        get(payload, "qubit_freqs_Hz", get(payload, "qubit_freqs_hz", Any[0.02])),
+    )
     return isempty(freqs) ? 0.02 : abs(_safe_float(freqs[1], 0.02))
 end
 
@@ -95,7 +99,11 @@ function _run_quantumoptics_native(times::Vector{Float64}, solver_mode::String, 
     gamma_down, gamma_up, gamma_phi = _extract_rates(payload)
     omega = _effective_omega(payload)
     delta = 0.0
-    freq = get(payload, "qubit_freqs_hz", Any[0.0])
+    freq = get(
+        payload,
+        "qubit_omega_rad_s",
+        get(payload, "qubit_freqs_Hz", get(payload, "qubit_freqs_hz", Any[0.0])),
+    )
     if !isempty(freq)
         delta = _safe_float(freq[1], 0.0)
     end
@@ -223,7 +231,11 @@ function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String,
     gamma_down, gamma_up, gamma_phi = _extract_rates(payload)
     omega = _effective_omega(payload)
     delta = 0.0
-    freq = get(payload, "qubit_freqs_hz", Any[0.0])
+    freq = get(
+        payload,
+        "qubit_omega_rad_s",
+        get(payload, "qubit_freqs_Hz", get(payload, "qubit_freqs_hz", Any[0.0])),
+    )
     if !isempty(freq)
         delta = _safe_float(freq[1], 0.0)
     end

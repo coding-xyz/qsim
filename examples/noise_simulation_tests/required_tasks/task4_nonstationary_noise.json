@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "tag": "task4_nonstationary_noise",
+  "title": "Task 4 非静态噪声",
+  "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[1] q;\nbit[1] c;\nh q[0];\nx q[0];\nmeasure q[0] -> c[0];\n",
+  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "solver_mode": "me",
+  "display_metrics": ["final_p1_obs", "final_state_last"],
+  "cases": [
+    {
+      "tag": "one_over_f",
+      "device": {},
+      "pulse": {"gate_duration_ns": 22.0},
+      "noise": {"model": "one_over_f", "one_over_f_amp_Hz": 4.0e7, "one_over_f_fmin_Hz": 1.0e6, "one_over_f_fmax_Hz": 1.0e8},
+      "note": "1/f surrogate noise"
+    },
+    {
+      "tag": "ou_drift",
+      "device": {},
+      "pulse": {"gate_duration_ns": 22.0},
+      "noise": {"model": "ou", "ou_sigma_Hz": 4.0e7, "ou_tau_s": 1.2e-8},
+      "note": "OU frequency drift surrogate"
+    }
+  ]
+}

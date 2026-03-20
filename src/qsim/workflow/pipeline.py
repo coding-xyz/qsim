@@ -8,7 +8,7 @@ import time
 from qsim.common.schemas import write_json
 from qsim.pulse.visualize import plot_pulses, plot_report, plot_trace
 from qsim.workflow.contracts import (
-    WorkflowHardwareConfig,
+    WorkflowDeviceConfig,
     WorkflowSolverConfig,
     WorkflowTask,
     WorkflowTaskConfig,
@@ -29,7 +29,8 @@ from qsim.workflow.session_adapter import commit_result_to_session
 from qsim.workflow.stages import parse_compile_lower_model, run_analysis_stage, run_decode_stage, run_engine_stage
 from qsim.workflow.task_io import (
     load_config_bundle_files,
-    load_hardware_config_file,
+    load_device_config_file,
+    load_pulse_config_file,
     load_solver_config_file,
 )
 
@@ -44,10 +45,17 @@ def _run_core_stages(*, task: WorkflowTask, out: Path, timings: dict[str, float]
         backend_path=task.input.backend_path,
         backend_config=task.input.backend_config,
         out=out,
-        hardware=task.input.hardware,
+        device=task.input.device,
+        pulse=task.input.pulse,
+        frame=task.input.frame,
         schedule_policy=task.input.schedule_policy,
         reset_feedback_policy=task.input.reset_feedback_policy,
         noise=task.input.noise,
+        solver_run={
+            "dt_s": task.run.dt_s,
+            "t_end_s": task.run.t_end_s,
+            "t_padding_s": task.run.t_padding_s,
+        },
         solver_mode=task.run.solver_mode,
         param_bindings=task.input.param_bindings,
         persist_artifacts=task.output.persist_artifacts,
@@ -210,12 +218,19 @@ def _persist_and_finalize(
     settings_report = build_settings_report(
         backend_path=(task.input.backend_path or "<inline:solver.backend>"),
         cfg=parsed["cfg"],
-        hardware=parsed["lowering_hw"],
+        device=parsed["device_cfg"],
+        pulse=parsed["pulse_cfg"],
+        frame=parsed["frame_cfg"],
         noise=task.input.noise,
         model_spec=parsed["model_spec"],
         trace=trace,
         selected_engine_name=task.run.engine,
         solver_mode=task.run.solver_mode,
+        solver_run={
+            "dt_s": task.run.dt_s,
+            "t_end_s": task.run.t_end_s,
+            "t_padding_s": task.run.t_padding_s,
+        },
         param_bindings=task.input.param_bindings,
         allow_mock_fallback=task.run.allow_mock_fallback,
         compare_engines=task.run.compare_engines,
@@ -425,12 +440,13 @@ def _resolve_runtime_task(
     task: WorkflowTask | WorkflowTaskConfig | str | Path,
     *,
     solver_config: WorkflowSolverConfig | str | Path | None = None,
-    hardware_config: WorkflowHardwareConfig | str | Path | None = None,
+    device_config: WorkflowDeviceConfig | str | Path | None = None,
+    pulse_config: dict | str | Path | None = None,
 ) -> WorkflowTask:
     """Resolve public run_task inputs to canonical runtime task."""
     if isinstance(task, WorkflowTask):
-        if solver_config is not None or hardware_config is not None:
-            raise TypeError("Do not pass solver_config/hardware_config when `task` is already WorkflowTask.")
+        if solver_config is not None or device_config is not None or pulse_config is not None:
+            raise TypeError("Do not pass solver_config/device_config/pulse_config when `task` is already WorkflowTask.")
         return task
 
     if isinstance(task, WorkflowTaskConfig):
@@ -443,33 +459,42 @@ def _resolve_runtime_task(
         else:
             solver_cfg = load_solver_config_file(solver_config)
 
-        if isinstance(hardware_config, WorkflowHardwareConfig):
-            hardware_cfg = hardware_config
-        elif hardware_config is None and task.input.hardware_config_path:
-            hardware_cfg = load_hardware_config_file(task.input.hardware_config_path)
-        elif hardware_config is None:
-            hardware_cfg = WorkflowHardwareConfig()
+        if isinstance(device_config, WorkflowDeviceConfig):
+            device_cfg = device_config
+        elif device_config is None and task.input.device_config_path:
+            device_cfg = load_device_config_file(task.input.device_config_path)
+        elif device_config is None:
+            device_cfg = WorkflowDeviceConfig()
         else:
-            hardware_cfg = load_hardware_config_file(hardware_config)
+            device_cfg = load_device_config_file(device_config)
+        if isinstance(pulse_config, dict):
+            device_cfg.pulse = {**dict(device_cfg.pulse or {}), **dict(pulse_config)}
+        elif pulse_config is None and task.input.pulse_config_path:
+            device_cfg.pulse = {**dict(device_cfg.pulse or {}), **load_pulse_config_file(task.input.pulse_config_path)}
+        elif pulse_config is not None:
+            device_cfg.pulse = {**dict(device_cfg.pulse or {}), **load_pulse_config_file(pulse_config)}
         backend_source = None
         if isinstance(solver_config, (str, Path)):
             backend_source = str(Path(solver_config).resolve())
         elif task.input.solver_config_path:
             backend_source = str(Path(task.input.solver_config_path).resolve())
-        return compose_workflow_task(task, solver_cfg, hardware_cfg, backend_source=backend_source)
+        return compose_workflow_task(task, solver_cfg, device_cfg, backend_source=backend_source)
 
     if isinstance(task, (str, Path)):
-        if isinstance(solver_config, WorkflowSolverConfig) or isinstance(hardware_config, WorkflowHardwareConfig):
-            raise TypeError("When task is a file path, solver_config/hardware_config must be file paths, not objects.")
+        if isinstance(solver_config, WorkflowSolverConfig) or isinstance(device_config, WorkflowDeviceConfig):
+            raise TypeError("When task is a file path, solver_config/device_config must be config paths, not objects.")
+        if isinstance(pulse_config, dict):
+            raise TypeError("When task is a file path, pulse_config must be a config path, not an inline dict.")
         return load_config_bundle_files(
             task_config=task,
             solver_config=solver_config,
-            hardware_config=hardware_config,
+            device_config=device_config,
+            pulse_config=pulse_config,
         )
 
     raise TypeError(
         "run_task expects WorkflowTask, WorkflowTaskConfig, or task-config path. "
-        "When using path/task-config, solver_config and hardware_config are required."
+        "When using path/task-config, solver_config and device_config are required."
     )
 
 
@@ -477,10 +502,16 @@ def run_task(
     task: WorkflowTask | WorkflowTaskConfig | str | Path,
     *,
     solver_config: WorkflowSolverConfig | str | Path | None = None,
-    hardware_config: WorkflowHardwareConfig | str | Path | None = None,
+    device_config: WorkflowDeviceConfig | str | Path | None = None,
+    pulse_config: dict | str | Path | None = None,
 ) -> dict:
-    """Run qsim workflow from merged task or 3-way task/solver/hardware configs."""
-    task = _resolve_runtime_task(task, solver_config=solver_config, hardware_config=hardware_config)
+    """Run qsim workflow from merged task or task/solver/device/pulse configs."""
+    task = _resolve_runtime_task(
+        task,
+        solver_config=solver_config,
+        device_config=device_config,
+        pulse_config=pulse_config,
+    )
 
     plan = build_execution_plan(task)
     run_started_at = time.perf_counter()
@@ -513,10 +544,16 @@ def run_task_files(
     *,
     task_config: str | Path,
     solver_config: str | Path | None = None,
-    hardware_config: str | Path | None = None,
+    device_config: str | Path | None = None,
+    pulse_config: str | Path | None = None,
 ) -> dict:
-    """Run workflow from task config, with optional solver/hardware overrides."""
-    return run_task(task_config, solver_config=solver_config, hardware_config=hardware_config)
+    """Run workflow from task config, with optional solver/device/pulse overrides."""
+    return run_task(
+        task_config,
+        solver_config=solver_config,
+        device_config=device_config,
+        pulse_config=pulse_config,
+    )
 
 
 def plot_default(result: dict) -> dict:

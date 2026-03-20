@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "tag": "task7_crosstalk_proxy",
+  "title": "Task 7 串扰代理场景",
+  "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[2] q;\nbit[2] c;\nx q[0];\ndelay[20ns] q[1];\nmeasure q -> c;\n",
+  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "solver_mode": "me",
+  "display_metrics": ["RO_0_abs_area", "final_p1_obs", "final_state_last"],
+  "cases": [
+    {
+      "tag": "weak_xtalk",
+      "device": {
+        "couplings": [{"i": 0, "j": 1, "g_Hz": 2.0e7, "kind": "xx+yy"}],
+        "qubit_freqs_Hz": [5.0e9, 5.15e9]
+      },
+      "pulse": {"measure_duration_ns": 60.0, "gate_duration_ns": 20.0},
+      "noise": {"model": "ou", "ou_sigma_Hz": [1.0e7, 1.0e7], "ou_tau_s": [8.0e-9, 8.0e-9]},
+      "note": "weak crosstalk proxy"
+    },
+    {
+      "tag": "strong_xtalk",
+      "device": {
+        "couplings": [{"i": 0, "j": 1, "g_Hz": 1.0e8, "kind": "xx+yy"}],
+        "qubit_freqs_Hz": [5.0e9, 5.05e9]
+      },
+      "pulse": {"measure_duration_ns": 120.0, "gate_duration_ns": 28.0},
+      "noise": {"model": "ou", "ou_sigma_Hz": [4.0e7, 4.0e7], "ou_tau_s": [1.2e-8, 1.2e-8]},
+      "note": "strong crosstalk proxy"
+    }
+  ]
+}

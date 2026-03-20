@@ -92,12 +92,28 @@ class Carrier:
 class PulseSpec:
     """Single pulse segment scheduled on a channel."""
 
-    t0: float
-    t1: float
+    t0_s: float
+    t1_s: float
     amp: float
     shape: str
     params: dict[str, Any] = field(default_factory=dict)
     carrier: Carrier | None = None
+
+    @property
+    def duration_s(self) -> float:
+        return float(self.t1_s) - float(self.t0_s)
+
+    @property
+    def t0_ns(self) -> float:
+        return round(float(self.t0_s) * 1e9, 12)
+
+    @property
+    def t1_ns(self) -> float:
+        return round(float(self.t1_s) * 1e9, 12)
+
+    @property
+    def duration_ns(self) -> float:
+        return round(self.duration_s * 1e9, 12)
 
 
 @dataclass
@@ -113,8 +129,12 @@ class PulseIR:
     """Pulse-level intermediate representation for one schedule."""
 
     schema_version: str = SCHEMA_VERSION
-    t_end: float = 0.0
+    t_end_s: float = 0.0
     channels: list[ChannelSpec] = field(default_factory=list)
+
+    @property
+    def t_end_ns(self) -> float:
+        return round(float(self.t_end_s) * 1e9, 12)
 
 
 @dataclass

@@ -85,15 +85,15 @@ class ReadoutShape(PulseShape):
 def make_shape(name: str, params: dict) -> PulseShape:
     """Factory returning pulse-shape implementation by shape name."""
     lname = name.lower()
-    rise = float(params.get("rise_ns", params.get("rise", 0.0)))
-    fall = float(params.get("fall_ns", params.get("fall", 0.0)))
+    rise = float(params.get("rise_s", params.get("rise", 0.0)))
+    fall = float(params.get("fall_s", params.get("fall", 0.0)))
     if lname in ("rect", "dc"):
         return RectShape(rise=rise, fall=fall)
     if lname == "gaussian":
-        sigma = params.get("sigma")
+        sigma = params.get("sigma_s", params.get("sigma"))
         return GaussianShape(sigma=float(sigma) if sigma is not None else None)
     if lname == "drag":
-        sigma = params.get("sigma")
+        sigma = params.get("sigma_s", params.get("sigma"))
         return DragShape(beta=float(params.get("beta", 0.3)), sigma=float(sigma) if sigma is not None else None)
     if lname == "readout":
         return ReadoutShape(rise=rise, fall=fall)

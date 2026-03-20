@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0",
+  "pulse": {
+    "gate_duration_ns": 20.0,
+    "xy_freq_Hz": 5.0e9,
+    "ro_freq_Hz": 6.5e9
+  }
+}

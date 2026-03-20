@@ -1,65 +1,58 @@
-# Noise Simulation Tests
+﻿# Noise Simulation Tests
 
-这个目录统一承载当前噪声仿真相关的 notebook、配置文件、运行结果和专题拆分内容。
+这个目录现在采用“保留任务/参考文件，薄 notebook 调 helper”的结构。
 
-## 目录说明
+## 保留不动的内容
 
+- `required_tasks/`
+  - 继续保存各个任务的原始 JSON 描述。
+  - notebook 不再自己展开一堆参数，而是直接读取这里的文件。
+- `references/`
+  - 继续保存 Task1 的原生参考实现。
+  - notebook 和脚本会直接读取这里的 reference 输出做对比。
+
+## 新的最小调用层
+
+- `minimal_workflow_helpers.py`
+  - 把 `required_tasks/*.json` 适配到当前 `qsim.workflow.run_task(...)`。
+  - 提供：
+    - `run_required_task_grid(...)`
+    - `run_required_task_suite(...)`
+    - `load_task1_references(...)`
+    - `compare_task1_to_references(...)`
+    - `plot_case_series(...)`
+
+这样 notebook 里通常只需要几行：
+
+```python
+from minimal_workflow_helpers import run_required_task_grid
+
+bundle = run_required_task_grid(
+    "required_tasks/task1_single_qubit_baseline.json",
+    persist_artifacts=False,
+)
+```
+
+## Notebook 约定
+
+- `task1_tri_engine_compare.ipynb`
+  - 最小化运行 Task1。
+  - 直接用当前 qsim workflow 跑三引擎。
+  - 和 `references/` 里的 native reference 做对比。
 - `required_tasks_tri_engine.ipynb`
-  - 对应 `required_tasks.txt` 的 7 个任务。
-  - 现在改为“配置文件 + `run_task(task)`”的工作范式，不再在 notebook 里定义专用的参数扫描函数。
-- `required_tasks_tri_engine/`
-  - `required_tasks_tri_engine.ipynb` 使用的任务配置目录。
-  - 每个任务一个 JSON 文件，文件内直接包含 QASM、case、引擎列表以及展示指标。
-- `roadmap_2026H1/`
-  - 同一批噪声仿真工作的专题拆分版。
-- `runs/`
-  - 存放本目录下 notebook 生成的结果。
-  - `runs/required_tasks_tri_engine/`：7 个任务的集中对比结果。
-  - `runs/roadmap_2026H1/`：专题 notebook 的运行结果。
+  - 最小化批量跑 `required_tasks/`。
+  - 默认只跑 `qutip`，需要时可改成任务自带的三引擎列表。
+- `roadmap_2026H1/*.ipynb`
+  - 现在都是薄封装 notebook。
+  - 每个 notebook 只选一个对应任务文件，调用 helper，展示简表。
 
-## 当前约定
+## Task1 Reference CSV
 
-- 跟本批噪声仿真测试直接相关的内容，统一收口到 `examples/noise_simulation_tests/`。
-- 如果继续扩展三引擎噪声对比，优先在本目录下新增配置文件、notebook 或子目录，而不是再分散到 `examples/notebooks/` 或 `examples/runs/`。
-- 三引擎结果解读时，优先看 `state_encoding` 和 `compare_status`。
-  - `per_qubit_excited_probability`：可以做逐项数值对比。
-  - `basis_population_single_qubit`：可做单比特基态/激发态人口解释，但不应直接当成多比特逐比特概率。
-  - `ambiguous_population_vector`：需要先做语义审查，不直接做逐项误差比较。
-
-## Task1 Visual Compare (Issue DYN-P1)
-
-- Script: `examples/noise_simulation_tests/task1_single_qubit_visual_compare.py`
+- Script: `task1_native_tri_compare.py`
 - Purpose:
-  - Read existing Task1 run artifacts under `runs/required_tasks_tri_engine/`.
-  - Build semantically aligned single-qubit `p1(t)` dynamics for all engines.
-  - Export PNG/CSV artifacts for manual engine-call validation.
-- Default output directory:
-  - `<repo>/task1_outputs/`
-- Run command:
-  - `python examples/noise_simulation_tests/task1_single_qubit_visual_compare.py`
-  - optional: `--out-dir <path>`
-- Generated files (default):
-  - `task1_single_qubit_baseline_visual_compare_summary.csv`
-  - `task1_p1_dynamics_long.csv`
-  - `task1_baseline_p1_dynamics.png`
-  - `task1_detuned_p1_dynamics.png`
-  - `task1_final_p1_bar.png`
-
-## Task1 Native References
-
-- `examples/noise_simulation_tests/task1_qutip_native_reference.py`
-- `examples/noise_simulation_tests/task1_quantumoptics_native_reference.jl`
-- `examples/noise_simulation_tests/task1_quantumtoolbox_native_reference.jl`
-
-These references provide a direct native-solver baseline for trend-level checks
-(`final_p1`, `mean_p1`, curve shape) when verifying that your engine path is
-actually invoking the intended backend.
-
-- Unified one-click runner:
-  - `examples/noise_simulation_tests/task1_native_tri_compare.py`
-  - Run:
-    - `python examples/noise_simulation_tests/task1_native_tri_compare.py`
-    - only QuTiP: `python examples/noise_simulation_tests/task1_native_tri_compare.py --skip-julia`
-    - custom Julia binary: `python examples/noise_simulation_tests/task1_native_tri_compare.py --julia-bin <path>`
-  - Output:
-    - `<repo>/task1_outputs/task1_native_tri_compare_summary.csv`
+  - 运行 `references/` 下的 Task1 native references
+  - 导出紧凑 CSV 汇总
+- Run:
+  - `python examples/noise_simulation_tests/task1_native_tri_compare.py`
+  - `python examples/noise_simulation_tests/task1_native_tri_compare.py --skip-julia`
+  - `python examples/noise_simulation_tests/task1_native_tri_compare.py --julia-bin <path>`

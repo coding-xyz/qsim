@@ -60,6 +60,37 @@ class QuTiPEngine(Engine):
         return f
 
     @staticmethod
+    def _modulated_coeff(
+        envelope: Callable[[float, dict], float],
+        *,
+        omega_rad_s: float,
+        phase_rad: float,
+        trig: str,
+    ) -> Callable[[float, dict], float]:
+        def f(t, args=None):
+            env = float(envelope(t, args))
+            angle = float(omega_rad_s) * float(t) + float(phase_rad)
+            if trig == "sin":
+                return env * math.sin(angle)
+            return env * math.cos(angle)
+
+        return f
+
+    @staticmethod
+    def _dephasing_collapse_prefactor(rate: float, model_type: str) -> float:
+        rate = max(0.0, float(rate))
+        if rate <= 0.0:
+            return 0.0
+        if str(model_type).lower() == "qubit_network":
+            # With c = sqrt(gamma_phi/2) * sigma_z, off-diagonal qubit coherence
+            # decays at gamma_phi. Using sqrt(gamma_phi) would overcount by 2x.
+            return math.sqrt(0.5 * rate)
+        # For n = a^\dagger a, D[n] damps |0><1| coherence at rate prefactor^2 / 2.
+        # Use sqrt(2 * gamma_phi) so Tphi continues to mean the pure-dephasing time
+        # of the qubit subspace across nlevel/cqed models as well.
+        return math.sqrt(2.0 * rate)
+
+    @staticmethod
     def _one_over_f_trace(
         tlist: np.ndarray,
         amp: float,
@@ -108,7 +139,10 @@ class QuTiPEngine(Engine):
         sx = [self._tensor_op(qt, dims, i, qt.sigmax()) for i in range(n_qubits)]
         sy = [self._tensor_op(qt, dims, i, qt.sigmay()) for i in range(n_qubits)]
         sz = [self._tensor_op(qt, dims, i, qt.sigmaz()) for i in range(n_qubits)]
-        sm = [self._tensor_op(qt, dims, i, qt.sigmam()) for i in range(n_qubits)]
+        # qutip.sigmam/sigmap follow a spin convention where sigmam maps basis(2,0) -> basis(2,1).
+        # This codebase treats basis(2,0) as |0> ground and basis(2,1) as |1> excited, so the
+        # physical lowering operator |0><1| corresponds to qutip.sigmap() under that basis ordering.
+        sm = [self._tensor_op(qt, dims, i, qt.sigmap()) for i in range(n_qubits)]
         psi0 = qt.tensor([qt.basis(2, 0) for _ in range(n_qubits)])
         ident = qt.tensor([qt.qeye(2) for _ in range(n_qubits)])
         readout_ops = [0.5 * (ident - sz[i]) for i in range(n_qubits)]
@@ -121,10 +155,11 @@ class QuTiPEngine(Engine):
         adag = [op.dag() for op in a]
         n = [adag[i] * a[i] for i in range(n_qubits)]
         x = [a[i] + adag[i] for i in range(n_qubits)]
+        y = [-1j * (a[i] - adag[i]) for i in range(n_qubits)]
         psi0 = qt.tensor([qt.basis(levels, 0) for _ in range(n_qubits)])
         p1_local = self._projector_one(qt, levels)
         readout_ops = [self._tensor_op(qt, dims, i, p1_local) for i in range(n_qubits)]
-        return a, adag, n, x, psi0, readout_ops
+        return a, adag, n, x, y, psi0, readout_ops
 
     def _build_cqed_ops(self, qt, n_qubits: int, levels: int, cavity_nmax: int):
         levels = max(2, int(levels))
@@ -137,10 +172,11 @@ class QuTiPEngine(Engine):
         adag_q = [op.dag() for op in a_q]
         n_q = [adag_q[i] * a_q[i] for i in range(n_qubits)]
         x_q = [a_q[i] + adag_q[i] for i in range(n_qubits)]
+        y_q = [-1j * (a_q[i] - adag_q[i]) for i in range(n_qubits)]
         psi0 = qt.tensor([qt.basis(nc, 0)] + [qt.basis(levels, 0) for _ in range(n_qubits)])
         p1_local = self._projector_one(qt, levels)
         readout_ops = [self._tensor_op(qt, dims, i + 1, p1_local) for i in range(n_qubits)]
-        return a_c, adag_c, n_c, a_q, adag_q, n_q, x_q, psi0, readout_ops
+        return a_c, adag_c, n_c, a_q, adag_q, n_q, x_q, y_q, psi0, readout_ops
 
     def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trace:
         """Solve model dynamics based on ``model_spec.solver``.
@@ -168,16 +204,20 @@ class QuTiPEngine(Engine):
         t_end = max(float(model_spec.t_end), dt)
         tlist = np.arange(0.0, t_end + 0.5 * dt, dt)
 
-        freqs = [float(x) for x in payload.get("qubit_freqs_hz", [0.0 for _ in range(n_qubits)])]
+        freqs = [float(x) for x in payload.get("qubit_omega_rad_s", [0.0 for _ in range(n_qubits)])]
         if len(freqs) < n_qubits:
             freqs.extend([0.0] * (n_qubits - len(freqs)))
-        anh = [float(x) for x in payload.get("anharmonicity_hz", [-0.2 for _ in range(n_qubits)])]
+        anh = [float(x) for x in payload.get("anharmonicity_rad_s", [0.0 for _ in range(n_qubits)])]
         if len(anh) < n_qubits:
-            anh.extend([-0.2] * (n_qubits - len(anh)))
+            anh.extend([0.0] * (n_qubits - len(anh)))
+        frame_cfg = dict(payload.get("frame", {}) or {})
+        frame_mode = str(frame_cfg.get("mode", "rotating")).strip().lower()
+        rwa = bool(frame_cfg.get("rwa", True))
 
         if model_type == "qubit_network":
             sx, sy, sz, sm, psi0, e_ops = self._build_qubit_ops(qt, n_qubits)
             x_ops = sx
+            y_ops = sy
             z_ops = sz
             lower_ops = sm
             raise_ops = [op.dag() for op in sm]
@@ -186,12 +226,12 @@ class QuTiPEngine(Engine):
                 H0 = H0 + 0.5 * freqs[i] * sz[i]
         elif model_type == "transmon_nlevel":
             levels = int(payload.get("transmon_levels", 3))
-            a, adag, n, x, psi0, e_ops = self._build_nlevel_ops(qt, n_qubits, levels)
+            a, adag, n, x, y, psi0, e_ops = self._build_nlevel_ops(qt, n_qubits, levels)
             x_ops = x
+            y_ops = y
             z_ops = n
             lower_ops = a
             raise_ops = adag
-            sy = x
             H0 = 0 * n[0]
             for i in range(n_qubits):
                 ni = n[i]
@@ -200,18 +240,18 @@ class QuTiPEngine(Engine):
         elif model_type == "cqed_jc":
             levels = int(payload.get("transmon_levels", 3))
             cavity_nmax = int(payload.get("cavity_nmax", 8))
-            a_c, adag_c, n_c, a_q, adag_q, n_q, x_q, psi0, e_ops = self._build_cqed_ops(qt, n_qubits, levels, cavity_nmax)
+            a_c, adag_c, n_c, a_q, adag_q, n_q, x_q, y_q, psi0, e_ops = self._build_cqed_ops(qt, n_qubits, levels, cavity_nmax)
             x_ops = x_q
+            y_ops = y_q
             z_ops = n_q
             lower_ops = a_q
             raise_ops = adag_q
-            sy = x_q
-            H0 = float(payload.get("cavity_freq_hz", 0.0)) * n_c
+            H0 = float(payload.get("cavity_omega_rad_s", 0.0)) * n_c
             for i in range(n_qubits):
                 ni = n_q[i]
                 ident = qt.qeye(ni.dims[0])
                 H0 = H0 + freqs[i] * ni + 0.5 * anh[i] * (ni * (ni - ident))
-            g_cavity = payload.get("g_cavity_hz", [0.0 for _ in range(n_qubits)])
+            g_cavity = payload.get("g_cavity_rad_s", [0.0 for _ in range(n_qubits)])
             if len(g_cavity) < n_qubits:
                 g_cavity = list(g_cavity) + [0.0] * (n_qubits - len(g_cavity))
             for i in range(n_qubits):
@@ -228,7 +268,7 @@ class QuTiPEngine(Engine):
             j = int(c.get("j", 0))
             if i < 0 or j < 0 or i >= n_qubits or j >= n_qubits or i == j:
                 continue
-            g = float(c.get("g", 0.0))
+            g = float(c.get("g_rad_s", c.get("g", 0.0)))
             kind = str(c.get("kind", "xx+yy")).lower()
             if kind == "zz":
                 H0 = H0 + g * (z_ops[i] * z_ops[j])
@@ -236,7 +276,7 @@ class QuTiPEngine(Engine):
                 H0 = H0 + g * (x_ops[i] * x_ops[j])
             else:
                 if model_type == "qubit_network":
-                    H0 = H0 + g * ((x_ops[i] * x_ops[j]) + (sy[i] * sy[j]))
+                    H0 = H0 + g * ((x_ops[i] * x_ops[j]) + (y_ops[i] * y_ops[j]))
                 else:
                     H0 = H0 + g * (raise_ops[i] * lower_ops[j] + lower_ops[i] * raise_ops[j])
 
@@ -247,19 +287,60 @@ class QuTiPEngine(Engine):
                 continue
             axis = str(ctrl.get("axis", "x")).lower()
             if axis == "x":
-                op = x_ops[target]
+                op_x = x_ops[target]
+                op_y = y_ops[target]
             elif axis == "z":
                 op = z_ops[target]
             elif axis == "y":
-                op = sy[target] if model_type == "qubit_network" else x_ops[target]
+                op = y_ops[target]
             else:
                 continue
-            coeff = self._coeff_interp(
+            coeff_env = self._coeff_interp(
                 [float(x) for x in ctrl.get("times", [])],
                 [float(x) for x in ctrl.get("values", [])],
                 float(ctrl.get("scale", 1.0)),
             )
-            H.append([op, coeff])
+            if axis == "x":
+                carrier_omega_rad_s = float(ctrl.get("carrier_omega_rad_s", 0.0))
+                drive_delta_rad_s = float(ctrl.get("drive_delta_rad_s", 0.0))
+                phase_rad = float(ctrl.get("carrier_phase_rad", 0.0))
+                if frame_mode == "rotating" and rwa:
+                    H.append(
+                        [
+                            op_x,
+                            self._modulated_coeff(
+                                coeff_env,
+                                omega_rad_s=drive_delta_rad_s,
+                                phase_rad=phase_rad,
+                                trig="cos",
+                            ),
+                        ]
+                    )
+                    H.append(
+                        [
+                            op_y,
+                            self._modulated_coeff(
+                                coeff_env,
+                                omega_rad_s=drive_delta_rad_s,
+                                phase_rad=phase_rad,
+                                trig="sin",
+                            ),
+                        ]
+                    )
+                else:
+                    H.append(
+                        [
+                            op_x,
+                            self._modulated_coeff(
+                                coeff_env,
+                                omega_rad_s=carrier_omega_rad_s,
+                                phase_rad=phase_rad,
+                                trig="cos",
+                            ),
+                        ]
+                    )
+            else:
+                H.append([op, coeff_env])
 
         c_ops = []
         for item in payload.get("collapse_operators", []):
@@ -267,13 +348,13 @@ class QuTiPEngine(Engine):
             if target < 0 or target >= n_qubits:
                 continue
             kind = str(item.get("kind", "relaxation")).lower()
-            rate = max(0.0, float(item.get("rate", 0.0)))
+            rate = max(0.0, float(item.get("rate_rad_s", item.get("rate", 0.0))))
             if rate <= 0:
                 continue
             if kind == "relaxation":
                 c_ops.append(math.sqrt(rate) * lower_ops[target])
             elif kind == "dephasing":
-                c_ops.append(math.sqrt(rate) * z_ops[target])
+                c_ops.append(self._dephasing_collapse_prefactor(rate, model_type) * z_ops[target])
             elif kind == "excitation":
                 c_ops.append(math.sqrt(rate) * raise_ops[target])
 
@@ -290,7 +371,7 @@ class QuTiPEngine(Engine):
                 if selected_noise == "one_over_f":
                     series = self._one_over_f_trace(
                         tlist=tlist,
-                        amp=float(item.get("one_over_f_amp", 0.0)),
+                        amp=float(item.get("one_over_f_amp_rad_s", item.get("one_over_f_amp", 0.0))),
                         fmin=float(item.get("one_over_f_fmin", 1e-3)),
                         fmax=float(item.get("one_over_f_fmax", 0.5 / max(dt, 1e-12))),
                         exponent=float(item.get("one_over_f_exponent", 1.0)),
@@ -300,7 +381,7 @@ class QuTiPEngine(Engine):
                 else:
                     series = self._ou_trace(
                         tlist=tlist,
-                        sigma=float(item.get("ou_sigma", 0.0)),
+                        sigma=float(item.get("ou_sigma_rad_s", item.get("ou_sigma", 0.0))),
                         tau=float(item.get("ou_tau", 1.0)),
                         rng=rng,
                     )
@@ -343,5 +424,7 @@ class QuTiPEngine(Engine):
                 "num_controls": len(payload.get("controls", [])),
                 "num_collapse_ops": len(c_ops),
                 "selected_noise": selected_noise,
+                "frame_mode": frame_mode,
+                "rwa": rwa,
             },
         )

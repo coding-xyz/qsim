@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "tag": "task5_joint_control_readout",
+  "title": "Task 5 控制与读取链路联合影响",
+  "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[1] q;\nbit[1] c;\nh q[0];\nx q[0];\nmeasure q[0] -> c[0];\n",
+  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "solver_mode": "me",
+  "display_metrics": ["RO_0_abs_area", "final_p1_obs", "final_state_last"],
+  "cases": [
+    {
+      "tag": "nominal_joint",
+      "device": {"control_scale": 0.9},
+      "pulse": {"measure_duration_ns": 60.0, "gate_duration_ns": 20.0},
+      "noise": {"model": "ou", "ou_sigma_Hz": 1.0e7, "ou_tau_s": 6.0e-9},
+      "note": "mild control/readout disturbance"
+    },
+    {
+      "tag": "stressed_joint",
+      "device": {"control_scale": 1.25},
+      "pulse": {"measure_duration_ns": 120.0, "gate_duration_ns": 30.0},
+      "noise": {"model": "ou", "ou_sigma_Hz": 5.0e7, "ou_tau_s": 1.4e-8},
+      "note": "stronger combined control/readout disturbance"
+    }
+  ]
+}

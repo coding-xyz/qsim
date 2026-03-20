@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "tag": "task2_readout_io",
+  "title": "Task 2 读取线输入与输出",
+  "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[1] q;\nbit[1] c;\nh q[0];\ndelay[40ns] q[0];\nmeasure q[0] -> c[0];\n",
+  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "solver_mode": "me",
+  "display_metrics": ["RO_0_duration", "RO_0_abs_area", "final_p1_obs"],
+  "cases": [
+    {
+      "tag": "short_ro",
+      "device": {},
+      "pulse": {"measure_duration_ns": 40.0, "gate_duration_ns": 16.0},
+      "noise": {"model": "ou", "ou_sigma_Hz": 1.0e7, "ou_tau_s": 6.0e-9},
+      "note": "short readout pulse"
+    },
+    {
+      "tag": "long_ro",
+      "device": {},
+      "pulse": {"measure_duration_ns": 120.0, "gate_duration_ns": 16.0},
+      "noise": {"model": "ou", "ou_sigma_Hz": 3.0e7, "ou_tau_s": 1.0e-8},
+      "note": "longer readout pulse and stronger colored noise"
+    }
+  ]
+}

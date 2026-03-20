@@ -23,6 +23,9 @@ from qsim.pulse.catalog import (
 from qsim.pulse.sequence import PulseCompiler
 from qsim.pulse.shapes import make_shape
 
+NS_TO_S = 1e-9
+S_TO_NS = 1e9
+
 # Common defaults used by examples and callers.
 DEFAULT_XY_CARRIER_HZ = 5e9
 DEFAULT_RO_CARRIER_HZ = 8e9
@@ -173,7 +176,7 @@ def auto_break_idle_windows(
     active: list[tuple[float, float]] = []
     for ch in pulse_ir.channels:
         for p in ch.pulses:
-            active.append((float(p.t0), float(p.t1)))
+            active.append((float(p.t0_ns), float(p.t1_ns)))
     active = _merge_intervals(active)
 
     idle: list[tuple[float, float]] = []
@@ -182,8 +185,8 @@ def auto_break_idle_windows(
         if a > cursor:
             idle.append((cursor, a))
         cursor = max(cursor, b)
-    if cursor < pulse_ir.t_end:
-        idle.append((cursor, pulse_ir.t_end))
+    if cursor < pulse_ir.t_end_ns:
+        idle.append((cursor, pulse_ir.t_end_ns))
 
     breaks: list[tuple[float, float]] = []
     for a, b in idle:
@@ -217,7 +220,7 @@ def auto_break_long_pulses(
         if is_break_target:
             continue
         for p in ch.pulses:
-            blocking_active.append((float(p.t0), float(p.t1)))
+            blocking_active.append((float(p.t0_ns), float(p.t1_ns)))
     merged_blocking = _merge_intervals(blocking_active)
 
     breaks: list[tuple[float, float]] = []
@@ -226,20 +229,21 @@ def auto_break_long_pulses(
         for p in target_pulses:
             explicit_window = pulse_break_window(ch.name, p)
             if explicit_window is not None:
-                b0, b1 = explicit_window
-                if float(p.t1) - float(p.t0) < float(min_pulse_ns):
+                b0 = round(float(explicit_window[0]) * S_TO_NS, 12)
+                b1 = round(float(explicit_window[1]) * S_TO_NS, 12)
+                if float(p.duration_ns) < float(min_pulse_ns):
                     continue
                 visible = _clip_interval(b0, b1, merged_blocking)
                 if visible == [(b0, b1)]:
                     breaks.append((b0, b1))
                 continue
-            t0 = float(p.t0)
-            t1 = float(p.t1)
+            t0 = float(p.t0_ns)
+            t1 = float(p.t1_ns)
             dur = t1 - t0
             if dur < float(min_pulse_ns):
                 continue
-            b0 = t0 + float(keep_head_ns)
-            b1 = t1 - float(keep_tail_ns)
+            b0 = round(t0 + float(keep_head_ns), 12)
+            b1 = round(t1 - float(keep_tail_ns), 12)
             if b1 > b0:
                 visible = _clip_interval(b0, b1, merged_blocking)
                 if visible == [(b0, b1)]:
@@ -321,7 +325,7 @@ def reorder_xy_z_channels(pulse_ir: PulseIR) -> PulseIR:
 
     ordered.extend(sorted(remaining, key=lambda c: _rest_group(c.name)))
 
-    return PulseIR(schema_version=pulse_ir.schema_version, t_end=pulse_ir.t_end, channels=ordered)
+    return PulseIR(schema_version=pulse_ir.schema_version, t_end_s=pulse_ir.t_end_s, channels=ordered)
 
 
 def canonicalize_channel_names(pulse_ir: PulseIR) -> PulseIR:
@@ -338,7 +342,7 @@ def canonicalize_channel_names(pulse_ir: PulseIR) -> PulseIR:
         if m:
             name = f"{m.group(1)}_{int(m.group(2))}"
         out_channels.append(ChannelSpec(name=name, pulses=list(ch.pulses)))
-    return PulseIR(schema_version=pulse_ir.schema_version, t_end=pulse_ir.t_end, channels=out_channels)
+    return PulseIR(schema_version=pulse_ir.schema_version, t_end_s=pulse_ir.t_end_s, channels=out_channels)
 
 
 def ensure_z_channels(pulse_ir: PulseIR, num_qubits: int) -> PulseIR:
@@ -349,7 +353,7 @@ def ensure_z_channels(pulse_ir: PulseIR, num_qubits: int) -> PulseIR:
         z_name = f"Z_{i}"
         if z_name.upper() not in existing:
             channels.append(ChannelSpec(name=z_name, pulses=[]))
-    return PulseIR(schema_version=pulse_ir.schema_version, t_end=pulse_ir.t_end, channels=channels)
+    return PulseIR(schema_version=pulse_ir.schema_version, t_end_s=pulse_ir.t_end_s, channels=channels)
 
 
 def _xy_z_suffix(channel_name: str) -> tuple[str, str] | None:
@@ -395,7 +399,8 @@ def pulse_ir_from_qasm(
     qasm_text: str,
     *,
     backend_config: BackendConfig | str | Path,
-    hardware: dict | None = None,
+    device: dict | None = None,
+    pulse: dict | None = None,
     schedule_policy: str | None = None,
     reset_feedback_policy: str | None = None,
     canonicalize_names: bool = True,
@@ -406,7 +411,8 @@ def pulse_ir_from_qasm(
     Parameters
     - `qasm_text`: OpenQASM 3 program string.
     - `backend_config`: Backend config object or YAML path.
-    - `hardware`: Optional hardware knobs consumed by lowering.
+    - `device`: Optional device/model knobs consumed by lowering.
+    - `pulse`: Optional pulse-template knobs consumed by lowering.
     - `schedule_policy`: Optional lowering schedule policy: `serial|parallel|hybrid`.
     - `reset_feedback_policy`: Optional reset feedback policy: `parallel|serial_global`.
     - `canonicalize_names`: Convert channel names to underscore style.
@@ -414,7 +420,8 @@ def pulse_ir_from_qasm(
     """
     cfg = load_backend_config(backend_config) if isinstance(backend_config, (str, Path)) else backend_config
     circuit = CircuitAdapter.from_qasm(qasm_text)
-    lowering_hw = dict(hardware or {})
+    lowering_hw = dict(device or {})
+    lowering_hw.update(dict(pulse or {}))
     if schedule_policy is not None:
         lowering_hw["schedule_policy"] = str(schedule_policy)
     if reset_feedback_policy is not None:
@@ -659,10 +666,10 @@ def _plot_pulses_timing(
     last_pulse_t1 = 0.0
     for ch in pulse_ir.channels:
         for p in ch.pulses:
-            last_pulse_t1 = max(last_pulse_t1, float(p.t1))
-    plot_t_end = max(float(pulse_ir.t_end), max(0.0, last_pulse_t1) + max(0.0, float(post_sequence_gap_ns)))
+            last_pulse_t1 = max(last_pulse_t1, float(p.t1_ns))
+    plot_t_end = max(float(pulse_ir.t_end_ns), max(0.0, last_pulse_t1) + max(0.0, float(post_sequence_gap_ns)))
     if plot_t_end <= 0.0:
-        plot_t_end = float(pulse_ir.t_end)
+        plot_t_end = float(pulse_ir.t_end_ns)
     breaks = [(b0, b1) for b0, b1 in breaks if b0 < plot_t_end and b1 > 0.0]
     breaks = [(max(0.0, b0), min(plot_t_end, b1)) for b0, b1 in breaks if min(plot_t_end, b1) > max(0.0, b0)]
     warp = _TimeWarp(t_end=float(plot_t_end), breaks=breaks, display_gap=float(break_display_gap_ns))
@@ -712,21 +719,17 @@ def _plot_pulses_timing(
         row_pulse_ids: list[str] = []
         for source_channel, p, _shape in shaped_pulses:
             p_params = dict(p.params or {})
-            rise_ns = (
-                float(p_params["rise_ns"])
-                if "rise_ns" in p_params
-                else (float(p_params["rise"]) if "rise" in p_params else 0.0)
-            )
-            fall_ns = (
-                float(p_params["fall_ns"])
-                if "fall_ns" in p_params
-                else (float(p_params["fall"]) if "fall" in p_params else 0.0)
-            )
+            rise_ns = float(p_params.get("rise_s", p_params.get("rise", 0.0))) * S_TO_NS
+            fall_ns = float(p_params.get("fall_s", p_params.get("fall", 0.0))) * S_TO_NS
             shape_name = "rect" if str(p.shape).lower() == "dc" else str(p.shape)
             amp_unit = _channel_amp_unit(source_channel)
             params_out = dict(p_params)
             params_out.pop("rise", None)
             params_out.pop("fall", None)
+            params_out.pop("rise_s", None)
+            params_out.pop("fall_s", None)
+            if "sigma_s" in params_out:
+                params_out["sigma_ns"] = float(params_out.pop("sigma_s")) * S_TO_NS
             pulse_id = f"P{pulse_idx}"
             if shape_name.lower() in {"rect", "readout"}:
                 params_out["rise_ns"] = rise_ns
@@ -734,9 +737,9 @@ def _plot_pulses_timing(
             meta = {
                 "id": pulse_id,
                 "channel": source_channel,
-                "t_start_ns": float(p.t0),
-                "t_end_ns": float(p.t1),
-                "duration_ns": float(p.t1) - float(p.t0),
+                "t_start_ns": float(p.t0_ns),
+                "t_end_ns": float(p.t1_ns),
+                "duration_ns": float(p.duration_ns),
                 "shape": shape_name,
                 "params": params_out,
             }
@@ -759,7 +762,7 @@ def _plot_pulses_timing(
             has_carrier_overlap = False
             if show_carrier:
                 for _source_channel, p, _shape in shaped_pulses:
-                    if p.t1 <= a or p.t0 >= b or p.carrier is None:
+                    if p.t1_ns <= a or p.t0_ns >= b or p.carrier is None:
                         continue
                     has_carrier_overlap = True
                     f = float(p.carrier.freq)
@@ -773,14 +776,15 @@ def _plot_pulses_timing(
             else:
                 n = n_env
 
-            t = np.linspace(a, b, n)
+            t_ns = np.linspace(a, b, n)
+            t = t_ns * NS_TO_S
             env = np.zeros_like(t, dtype=float)
             env_carrier = np.zeros_like(t, dtype=float)
             car = np.zeros_like(t, dtype=float)
             for _source_channel, p, shape in shaped_pulses:
-                if p.t1 <= a or p.t0 >= b:
+                if p.t1_ns <= a or p.t0_ns >= b:
                     continue
-                penv = np.asarray([shape.sample(float(ti), p.t0, p.t1, p.amp) for ti in t], dtype=float)
+                penv = np.asarray([shape.sample(float(ti), p.t0_s, p.t1_s, p.amp) for ti in t], dtype=float)
                 if show_carrier and p.carrier is not None:
                     env_carrier += penv
                 else:
@@ -790,10 +794,10 @@ def _plot_pulses_timing(
                     if carrier_plot_max_hz is not None:
                         freq = min(freq, float(carrier_plot_max_hz))
                     phase = float(p.carrier.phase)
-                    car += penv * np.sin(2.0 * math.pi * freq * (t * 1e-9) + phase)
+                    car += penv * np.sin(2.0 * math.pi * freq * t + phase)
             body = env + car
 
-            x = warp.map_array(t)
+            x = warp.map_array(t_ns)
             if show_carrier and has_carrier_overlap:
                 mask = env_carrier > 1e-12
                 env_aux = np.where(mask, y0 + env_carrier, np.nan)
@@ -801,7 +805,7 @@ def _plot_pulses_timing(
             ax.plot(x, y0 + body, ls="-", lw=1.0, alpha=0.96, color=car_color, zorder=3)
         if annotate_pulses:
             for p_id, (_source_channel, p, _shape) in zip(row_pulse_ids, shaped_pulses):
-                vis = _clip_interval(float(p.t0), float(p.t1), breaks)
+                vis = _clip_interval(float(p.t0_ns), float(p.t1_ns), breaks)
                 if not vis:
                     continue
                 a0, b0 = vis[0]
@@ -1130,7 +1134,7 @@ def _build_dxf_style_from_theme(
 
 def plot_pulses(
     pulse_ir: PulseIR,
-    sample_rate: float = 1.0,
+    sample_rate: float = 1.0e9,
     show_carrier: bool = True,
     carrier_undersample: int = 32,
     carrier_points_per_pulse: int = 800,
@@ -1179,7 +1183,7 @@ def plot_pulses(
 
     Parameters
     - `pulse_ir`: Pulse schedule to visualize.
-    - `sample_rate`: Fixed sample rate for legacy mode (`timing_layout=False`).
+    - `sample_rate`: Fixed sample rate in Hz for legacy mode (`timing_layout=False`).
     - `show_carrier`: Whether to draw carrier components.
     - `carrier_undersample`: Legacy mode carrier decimation factor.
     - `carrier_points_per_pulse`: Legacy mode sampling points per pulse for carrier.
@@ -1266,10 +1270,10 @@ def plot_pulses(
         _last_t1 = 0.0
         for _ch in pulse_ir.channels:
             for _p in _ch.pulses:
-                _last_t1 = max(_last_t1, float(_p.t1))
-        _plot_t_end = min(float(pulse_ir.t_end), max(0.0, _last_t1))
+                _last_t1 = max(_last_t1, float(_p.t1_ns))
+        _plot_t_end = min(float(pulse_ir.t_end_ns), max(0.0, _last_t1))
         if _plot_t_end <= 0.0:
-            _plot_t_end = float(pulse_ir.t_end)
+            _plot_t_end = float(pulse_ir.t_end_ns)
         _ticks_for_dxf = _build_time_ticks(_plot_t_end, parsed_breaks, target_ticks=max(2, int(target_ticks)))
         fig = _plot_pulses_timing(
             pulse_ir,
@@ -1333,10 +1337,10 @@ def plot_pulses(
 
     import matplotlib.pyplot as plt
 
-    samples = PulseCompiler.compile(pulse_ir, sample_rate=sample_rate)
+    samples = PulseCompiler.compile(pulse_ir, sample_rate_Hz=sample_rate)
     fig, ax = plt.subplots(figsize=(10, 4))
     for name, payload in samples.items():
-        ax.plot(payload["t"], payload["y"], label=f"{name} envelope")
+        ax.plot(np.asarray(payload["t"], dtype=float) * S_TO_NS, payload["y"], label=f"{name} envelope")
 
     if show_carrier:
         us = max(1, int(carrier_undersample))
@@ -1346,22 +1350,22 @@ def plot_pulses(
                 if p.carrier is None:
                     continue
                 n = max(64, int(carrier_points_per_pulse))
-                t = np.linspace(float(p.t0), float(p.t1), n)
+                t = np.linspace(float(p.t0_s), float(p.t1_s), n)
                 shape = make_shape(p.shape, p.params)
-                env = np.asarray([shape.sample(float(ti), p.t0, p.t1, p.amp) for ti in t], dtype=float)
+                env = np.asarray([shape.sample(float(ti), p.t0_s, p.t1_s, p.amp) for ti in t], dtype=float)
                 freq = float(getattr(p.carrier, "freq", 0.0))
                 phase = float(getattr(p.carrier, "phase", 0.0))
-                sig = env * np.cos(2.0 * np.pi * freq * (t * 1e-9) + phase)
+                sig = env * np.cos(2.0 * np.pi * freq * t + phase)
                 idx = np.arange(0, n, us, dtype=int)
                 label = f"{ch.name} carrier(us={us})" if ch.name not in carrier_labeled else None
-                ax.plot(t[idx], sig[idx], alpha=0.45, lw=0.9, label=label)
+                ax.plot(t[idx] * S_TO_NS, sig[idx], alpha=0.45, lw=0.9, label=label)
                 carrier_labeled.add(ch.name)
 
     title_text = "Pulse Waveforms"
     if show_carrier:
         title_text += f" (carrier undersample={max(1, int(carrier_undersample))})"
     ax.set_title(title_text)
-    ax.set_xlabel("t")
+    ax.set_xlabel("t (ns)")
     ax.set_ylabel("amp")
     ax.legend()
     fig.tight_layout()

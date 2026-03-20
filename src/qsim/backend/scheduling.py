@@ -24,19 +24,19 @@ def _gate_family(name: str) -> str:
 
 def _gate_duration_ns(gate: CircuitGate, hw: dict[str, Any]) -> float:
     name = str(gate.name).lower()
-    gate_dur = float(hw["gate_duration"])
+    gate_dur = float(hw["gate_duration_ns"])
     if name in {"x", "sx", "h", "z", "rz"}:
         return gate_dur
     if name in {"cz", "cx"}:
         return 2.0 * gate_dur
     if name == "measure":
-        return float(hw["measure_duration"])
+        return float(hw["measure_duration_ns"])
     if name == "reset":
         return (
-            float(hw["reset_measure_duration"])
-            + float(hw["reset_deplete_duration"])
-            + float(hw["reset_latency_duration"])
-            + (float(hw["reset_pi_duration"]) if bool(hw["reset_apply_feedback"]) else 0.0)
+            float(hw["reset_measure_duration_ns"])
+            + float(hw["reset_deplete_duration_ns"])
+            + float(hw["reset_latency_duration_ns"])
+            + (float(hw["reset_pi_duration_ns"]) if bool(hw["reset_apply_feedback"]) else 0.0)
         )
     if name == "barrier":
         return 0.0
@@ -44,11 +44,15 @@ def _gate_duration_ns(gate: CircuitGate, hw: dict[str, Any]) -> float:
 
 
 def _reset_prefix_duration_ns(hw: dict[str, Any]) -> float:
-    return float(hw["reset_measure_duration"]) + float(hw["reset_deplete_duration"]) + float(hw["reset_latency_duration"])
+    return (
+        float(hw["reset_measure_duration_ns"])
+        + float(hw["reset_deplete_duration_ns"])
+        + float(hw["reset_latency_duration_ns"])
+    )
 
 
 def _reset_feedback_duration_ns(hw: dict[str, Any]) -> float:
-    return float(hw["reset_pi_duration"]) if bool(hw["reset_apply_feedback"]) else 0.0
+    return float(hw["reset_pi_duration_ns"]) if bool(hw["reset_apply_feedback"]) else 0.0
 
 
 def _pair_key(qubits: list[int]) -> tuple[int, int]:

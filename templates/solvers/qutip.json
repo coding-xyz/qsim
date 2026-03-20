@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "backend": {
+    "level": "qubit",
+    "analysis_pipeline": "default",
+    "truncation": {
+      "transmon_levels": 2,
+      "cavity_nmax": 5
+    }
+  },
+  "run": {
+    "engine": "qutip",
+    "solver_mode": "me",
+    "seed": 12345,
+    "dt_s": 1.0e-9,
+    "t_end_s": 50e-6,
+    "allow_mock_fallback": false
+  },
+  "frame": {
+    "mode": "rotating",
+    "reference": "pulse_carrier",
+    "rwa": true
+  }
+}

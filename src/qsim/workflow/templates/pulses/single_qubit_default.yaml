@@ -1,0 +1,4 @@
+pulse:
+  gate_duration_ns: 20.0
+  xy_freq_Hz: 5000000000.0
+  ro_freq_Hz: 6500000000.0

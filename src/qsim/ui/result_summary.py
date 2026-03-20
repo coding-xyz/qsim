@@ -29,22 +29,22 @@ def collect_pulse_metrics(out_dir: str | Path) -> dict[str, float]:
             return {}
         npz_path = alternatives[0]
 
-    data = np.load(npz_path)
     metrics: dict[str, float] = {}
-    prefixes = sorted({name[:-2] for name in data.files if name.endswith("_t")})
-    for prefix in prefixes:
-        t_key = f"{prefix}_t"
-        y_key = f"{prefix}_y"
-        if t_key not in data.files or y_key not in data.files:
-            continue
-        t = np.asarray(data[t_key], dtype=float)
-        y = np.asarray(data[y_key], dtype=float)
-        if t.size == 0 or y.size == 0:
-            continue
-        metrics[f"{prefix}_samples"] = float(len(t))
-        metrics[f"{prefix}_duration"] = float(t[-1] - t[0]) if len(t) > 1 else 0.0
-        metrics[f"{prefix}_abs_area"] = _integrate_abs(y, t) if len(t) > 1 else float(np.abs(y).sum())
-        metrics[f"{prefix}_peak"] = float(np.max(np.abs(y)))
+    with np.load(npz_path) as data:
+        prefixes = sorted({name[:-2] for name in data.files if name.endswith("_t")})
+        for prefix in prefixes:
+            t_key = f"{prefix}_t"
+            y_key = f"{prefix}_y"
+            if t_key not in data.files or y_key not in data.files:
+                continue
+            t = np.asarray(data[t_key], dtype=float)
+            y = np.asarray(data[y_key], dtype=float)
+            if t.size == 0 or y.size == 0:
+                continue
+            metrics[f"{prefix}_samples"] = float(len(t))
+            metrics[f"{prefix}_duration"] = float(t[-1] - t[0]) if len(t) > 1 else 0.0
+            metrics[f"{prefix}_abs_area"] = _integrate_abs(y, t) if len(t) > 1 else float(np.abs(y).sum())
+            metrics[f"{prefix}_peak"] = float(np.max(np.abs(y)))
     return metrics
 
 
@@ -55,7 +55,7 @@ def summarize_workflow_result(
     task_title: str,
     case_tag: str,
     engine: str,
-    hardware: dict | None = None,
+    device: dict | None = None,
     noise: dict | None = None,
     note: str = "",
 ) -> dict:
@@ -71,7 +71,7 @@ def summarize_workflow_result(
     obs = analysis_payload.get("observables", {}).get("values", {})
     meta = dict(getattr(trace, "metadata", {}) or {})
     details = dict(meta.get("details", {}) or {})
-    hardware = dict(hardware or {})
+    device = dict(device or {})
     noise = dict(noise or {})
 
     row = {
@@ -95,7 +95,7 @@ def summarize_workflow_result(
         "solver_impl": str(details.get("solver_impl", "")),
         "native_solver": bool(meta.get("native_solver", False)),
         "note": str(note),
-        "hardware_json": json.dumps(hardware, ensure_ascii=False, sort_keys=True),
+        "device_json": json.dumps(device, ensure_ascii=False, sort_keys=True),
         "noise_json": json.dumps(noise, ensure_ascii=False, sort_keys=True),
         "out_dir": str(runtime.get("out_dir", result.get("out_dir", ""))),
     }

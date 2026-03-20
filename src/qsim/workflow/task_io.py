@@ -12,8 +12,9 @@ from qsim.backend.config import validate_backend_config
 from qsim.workflow.contracts import (
     SolverBackendConfig,
     TaskInputConfig,
+    WorkflowDeviceConfig,
     WorkflowFeatureFlags,
-    WorkflowHardwareConfig,
+    WorkflowFrameOptions,
     WorkflowOutputOptions,
     WorkflowRunOptions,
     WorkflowSolverConfig,
@@ -25,7 +26,7 @@ from qsim.workflow.contracts import (
 
 
 _TASK_TOP_KEYS = {"schema_version", "target", "input", "features", "output", "tags", "template", "targets"}
-_TASK_INPUT_KEYS = {"qasm_text", "qasm_path", "solver_config", "hardware_config", "param_bindings"}
+_TASK_INPUT_KEYS = {"qasm_text", "qasm_path", "solver_config", "device_config", "pulse_config", "param_bindings"}
 _TASK_OUTPUT_KEYS = {
     "out_dir",
     "persist_artifacts",
@@ -67,14 +68,17 @@ _TARGET_FEATURE_KEYS: dict[str, set[str]] = {
     "cross_engine_compare": set(),
 }
 
-_SOLVER_TOP_KEYS = {"schema_version", "template", "backend", "run"}
+_SOLVER_TOP_KEYS = {"schema_version", "template", "backend", "run", "frame"}
 _SOLVER_BACKEND_KEYS = {"level", "analysis_pipeline", "truncation"}
+_SOLVER_FRAME_KEYS = {"mode", "reference", "rwa", "qubit_reference_freqs_Hz"}
 _SOLVER_RUN_COMMON_KEYS = {
     "engine",
     "solver_mode",
     "sweep",
     "seed",
-    "dt",
+    "dt_s",
+    "t_end_s",
+    "t_padding_s",
     "schedule_policy",
     "reset_feedback_policy",
     "compare_engines",
@@ -87,7 +91,8 @@ _SOLVER_RUN_COMMON_KEYS = {
 }
 _SOLVER_RUN_JULIA_KEYS = {"julia_bin", "julia_depot_path", "julia_timeout_s"}
 
-_HARDWARE_TOP_KEYS = {"schema_version", "template", "hardware", "noise"}
+_DEVICE_TOP_KEYS = {"schema_version", "template", "device", "noise"}
+_PULSE_TOP_KEYS = {"schema_version", "template", "pulse"}
 
 
 def _resolve_path(base_dir: Path, value: str | None) -> str | None:
@@ -157,7 +162,12 @@ def _normalize_targets_from_task_payload(payload: dict[str, Any]) -> list[str]:
     raise ValueError("Task config requires `target`.")
 
 
-def _validate_task_payload(payload: dict[str, Any]) -> list[str]:
+def _validate_task_payload(
+    payload: dict[str, Any],
+    *,
+    require_solver_config: bool = True,
+    require_device_config: bool = True,
+) -> list[str]:
     _reject_unknown("task top-level", set(payload), _TASK_TOP_KEYS)
 
     targets = _normalize_targets_from_task_payload(payload)
@@ -174,10 +184,10 @@ def _validate_task_payload(payload: dict[str, Any]) -> list[str]:
     qasm_path = raw_input.get("qasm_path")
     if bool(qasm_text) == bool(qasm_path):
         raise ValueError("Task config must provide exactly one of input.qasm_text or input.qasm_path.")
-    if not raw_input.get("solver_config"):
+    if require_solver_config and not raw_input.get("solver_config"):
         raise ValueError("Task config requires input.solver_config.")
-    if not raw_input.get("hardware_config"):
-        raise ValueError("Task config requires input.hardware_config.")
+    if require_device_config and not raw_input.get("device_config"):
+        raise ValueError("Task config requires input.device_config.")
 
     raw_output = payload.get("output", {}) or {}
     if not isinstance(raw_output, dict):
@@ -208,14 +218,18 @@ def _validate_solver_payload(payload: dict[str, Any]) -> str:
     _reject_unknown("solver top-level", set(payload), _SOLVER_TOP_KEYS)
     raw_backend = payload.get("backend", {}) or {}
     raw_run = payload.get("run", {}) or {}
+    raw_frame = payload.get("frame", {}) or {}
 
     if not isinstance(raw_backend, dict):
         raise ValueError("Solver config `backend` must be a mapping.")
     if not isinstance(raw_run, dict):
         raise ValueError("Solver config `run` must be a mapping.")
+    if not isinstance(raw_frame, dict):
+        raise ValueError("Solver config `frame` must be a mapping.")
 
     _reject_unknown("solver.backend", set(raw_backend), _SOLVER_BACKEND_KEYS)
     _reject_unknown("solver.run", set(raw_run), _SOLVER_RUN_COMMON_KEYS | _SOLVER_RUN_JULIA_KEYS)
+    _reject_unknown("solver.frame", set(raw_frame), _SOLVER_FRAME_KEYS)
 
     engine = str(raw_run.get("engine", "qutip")).strip().lower()
     allowed_run = set(_SOLVER_RUN_COMMON_KEYS)
@@ -232,23 +246,39 @@ def _validate_solver_payload(payload: dict[str, Any]) -> str:
     return engine
 
 
-def _validate_hardware_payload(payload: dict[str, Any]) -> None:
-    _reject_unknown("hardware top-level", set(payload), _HARDWARE_TOP_KEYS)
-    raw_hardware = payload.get("hardware", {}) or {}
+def _validate_device_payload(payload: dict[str, Any]) -> None:
+    _reject_unknown("device top-level", set(payload), _DEVICE_TOP_KEYS)
+    raw_device = payload.get("device", {}) or {}
     raw_noise = payload.get("noise", {}) or {}
-    if not isinstance(raw_hardware, dict):
-        raise ValueError("Hardware config `hardware` must be a mapping.")
+    if not isinstance(raw_device, dict):
+        raise ValueError("Device config `device` must be a mapping.")
     if not isinstance(raw_noise, dict):
-        raise ValueError("Hardware config `noise` must be a mapping.")
+        raise ValueError("Device config `noise` must be a mapping.")
 
 
-def load_task_config_file(path: str | Path) -> WorkflowTaskConfig:
+def _validate_pulse_payload(payload: dict[str, Any]) -> None:
+    _reject_unknown("pulse top-level", set(payload), _PULSE_TOP_KEYS)
+    raw_pulse = payload.get("pulse", {}) or {}
+    if not isinstance(raw_pulse, dict):
+        raise ValueError("Pulse config `pulse` must be a mapping.")
+
+
+def load_task_config_file(
+    path: str | Path,
+    *,
+    require_solver_config: bool = True,
+    require_device_config: bool = True,
+) -> WorkflowTaskConfig:
     """Load task config (target/input/output/features) from JSON/YAML file."""
     cfg_path, payload = _load_mapping(path)
     payload = _apply_template("tasks", payload)
     base_dir = cfg_path.parent
 
-    targets = _validate_task_payload(payload)
+    targets = _validate_task_payload(
+        payload,
+        require_solver_config=require_solver_config,
+        require_device_config=require_device_config,
+    )
     raw_input = dict(payload.get("input", {}) or {})
 
     qasm_text = raw_input.get("qasm_text")
@@ -262,7 +292,8 @@ def load_task_config_file(path: str | Path) -> WorkflowTaskConfig:
         input=TaskInputConfig(
             qasm_text=str(qasm_text),
             solver_config_path=_resolve_path(base_dir, str(raw_input.get("solver_config"))),
-            hardware_config_path=_resolve_path(base_dir, str(raw_input.get("hardware_config"))),
+            device_config_path=_resolve_path(base_dir, str(raw_input.get("device_config"))),
+            pulse_config_path=_resolve_path(base_dir, str(raw_input.get("pulse_config"))),
             param_bindings=dict(raw_input.get("param_bindings", {}) or {}) or None,
         ),
         features=WorkflowFeatureFlags(**dict(payload.get("features", {}) or {})),
@@ -283,6 +314,7 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
     _validate_solver_payload(payload)
     raw_backend = dict(payload.get("backend", {}) or {})
     raw_run = dict(payload.get("run", {}) or {})
+    raw_frame = dict(payload.get("frame", {}) or {})
 
     if raw_run.get("julia_bin"):
         raw_run["julia_bin"] = _resolve_path(base_dir, str(raw_run["julia_bin"]))
@@ -292,21 +324,31 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
     solver_cfg = WorkflowSolverConfig(
         backend=SolverBackendConfig(**raw_backend),
         run=WorkflowRunOptions(**raw_run),
+        frame=WorkflowFrameOptions(**raw_frame),
     )
     validate_backend_config(solver_cfg.to_backend_config())
     return solver_cfg
 
 
-def load_hardware_config_file(path: str | Path) -> WorkflowHardwareConfig:
-    """Load hardware/noise config from JSON/YAML file."""
+def load_device_config_file(path: str | Path) -> WorkflowDeviceConfig:
+    """Load device/noise config from JSON/YAML file."""
     _cfg_path, payload = _load_mapping(path)
-    payload = _apply_template("hardware", payload)
+    payload = _apply_template("device", payload)
 
-    _validate_hardware_payload(payload)
-    return WorkflowHardwareConfig(
-        hardware=dict(payload.get("hardware", {}) or {}) or None,
+    _validate_device_payload(payload)
+    raw_device = dict(payload.get("device", {}) or {})
+    return WorkflowDeviceConfig(
+        device=raw_device or None,
         noise=dict(payload.get("noise", {}) or {}) or None,
     )
+
+
+def load_pulse_config_file(path: str | Path) -> dict[str, Any]:
+    """Load pulse config from JSON/YAML file."""
+    _cfg_path, payload = _load_mapping(path)
+    payload = _apply_template("pulses", payload)
+    _validate_pulse_payload(payload)
+    return dict(payload.get("pulse", {}) or {})
 
 
 def load_task_file(path: str | Path) -> WorkflowTaskConfig:
@@ -318,24 +360,33 @@ def load_config_bundle_files(
     *,
     task_config: str | Path,
     solver_config: str | Path | None = None,
-    hardware_config: str | Path | None = None,
+    device_config: str | Path | None = None,
+    pulse_config: str | Path | None = None,
 ) -> WorkflowTask:
-    """Load and compose task/solver/hardware file triplet into ``WorkflowTask``."""
-    task_cfg = load_task_config_file(task_config)
+    """Load and compose task/solver/device/pulse file set into ``WorkflowTask``."""
+    task_cfg = load_task_config_file(
+        task_config,
+        require_solver_config=(solver_config is None),
+        require_device_config=(device_config is None),
+    )
     solver_path = str(solver_config) if solver_config is not None else task_cfg.input.solver_config_path
-    hardware_path = str(hardware_config) if hardware_config is not None else task_cfg.input.hardware_config_path
+    device_path = str(device_config) if device_config is not None else task_cfg.input.device_config_path
+    pulse_path = str(pulse_config) if pulse_config is not None else task_cfg.input.pulse_config_path
     if not solver_path:
         raise ValueError("Task input must provide solver_config, or pass solver_config override.")
-    if not hardware_path:
-        raise ValueError("Task input must provide hardware_config, or pass hardware_config override.")
+    if not device_path:
+        raise ValueError("Task input must provide device_config, or pass device_config override.")
     solver_cfg = load_solver_config_file(solver_path)
-    hardware_cfg = load_hardware_config_file(hardware_path)
-    return compose_workflow_task(task_cfg, solver_cfg, hardware_cfg, backend_source=str(Path(solver_path).resolve()))
+    device_cfg = load_device_config_file(device_path)
+    if pulse_path:
+        device_cfg.pulse = {**dict(device_cfg.pulse or {}), **load_pulse_config_file(pulse_path)}
+    return compose_workflow_task(task_cfg, solver_cfg, device_cfg, backend_source=str(Path(solver_path).resolve()))
 
 
 __all__ = [
     "load_config_bundle_files",
-    "load_hardware_config_file",
+    "load_device_config_file",
+    "load_pulse_config_file",
     "load_solver_config_file",
     "load_task_config_file",
     "load_task_file",

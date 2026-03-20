@@ -8,7 +8,7 @@ from qsim.qec.eval import run_decoder_eval
 from qsim.workflow import WorkflowFeatureFlags, WorkflowInput, WorkflowOutputOptions, WorkflowRunOptions, WorkflowTask, run_task
 
 
-_INPUT_KEYS = {"hardware", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}
+_INPUT_KEYS = {"device", "pulse", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}
 _RUN_KEYS = {
     "engine",
     "solver_mode",

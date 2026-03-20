@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "device": {
+    "simulation_level": "qubit",
+    "qubits": [
+      {
+        "freq_Hz": 5.0e9,
+        "anharmonicity_Hz": -2.0e8
+      }
+    ]
+  },
+  "noise": {
+    "model": "markovian_lindblad",
+    "T1_s": 120.0e-6,
+    "T2_s": 90.0e-6
+  }
+}

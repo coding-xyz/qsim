@@ -10,7 +10,7 @@ from qsim.workflow import WorkflowFeatureFlags, WorkflowInput, WorkflowOutputOpt
 from qsim.workflow.engines import collect_runtime_dependencies
 
 
-_INPUT_KEYS = {"hardware", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}
+_INPUT_KEYS = {"device", "pulse", "schedule_policy", "reset_feedback_policy", "noise", "param_bindings"}
 _RUN_KEYS = {
     "engine",
     "solver_mode",

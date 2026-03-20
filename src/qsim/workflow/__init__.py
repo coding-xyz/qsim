@@ -3,8 +3,9 @@
 from qsim.workflow.contracts import (
     SolverBackendConfig,
     TaskInputConfig,
+    WorkflowDeviceConfig,
     WorkflowFeatureFlags,
-    WorkflowHardwareConfig,
+    WorkflowFrameOptions,
     WorkflowInput,
     WorkflowOutputOptions,
     WorkflowRunOptions,
@@ -12,13 +13,15 @@ from qsim.workflow.contracts import (
     WorkflowTask,
     WorkflowTaskConfig,
     compose_workflow_task,
+    normalize_device_payload,
 )
 from qsim.workflow.planner import ExecutionPlan, build_execution_plan
 from qsim.workflow.pipeline import run_task, run_task_files
 from qsim.workflow.session_adapter import commit_result_to_session
 from qsim.workflow.task_io import (
     load_config_bundle_files,
-    load_hardware_config_file,
+    load_device_config_file,
+    load_pulse_config_file,
     load_solver_config_file,
     load_task_config_file,
     load_task_file,
@@ -28,7 +31,8 @@ __all__ = [
     "SolverBackendConfig",
     "TaskInputConfig",
     "WorkflowFeatureFlags",
-    "WorkflowHardwareConfig",
+    "WorkflowFrameOptions",
+    "WorkflowDeviceConfig",
     "WorkflowInput",
     "WorkflowOutputOptions",
     "WorkflowRunOptions",
@@ -36,11 +40,13 @@ __all__ = [
     "WorkflowTask",
     "WorkflowTaskConfig",
     "compose_workflow_task",
+    "normalize_device_payload",
     "ExecutionPlan",
     "build_execution_plan",
     "commit_result_to_session",
     "load_config_bundle_files",
-    "load_hardware_config_file",
+    "load_device_config_file",
+    "load_pulse_config_file",
     "load_solver_config_file",
     "load_task_config_file",
     "load_task_file",

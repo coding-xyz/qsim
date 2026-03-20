@@ -41,8 +41,8 @@ class DefaultLowering:
         - `barrier` is treated as a no-op (no pulse, no time advance).
 
         Hardware knobs:
-        - `reset_measure_duration`, `reset_deplete_duration`, `reset_latency_duration`
-        - `reset_pi_duration`, `reset_measure_amp`, `reset_deplete_amp`, `reset_pi_amp`
+        - `reset_measure_duration_ns`, `reset_deplete_duration_ns`, `reset_latency_duration_ns`
+        - `reset_pi_duration_ns`, `reset_measure_amp`, `reset_deplete_amp`, `reset_pi_amp`
         - `reset_cond_on`, `reset_apply_feedback`
         """
         resolved_hw = resolve_lowering_hardware(hw)
@@ -83,7 +83,7 @@ class DefaultLowering:
             )
 
         channels = [ChannelSpec(name=k, pulses=v) for k, v in sorted(ch_map.items())]
-        pulse_ir = PulseIR(t_end=t_end, channels=channels)
+        pulse_ir = PulseIR(t_end_s=float(t_end) * 1e-9, channels=channels)
 
         executable = ExecutableModel(
             level=cfg.level,
@@ -93,6 +93,8 @@ class DefaultLowering:
             metadata={
                 "num_qubits": schedule_or_circuit.num_qubits,
                 "truncation": dict(cfg.truncation),
+                "t_end_s": float(t_end) * 1e-9,
+                "t_end_ns": float(t_end),
                 "reset_events": reset_events,
                 "schedule_policy": str(resolved_hw["schedule_policy"]),
                 "reset_feedback_policy": str(resolved_hw["reset_feedback_policy"]),

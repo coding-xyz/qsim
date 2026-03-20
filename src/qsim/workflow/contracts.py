@@ -1,8 +1,8 @@
-﻿"""Workflow contracts for task/solver/hardware-driven execution."""
+﻿"""Workflow contracts for task/solver/device-driven execution."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from qsim.common.schemas import BackendConfig
 
@@ -14,7 +14,9 @@ class WorkflowInput:
     qasm_text: str
     backend_path: str | None = None
     backend_config: BackendConfig | None = None
-    hardware: dict | None = None
+    device: dict | None = None
+    pulse: dict | None = None
+    frame: dict | None = None
     schedule_policy: str | None = None
     reset_feedback_policy: str | None = None
     noise: dict | None = None
@@ -29,7 +31,9 @@ class WorkflowRunOptions:
     solver_mode: str | None = None
     sweep: list[dict] | None = None
     seed: int | None = None
-    dt: float | None = None
+    dt_s: float | None = None
+    t_end_s: float | None = None
+    t_padding_s: float | None = None
     schedule_policy: str | None = None
     reset_feedback_policy: str | None = None
     compare_engines: list[str] | None = None
@@ -42,6 +46,16 @@ class WorkflowRunOptions:
     decoder: str | None = None
     decoder_options: dict | None = None
     qec_engine: str = "auto"
+
+
+@dataclass(slots=True)
+class WorkflowFrameOptions:
+    """Reference-frame and RWA controls for model construction/engines."""
+
+    mode: str = "rotating"
+    reference: str = "pulse_carrier"
+    rwa: bool = True
+    qubit_reference_freqs_Hz: list[float] | None = None
 
 
 @dataclass(slots=True)
@@ -89,11 +103,12 @@ class WorkflowTask:
 
 @dataclass(slots=True)
 class TaskInputConfig:
-    """Task-level input with references to solver/hardware config files."""
+    """Task-level input with references to solver/device/pulse config files."""
 
     qasm_text: str
     solver_config_path: str | None = None
-    hardware_config_path: str | None = None
+    device_config_path: str | None = None
+    pulse_config_path: str | None = None
     param_bindings: dict[str, float] | None = None
 
 
@@ -132,6 +147,7 @@ class WorkflowSolverConfig:
 
     backend: SolverBackendConfig = field(default_factory=SolverBackendConfig)
     run: WorkflowRunOptions = field(default_factory=WorkflowRunOptions)
+    frame: WorkflowFrameOptions = field(default_factory=WorkflowFrameOptions)
 
     def to_backend_config(self, *, noise: dict | None = None) -> BackendConfig:
         """Convert to ``BackendConfig`` dataclass for pipeline internals."""
@@ -147,11 +163,35 @@ class WorkflowSolverConfig:
 
 
 @dataclass(slots=True)
-class WorkflowHardwareConfig:
-    """Hardware/noise config independent from task and solver."""
+class WorkflowDeviceConfig:
+    """Device/pulse/noise config independent from task and solver."""
 
-    hardware: dict | None = None
+    device: dict | None = None
+    pulse: dict | None = None
     noise: dict | None = None
+
+
+def normalize_device_payload(device: dict | None) -> dict[str, object]:
+    raw = dict(device or {})
+    qubits = list(raw.get("qubits", []) or [])
+    normalized = {k: v for k, v in raw.items() if k != "qubits"}
+    if qubits:
+        if "qubit_freqs_Hz" not in normalized:
+            normalized["qubit_freqs_Hz"] = [float((q or {}).get("freq_Hz", 0.0)) for q in qubits]
+        if "anharmonicity_Hz" not in normalized:
+            normalized["anharmonicity_Hz"] = [float((q or {}).get("anharmonicity_Hz", -0.2)) for q in qubits]
+        for src_key, dst_key in (
+            ("T1_s", "T1_s"),
+            ("T2_s", "T2_s"),
+            ("Tphi_s", "Tphi_s"),
+            ("Tup_s", "Tup_s"),
+            ("gamma1_Hz", "gamma1_Hz"),
+            ("gamma_phi_Hz", "gamma_phi_Hz"),
+            ("gamma_up_Hz", "gamma_up_Hz"),
+        ):
+            if dst_key not in normalized and any(src_key in (q or {}) for q in qubits):
+                normalized[dst_key] = [float((q or {}).get(src_key, 0.0)) for q in qubits]
+    return normalized
 
 
 def normalize_targets(value: str | list[str]) -> list[str]:
@@ -171,23 +211,23 @@ def normalize_targets(value: str | list[str]) -> list[str]:
 def compose_workflow_task(
     task_cfg: WorkflowTaskConfig,
     solver_cfg: WorkflowSolverConfig,
-    hardware_cfg: WorkflowHardwareConfig,
+    device_cfg: WorkflowDeviceConfig,
     *,
     backend_source: str | None = None,
 ) -> WorkflowTask:
     """Compose 3-way configs into one canonical runtime task contract."""
-    merged_hardware = dict(hardware_cfg.hardware or {})
-    if "simulation_level" not in merged_hardware:
-        merged_hardware["simulation_level"] = str(solver_cfg.backend.level).strip().lower()
-    if solver_cfg.run.dt is not None:
-        merged_hardware["dt"] = float(solver_cfg.run.dt)
+    runtime_device = dict(device_cfg.device or {})
+    if "simulation_level" not in runtime_device:
+        runtime_device["simulation_level"] = str(solver_cfg.backend.level).strip().lower()
 
     return WorkflowTask(
         input=WorkflowInput(
             qasm_text=task_cfg.input.qasm_text,
             backend_path=backend_source,
-            backend_config=solver_cfg.to_backend_config(noise=hardware_cfg.noise),
-            hardware=merged_hardware,
+            backend_config=solver_cfg.to_backend_config(noise=device_cfg.noise),
+            device=runtime_device or None,
+            pulse=dict(device_cfg.pulse or {}) or None,
+            frame=asdict(solver_cfg.frame),
             schedule_policy=(
                 str(solver_cfg.run.schedule_policy).strip().lower() if solver_cfg.run.schedule_policy else None
             ),
@@ -196,7 +236,7 @@ def compose_workflow_task(
                 if solver_cfg.run.reset_feedback_policy
                 else None
             ),
-            noise=dict(hardware_cfg.noise or {}),
+            noise=dict(device_cfg.noise or {}),
             param_bindings=dict(task_cfg.input.param_bindings or {}) or None,
         ),
         run=solver_cfg.run,
@@ -211,7 +251,7 @@ __all__ = [
     "TaskInputConfig",
     "SolverBackendConfig",
     "WorkflowFeatureFlags",
-    "WorkflowHardwareConfig",
+    "WorkflowDeviceConfig",
     "WorkflowInput",
     "WorkflowOutputOptions",
     "WorkflowRunOptions",

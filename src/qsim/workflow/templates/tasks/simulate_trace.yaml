@@ -2,7 +2,8 @@
 input:
   qasm_text: "OPENQASM 3; qubit[1] q;"
   solver_config: solvers/qutip_default.yaml
-  hardware_config: hardware/transmon_default.yaml
+  device_config: device/transmon_default.yaml
+  pulse_config: pulses/single_qubit_default.yaml
 output:
   out_dir: runs/template_task
   persist_artifacts: true
