@@ -168,7 +168,7 @@ def _normalize_artifact_mode(mode: str | None) -> str:
 def _validate_engine_run_dependency(task: WorkflowTask) -> None:
     """Validate engine-dependent solver/run fields."""
     engine = str(task.run.engine or "qutip").strip().lower()
-    if engine.startswith("julia") or engine in {"quantumoptics", "quantumtoolbox"}:
+    if engine in {"quantumoptics", "quantumtoolbox", "qoptics", "qtoolbox"}:
         return
     disallowed = []
     if task.run.julia_bin:

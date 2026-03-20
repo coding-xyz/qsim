@@ -568,7 +568,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        求解器
+        动力学求解器
       
     </span>
   </a>
@@ -576,10 +576,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#task1-single-qubit-visual-check" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Task1 single-qubit visual check
+        结果语义
       
     </span>
   </a>
@@ -587,10 +587,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#task1-native-references" class="md-nav__link">
+  <a href="#task1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Task1 native references
+        Task1 可视化检查
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task1_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task1 原生参考
       
     </span>
   </a>
@@ -1133,7 +1144,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        求解器
+        动力学求解器
       
     </span>
   </a>
@@ -1141,10 +1152,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#task1-single-qubit-visual-check" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Task1 single-qubit visual check
+        结果语义
       
     </span>
   </a>
@@ -1152,10 +1163,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#task1-native-references" class="md-nav__link">
+  <a href="#task1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Task1 native references
+        Task1 可视化检查
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task1_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task1 原生参考
       
     </span>
   </a>
@@ -1181,63 +1203,55 @@
 
 <h1 id="_1">噪声与求解器<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <h2 id="_2">噪声模型<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p><code>noise.model</code> 支持：</p>
+<p><code>noise.model</code> 当前支持：
+- <code>markovian_lindblad</code>
+- <code>one_over_f</code>
+- <code>ou</code></p>
+<p>常见参数：
+- <code>t1</code>
+- <code>t2</code>
+- <code>tphi</code>
+- <code>tup</code>
+- <code>gamma1</code>
+- <code>gamma_phi</code>
+- <code>gamma_up</code></p>
+<p>关系式：
+- <code>gamma1 = 1 / T1</code>
+- <code>gamma_up = 1 / Tup</code>
+- <code>1 / T2 = (gamma1 + gamma_up) / 2 + gamma_phi</code></p>
+<h2 id="_3">动力学求解器<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p><code>QuTiPEngine</code> 直接在 Python 侧调用 QuTiP：
+- <code>se</code> -&gt; <code>sesolve</code>
+- <code>me</code> -&gt; <code>mesolve</code>
+- <code>mcwf</code> -&gt; <code>mcsolve</code></p>
+<p>Julia 引擎使用按后端拆分的原生 runtime：
+- <code>qoptics</code> -&gt; <code>src/qsim/engines/qoptics_runtime.jl</code> -&gt; <code>QuantumOptics.jl</code>
+- <code>qtoolbox</code> -&gt; <code>src/qsim/engines/qtoolbox_runtime.jl</code> -&gt; <code>QuantumToolbox.jl</code></p>
+<p>这两个 Julia runtime 都直接消费 workflow lowering 之后生成的 <code>ModelSpec.payload</code>，重点包括：
+- <code>controls</code>
+- <code>couplings</code>
+- <code>collapse_operators</code>
+- <code>noise_summary.stochastic</code></p>
+<p>也就是说，Julia 后端现在和 <code>qutip_engine.py</code> 一样，按 pulse schedule / control 序列构造时变哈密顿量，并从 <code>collapse_operators</code> 构造 jump operators，而不是再走一个单独的“bridge mock 模型”。</p>
+<h2 id="_4">结果语义<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>三套动力学引擎统一返回：
+- <code>Trace.metadata.state_encoding = per_qubit_excited_probability</code></p>
+<p>这让 workflow 可以安全地做：
+- 逐比特可观测量提取
+- cross-engine compare
+- 后续 error budget / sensitivity 分析</p>
+<p>如果底层求解失败，当前策略是直接报错，不再提供 mock fallback。</p>
+<h2 id="task1">Task1 可视化检查<a class="headerlink" href="#task1" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>markovian_lindblad</code>（默认）</li>
-<li><code>one_over_f</code></li>
-<li><code>ou</code>（Ornstein-Uhlenbeck）</li>
+<li><code>examples/noise_simulation_tests/task1_single_qubit_visual_compare.py</code></li>
 </ul>
-<p>常见参数：</p>
+<p>这个脚本用于读取已有的 tri-engine artifacts，并导出语义对齐后的 <code>p1(t)</code> 曲线，属于指标层面对齐检查，不是原始状态向量的逐点等价比较。</p>
+<h2 id="task1_1">Task1 原生参考<a class="headerlink" href="#task1_1" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>t1/t2/tphi/tup</code>（可按比特）</li>
-<li><code>gamma1/gamma_phi/gamma_up</code>（可按比特）</li>
+<li>QuTiP: <code>examples/noise_simulation_tests/task1_qutip_native_reference.py</code></li>
+<li>QuantumOptics.jl: <code>examples/noise_simulation_tests/task1_quantumoptics_native_reference.jl</code></li>
 </ul>
-<p>关系式：</p>
-<ul>
-<li><code>gamma1 = 1/T1</code></li>
-<li><code>gamma_up = 1/Tup</code></li>
-<li><code>1/T2 = (gamma1 + gamma_up)/2 + gamma_phi</code></li>
-</ul>
-<h2 id="_3">求解器<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p><code>QuTiPEngine</code> 支持：</p>
-<ul>
-<li><code>se</code> -&gt; <code>sesolve</code></li>
-<li><code>me</code> -&gt; <code>mesolve</code></li>
-<li><code>mcwf</code> -&gt; <code>mcsolve</code></li>
-</ul>
-<p><code>julia_qtoolbox</code> 与 <code>julia_qoptics</code> 当前支持通过 Julia bridge 调用原生后端：</p>
-<ul>
-<li><code>julia_qtoolbox</code> -&gt; <code>QuantumToolbox.jl</code></li>
-<li><code>julia_qoptics</code> -&gt; <code>QuantumOptics.jl</code></li>
-</ul>
-<p>注意：</p>
-<ul>
-<li>三引擎都可以真实运行，但 <code>Trace.states</code> 的行语义不一定天然一致。</li>
-<li>工作流层会补充 <code>trace.metadata.state_encoding</code>，并据此决定：</li>
-<li>是否可以安全生成逐比特观测量；</li>
-<li>是否可以安全做跨引擎逐项误差比较。</li>
-<li>当结果被标记为 <code>ambiguous_population_vector</code> 时，应先做语义审查，而不是直接比较 <code>mse/mae</code>。</li>
-</ul>
-<h2 id="task1-single-qubit-visual-check">Task1 single-qubit visual check<a class="headerlink" href="#task1-single-qubit-visual-check" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Use <code>examples/noise_simulation_tests/task1_single_qubit_visual_compare.py</code>
-  to read existing tri-engine artifacts and export semantically aligned <code>p1(t)</code>
-  curves.</li>
-<li>The script maps:</li>
-<li><code>basis_population_single_qubit</code> -&gt; <code>p1(t) = state[1]</code></li>
-<li><code>per_qubit_excited_probability</code> (single qubit) -&gt; <code>p1(t) = state[0]</code></li>
-<li>This check is metric-level semantic comparison, not raw state-vector
-  pointwise equivalence.</li>
-</ul>
-<h2 id="task1-native-references">Task1 native references<a class="headerlink" href="#task1-native-references" title="Permanent link">&para;</a></h2>
-<ul>
-<li>QuTiP reference:</li>
-<li><code>examples/noise_simulation_tests/task1_qutip_native_reference.py</code></li>
-<li>QuantumOptics.jl reference:</li>
-<li><code>examples/noise_simulation_tests/task1_quantumoptics_native_reference.jl</code></li>
-</ul>
-<p>These scripts are for call-path and trend verification against the same Task1
-effective single-qubit model assumptions.</p>
+<p>这些脚本用于在同一组 Task1 假设下做调用链与趋势核对。</p>
 
 
 

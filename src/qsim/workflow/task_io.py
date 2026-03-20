@@ -233,7 +233,7 @@ def _validate_solver_payload(payload: dict[str, Any]) -> str:
 
     engine = str(raw_run.get("engine", "qutip")).strip().lower()
     allowed_run = set(_SOLVER_RUN_COMMON_KEYS)
-    is_julia = engine.startswith("julia") or engine in {"quantumoptics", "quantumtoolbox"}
+    is_julia = engine in {"quantumoptics", "quantumtoolbox", "qoptics", "qtoolbox"}
     if is_julia:
         allowed_run.update(_SOLVER_RUN_JULIA_KEYS)
 

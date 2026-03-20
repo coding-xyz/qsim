@@ -3,30 +3,30 @@
 from __future__ import annotations
 
 from qsim.analysis.trace_semantics import annotate_trace_metadata, pointwise_compare_compatibility, state_encoding
-from qsim.engines.julia_qoptics import JuliaQuantumOpticsEngine
-from qsim.engines.julia_qtoolbox import JuliaQuantumToolboxEngine
+from qsim.engines.qoptics_engine import QOpticsEngine
 from qsim.engines.qutip_engine import QuTiPEngine
+from qsim.engines.qtoolbox_engine import QToolboxEngine
 
 
 def select_engine(name: str):
     """Return an engine instance by user-facing name."""
-    key = name.lower()
+    key = str(name).strip().lower()
     if key == "qutip":
         return QuTiPEngine()
-    if key in {"julia_qtoolbox", "quantumtoolbox", "julia_quantumtoolbox"}:
-        return JuliaQuantumToolboxEngine()
-    if key in {"julia_qoptics", "quantumoptics", "julia_quantumoptics"}:
-        return JuliaQuantumOpticsEngine()
+    if key in {"qtoolbox", "quantumtoolbox"}:
+        return QToolboxEngine()
+    if key in {"qoptics", "quantumoptics"}:
+        return QOpticsEngine()
     return QuTiPEngine()
 
 
 def canonical_engine_name(name: str) -> str:
     """Normalize an engine name alias to canonical form."""
     key = str(name).strip().lower()
-    if key in {"julia_qtoolbox", "quantumtoolbox", "julia_quantumtoolbox"}:
-        return "julia_qtoolbox"
-    if key in {"julia_qoptics", "quantumoptics", "julia_quantumoptics"}:
-        return "julia_qoptics"
+    if key in {"qtoolbox", "quantumtoolbox"}:
+        return "qtoolbox"
+    if key in {"qoptics", "quantumoptics"}:
+        return "qoptics"
     if key == "qutip":
         return "qutip"
     return key
@@ -163,7 +163,9 @@ def collect_runtime_dependencies(trace, selected_engine_name: str) -> dict[str, 
     """Extract runtime dependency details from engine trace metadata."""
     deps: dict[str, str] = {}
     meta = dict(getattr(trace, "metadata", {}) or {})
-    if str(selected_engine_name).lower().startswith("julia") or str(trace.engine).lower().startswith("julia"):
+    selected = str(selected_engine_name).lower()
+    trace_name = str(trace.engine).lower()
+    if selected in {"qoptics", "qtoolbox"} or trace_name in {"qoptics", "qtoolbox"}:
         julia_ver = str(meta.get("julia_version", "")).strip()
         backend = str(meta.get("julia_backend", "")).strip()
         backend_ver = str(meta.get("julia_backend_version", "")).strip()

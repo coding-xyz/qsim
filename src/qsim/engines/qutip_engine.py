@@ -12,16 +12,9 @@ from qsim.engines.base import Engine
 
 
 class QuTiPEngine(Engine):
-    """QuTiP-backed engine with graceful fallback to a mock trace."""
+    """QuTiP-backed dynamics engine."""
 
     name = "qutip"
-
-    def _mock_run(self, model_spec: ModelSpec, run_options: dict) -> Trace:
-        n = max(2, int(model_spec.t_end / max(model_spec.dt, 1e-9)) + 1)
-        times = [i * model_spec.dt for i in range(n)]
-        gamma = float(run_options.get("gamma", 0.01))
-        states = [[math.exp(-gamma * t), 1.0 - math.exp(-gamma * t)] for t in times]
-        return Trace(engine="qutip-mock", times=times, states=states, metadata={"solver": model_spec.solver})
 
     @staticmethod
     def _tensor_op(qt, dims: list[int], target: int, base_op):
@@ -190,15 +183,15 @@ class QuTiPEngine(Engine):
 
         try:
             import qutip as qt
-        except Exception:
-            return self._mock_run(model_spec, run_options)
+        except Exception as exc:
+            raise RuntimeError(f"QuTiP dependency unavailable: {exc}") from exc
 
         payload = model_spec.payload or {}
         model_type = str(payload.get("model_type", "qubit_network"))
 
         n_qubits = int(payload.get("num_qubits", 1))
         if n_qubits < 1:
-            return self._mock_run(model_spec, run_options)
+            raise ValueError(f"Invalid model payload: num_qubits must be >= 1, got {n_qubits}")
 
         dt = max(float(model_spec.dt), 1e-9)
         t_end = max(float(model_spec.t_end), dt)
@@ -259,9 +252,7 @@ class QuTiPEngine(Engine):
                 if g != 0.0:
                     H0 = H0 + g * (adag_c * a_q[i] + a_c * adag_q[i])
         else:
-            trace = self._mock_run(model_spec, run_options)
-            trace.metadata["warning"] = f"Unknown model_type '{model_type}'; fallback to mock"
-            return trace
+            raise ValueError(f"Unsupported model_type for QuTiP engine: {model_type}")
 
         for c in payload.get("couplings", []):
             i = int(c.get("i", 0))
@@ -390,6 +381,9 @@ class QuTiPEngine(Engine):
         solver = str(model_spec.solver).lower()
         options = run_options.get("qutip_options", None)
 
+        if solver not in {"se", "me", "mcwf"}:
+            raise ValueError(f"Unsupported solver for QuTiP engine: {model_spec.solver}")
+
         try:
             if solver == "se":
                 result = qt.sesolve(H, psi0, tlist, e_ops=e_ops, options=options)
@@ -397,16 +391,12 @@ class QuTiPEngine(Engine):
             elif solver == "me":
                 result = qt.mesolve(H, psi0, tlist, c_ops=c_ops, e_ops=e_ops, options=options)
                 expect = [np.array(v, dtype=float) for v in result.expect]
-            elif solver == "mcwf":
+            else:
                 ntraj = int(run_options.get("ntraj", 128))
                 result = qt.mcsolve(H, psi0, tlist, c_ops=c_ops, e_ops=e_ops, ntraj=ntraj, options=options)
                 expect = [np.array(v, dtype=float) for v in result.expect]
-            else:
-                raise ValueError(f"Unsupported solver for QuTiP engine: {model_spec.solver}")
         except Exception as exc:
-            trace = self._mock_run(model_spec, run_options)
-            trace.metadata["warning"] = f"QuTiP execution failed; fallback to mock ({exc})"
-            return trace
+            raise RuntimeError(f"QuTiP execution failed: {exc}") from exc
 
         states = []
         for k in range(len(tlist)):

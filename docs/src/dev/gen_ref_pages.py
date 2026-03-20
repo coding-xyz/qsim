@@ -36,7 +36,7 @@ for py_path in modules:
 index_lines = [
     "# API Reference",
     "",
-    "These pages are generated from `src/qsim` docstrings by `docs/src/scripts/gen_ref_pages.py`.",
+    "These pages are generated from `src/qsim` docstrings by `docs/src/dev/gen_ref_pages.py`.",
     "",
     "## Module Groups",
     "",

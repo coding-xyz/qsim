@@ -27,9 +27,13 @@ src/qsim/common/__init__.py
 src/qsim/common/schemas.py
 src/qsim/engines/__init__.py
 src/qsim/engines/base.py
-src/qsim/engines/julia_qoptics.py
-src/qsim/engines/julia_qtoolbox.py
+src/qsim/engines/_julia_runtime_common.jl
+src/qsim/engines/julia_runtime.py
+src/qsim/engines/qoptics_engine.py
+src/qsim/engines/qoptics_runtime.jl
 src/qsim/engines/qutip_engine.py
+src/qsim/engines/qtoolbox_engine.py
+src/qsim/engines/qtoolbox_runtime.jl
 src/qsim/pulse/__init__.py
 src/qsim/pulse/drawer_adapter.py
 src/qsim/pulse/primitives.py

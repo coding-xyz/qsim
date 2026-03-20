@@ -17,7 +17,7 @@ plugins:
   - search
   - gen-files:
       scripts:
-        - docs/src/scripts/gen_ref_pages.py
+        - docs/src/dev/gen_ref_pages.py
   - mkdocstrings:
       handlers:
         python:

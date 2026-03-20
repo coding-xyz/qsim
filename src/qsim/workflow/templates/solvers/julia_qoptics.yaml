@@ -3,7 +3,7 @@
   analysis_pipeline: default
   truncation: {}
 run:
-  engine: julia_qoptics
+  engine: qoptics
   solver_mode: me
   sweep: []
   seed: 1234

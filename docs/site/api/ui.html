@@ -1408,7 +1408,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>Command-line interface for task/solver/hardware-driven workflow execution.</p>
+        <p>Command-line interface for task/solver/device/pulse workflow execution.</p>
 
 
 
@@ -1464,7 +1464,7 @@
 
 <details class="example" open>
   <summary>Example</summary>
-  <div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>--task-config<span class="w"> </span>tasks/demo.yaml<span class="w"> </span>--solver-config<span class="w"> </span>solvers/qutip.yaml<span class="w"> </span>--hardware-config<span class="w"> </span>hw/default.yaml
+  <div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>--task-config<span class="w"> </span>tasks/demo.yaml<span class="w"> </span>--solver-config<span class="w"> </span>solvers/qutip.yaml<span class="w"> </span>--device-config<span class="w"> </span>device/default.yaml<span class="w"> </span>--pulse-config<span class="w"> </span>pulses/default.yaml
 </code></pre></div>
 </details>
 
@@ -1620,7 +1620,7 @@ This module keeps plotting helpers only.</p>
 
 
 <h3 id="qsim.ui.result_summary.summarize_workflow_result" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">summarize_workflow_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">task_tag</span><span class="p">,</span> <span class="n">task_title</span><span class="p">,</span> <span class="n">case_tag</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">hardware</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">summarize_workflow_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">task_tag</span><span class="p">,</span> <span class="n">task_title</span><span class="p">,</span> <span class="n">case_tag</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
 
 <a href="#qsim.ui.result_summary.summarize_workflow_result" class="headerlink" title="Permanent link">&para;</a></h3>
 

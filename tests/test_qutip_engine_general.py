@@ -1,10 +1,13 @@
 import math
 
+import pytest
+
 from qsim.common.schemas import ModelSpec
 from qsim.engines.qutip_engine import QuTiPEngine
 
 
 def test_qutip_engine_handles_general_payload():
+    pytest.importorskip("qutip")
     spec = ModelSpec(
         solver="se",
         dimension=4,
@@ -47,6 +50,7 @@ def test_qutip_engine_dephasing_prefactor_matches_model_convention():
 
 
 def test_qutip_relaxation_does_not_excite_ground_state():
+    pytest.importorskip("qutip")
     spec = ModelSpec(
         solver="me",
         dimension=2,
@@ -64,3 +68,39 @@ def test_qutip_relaxation_does_not_excite_ground_state():
     trace = QuTiPEngine().run(spec)
     excited = [row[0] for row in trace.states]
     assert max(excited) < 1e-6
+
+
+def test_qutip_engine_raises_when_dependency_missing(monkeypatch):
+    real_import = __import__
+
+    def _fake_import(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == "qutip":
+            raise ImportError("missing qutip")
+        return real_import(name, globals, locals, fromlist, level)
+
+    monkeypatch.setattr("builtins.__import__", _fake_import)
+
+    spec = ModelSpec(
+        solver="se",
+        dimension=2,
+        t_end=1.0,
+        dt=0.1,
+        payload={"model_type": "qubit_network", "num_qubits": 1, "qubit_omega_rad_s": [0.0]},
+    )
+
+    with pytest.raises(RuntimeError, match="QuTiP dependency unavailable"):
+        QuTiPEngine().run(spec)
+
+
+def test_qutip_engine_raises_for_unsupported_model_type():
+    pytest.importorskip("qutip")
+    spec = ModelSpec(
+        solver="se",
+        dimension=2,
+        t_end=1.0,
+        dt=0.1,
+        payload={"model_type": "unsupported_model", "num_qubits": 1},
+    )
+
+    with pytest.raises(ValueError, match="Unsupported model_type"):
+        QuTiPEngine().run(spec)

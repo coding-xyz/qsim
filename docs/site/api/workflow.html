@@ -1076,6 +1076,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowDeviceConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowDeviceConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qsim.workflow.contracts.WorkflowFeatureFlags" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1087,10 +1098,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#qsim.workflow.contracts.WorkflowHardwareConfig" class="md-nav__link">
+  <a href="#qsim.workflow.contracts.WorkflowFrameOptions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        WorkflowHardwareConfig
+        WorkflowFrameOptions
       
     </span>
   </a>
@@ -1857,10 +1868,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#qsim.workflow.task_io.load_hardware_config_file" class="md-nav__link">
+  <a href="#qsim.workflow.task_io.load_device_config_file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        load_hardware_config_file
+        load_device_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_pulse_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_pulse_config_file
       
     </span>
   </a>
@@ -1993,6 +2015,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.WorkflowDeviceConfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowDeviceConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qsim.workflow.contracts.WorkflowFeatureFlags" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2004,10 +2037,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#qsim.workflow.contracts.WorkflowHardwareConfig" class="md-nav__link">
+  <a href="#qsim.workflow.contracts.WorkflowFrameOptions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        WorkflowHardwareConfig
+        WorkflowFrameOptions
       
     </span>
   </a>
@@ -2774,10 +2807,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#qsim.workflow.task_io.load_hardware_config_file" class="md-nav__link">
+  <a href="#qsim.workflow.task_io.load_device_config_file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        load_hardware_config_file
+        load_device_config_file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.task_io.load_pulse_config_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_pulse_config_file
       
     </span>
   </a>
@@ -2856,7 +2900,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>Workflow contracts for task/solver/hardware-driven execution.</p>
+        <p>Workflow contracts for task/solver/device-driven execution.</p>
 
 
 
@@ -2946,7 +2990,57 @@
 
 
 
-        <p>Task-level input with references to solver/hardware config files.</p>
+        <p>Task-level input with references to solver/device/pulse config files.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="qsim.workflow.contracts.WorkflowDeviceConfig" class="doc doc-heading">
+            <code>WorkflowDeviceConfig</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#qsim.workflow.contracts.WorkflowDeviceConfig" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Device/pulse/noise config independent from task and solver.</p>
 
 
 
@@ -3031,22 +3125,22 @@
 
 
 
-<h3 id="qsim.workflow.contracts.WorkflowHardwareConfig" class="doc doc-heading">
-            <code>WorkflowHardwareConfig</code>
+<h3 id="qsim.workflow.contracts.WorkflowFrameOptions" class="doc doc-heading">
+            <code>WorkflowFrameOptions</code>
 
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
   </span>
 
-<a href="#qsim.workflow.contracts.WorkflowHardwareConfig" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#qsim.workflow.contracts.WorkflowFrameOptions" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
 
 
-        <p>Hardware/noise config independent from task and solver.</p>
+        <p>Reference-frame and RWA controls for model construction/engines.</p>
 
 
 
@@ -3400,7 +3494,7 @@
 
 
 <h3 id="qsim.workflow.contracts.compose_workflow_task" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">compose_workflow_task</span><span class="p">(</span><span class="n">task_cfg</span><span class="p">,</span> <span class="n">solver_cfg</span><span class="p">,</span> <span class="n">hardware_cfg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backend_source</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">compose_workflow_task</span><span class="p">(</span><span class="n">task_cfg</span><span class="p">,</span> <span class="n">solver_cfg</span><span class="p">,</span> <span class="n">device_cfg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backend_source</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.contracts.compose_workflow_task" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -3630,7 +3724,7 @@
 
 
 <h3 id="qsim.workflow.output.build_settings_report" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">build_settings_report</span><span class="p">(</span><span class="n">backend_path</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">hardware</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">selected_engine_name</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">compare_engines</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">build_settings_report</span><span class="p">(</span><span class="n">backend_path</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">selected_engine_name</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">solver_run</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">compare_engines</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.output.build_settings_report" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -4102,14 +4196,14 @@
 
 
 <h3 id="qsim.workflow.pipeline.run_task" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">run_task</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hardware_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">run_task</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">device_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pulse_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.pipeline.run_task" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Run qsim workflow from merged task or 3-way task/solver/hardware configs.</p>
+        <p>Run qsim workflow from merged task or task/solver/device/pulse configs.</p>
 
 
     </div>
@@ -4120,14 +4214,14 @@
 
 
 <h3 id="qsim.workflow.pipeline.run_task_files" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">run_task_files</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">task_config</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hardware_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">run_task_files</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">task_config</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">device_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pulse_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.pipeline.run_task_files" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Run workflow from task config, with optional solver/hardware overrides.</p>
+        <p>Run workflow from task config, with optional solver/device/pulse overrides.</p>
 
 
     </div>
@@ -4500,7 +4594,7 @@
 
 
 <h3 id="qsim.workflow.stages.parse_compile_lower_model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">parse_compile_lower_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">backend_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">hardware</span><span class="p">,</span> <span class="n">schedule_policy</span><span class="p">,</span> <span class="n">reset_feedback_policy</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">parse_compile_lower_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">backend_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">schedule_policy</span><span class="p">,</span> <span class="n">reset_feedback_policy</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">solver_run</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.stages.parse_compile_lower_model" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -4615,14 +4709,14 @@
 
 
 <h3 id="qsim.workflow.task_io.load_config_bundle_files" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">load_config_bundle_files</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">task_config</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hardware_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">load_config_bundle_files</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">task_config</span><span class="p">,</span> <span class="n">solver_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">device_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pulse_config</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.task_io.load_config_bundle_files" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Load and compose task/solver/hardware file triplet into <code>WorkflowTask</code>.</p>
+        <p>Load and compose task/solver/device/pulse file set into <code>WorkflowTask</code>.</p>
 
 
     </div>
@@ -4632,15 +4726,33 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="qsim.workflow.task_io.load_hardware_config_file" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">load_hardware_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+<h3 id="qsim.workflow.task_io.load_device_config_file" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_device_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
 
-<a href="#qsim.workflow.task_io.load_hardware_config_file" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#qsim.workflow.task_io.load_device_config_file" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Load hardware/noise config from JSON/YAML file.</p>
+        <p>Load device/noise config from JSON/YAML file.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.task_io.load_pulse_config_file" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_pulse_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.task_io.load_pulse_config_file" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load pulse config from JSON/YAML file.</p>
 
 
     </div>
@@ -4669,7 +4781,7 @@
 
 
 <h3 id="qsim.workflow.task_io.load_task_config_file" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">load_task_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">load_task_config_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">require_solver_config</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">require_device_config</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.task_io.load_task_config_file" class="headerlink" title="Permanent link">&para;</a></h3>
 

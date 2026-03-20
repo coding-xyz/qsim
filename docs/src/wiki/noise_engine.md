@@ -2,61 +2,66 @@
 
 ## 噪声模型
 
-`noise.model` 支持：
-
-- `markovian_lindblad`（默认）
+`noise.model` 当前支持：
+- `markovian_lindblad`
 - `one_over_f`
-- `ou`（Ornstein-Uhlenbeck）
+- `ou`
 
 常见参数：
-
-- `t1/t2/tphi/tup`（可按比特）
-- `gamma1/gamma_phi/gamma_up`（可按比特）
+- `t1`
+- `t2`
+- `tphi`
+- `tup`
+- `gamma1`
+- `gamma_phi`
+- `gamma_up`
 
 关系式：
+- `gamma1 = 1 / T1`
+- `gamma_up = 1 / Tup`
+- `1 / T2 = (gamma1 + gamma_up) / 2 + gamma_phi`
 
-- `gamma1 = 1/T1`
-- `gamma_up = 1/Tup`
-- `1/T2 = (gamma1 + gamma_up)/2 + gamma_phi`
+## 动力学求解器
 
-## 求解器
-
-`QuTiPEngine` 支持：
-
+`QuTiPEngine` 直接在 Python 侧调用 QuTiP：
 - `se` -> `sesolve`
 - `me` -> `mesolve`
 - `mcwf` -> `mcsolve`
 
-`julia_qtoolbox` 与 `julia_qoptics` 当前支持通过 Julia bridge 调用原生后端：
+Julia 引擎使用按后端拆分的原生 runtime：
+- `qoptics` -> `src/qsim/engines/qoptics_runtime.jl` -> `QuantumOptics.jl`
+- `qtoolbox` -> `src/qsim/engines/qtoolbox_runtime.jl` -> `QuantumToolbox.jl`
 
-- `julia_qtoolbox` -> `QuantumToolbox.jl`
-- `julia_qoptics` -> `QuantumOptics.jl`
+这两个 Julia runtime 都直接消费 workflow lowering 之后生成的 `ModelSpec.payload`，重点包括：
+- `controls`
+- `couplings`
+- `collapse_operators`
+- `noise_summary.stochastic`
 
-注意：
+也就是说，Julia 后端现在和 `qutip_engine.py` 一样，按 pulse schedule / control 序列构造时变哈密顿量，并从 `collapse_operators` 构造 jump operators，而不是再走一个单独的“bridge mock 模型”。
 
-- 三引擎都可以真实运行，但 `Trace.states` 的行语义不一定天然一致。
-- 工作流层会补充 `trace.metadata.state_encoding`，并据此决定：
-  - 是否可以安全生成逐比特观测量；
-  - 是否可以安全做跨引擎逐项误差比较。
-- 当结果被标记为 `ambiguous_population_vector` 时，应先做语义审查，而不是直接比较 `mse/mae`。
+## 结果语义
 
-## Task1 single-qubit visual check
+三套动力学引擎统一返回：
+- `Trace.metadata.state_encoding = per_qubit_excited_probability`
 
-- Use `examples/noise_simulation_tests/task1_single_qubit_visual_compare.py`
-  to read existing tri-engine artifacts and export semantically aligned `p1(t)`
-  curves.
-- The script maps:
-  - `basis_population_single_qubit` -> `p1(t) = state[1]`
-  - `per_qubit_excited_probability` (single qubit) -> `p1(t) = state[0]`
-- This check is metric-level semantic comparison, not raw state-vector
-  pointwise equivalence.
+这让 workflow 可以安全地做：
+- 逐比特可观测量提取
+- cross-engine compare
+- 后续 error budget / sensitivity 分析
 
-## Task1 native references
+如果底层求解失败，当前策略是直接报错，不再提供 mock fallback。
 
-- QuTiP reference:
-  - `examples/noise_simulation_tests/task1_qutip_native_reference.py`
-- QuantumOptics.jl reference:
-  - `examples/noise_simulation_tests/task1_quantumoptics_native_reference.jl`
+## Task1 可视化检查
 
-These scripts are for call-path and trend verification against the same Task1
-effective single-qubit model assumptions.
+- `examples/noise_simulation_tests/task1_single_qubit_visual_compare.py`
+
+这个脚本用于读取已有的 tri-engine artifacts，并导出语义对齐后的 `p1(t)` 曲线，属于指标层面对齐检查，不是原始状态向量的逐点等价比较。
+
+## Task1 原生参考
+
+- QuTiP: `examples/noise_simulation_tests/task1_qutip_native_reference.py`
+- QuantumOptics.jl: `examples/noise_simulation_tests/task1_quantumoptics_native_reference.jl`
+
+这些脚本用于在同一组 Task1 假设下做调用链与趋势核对。
+

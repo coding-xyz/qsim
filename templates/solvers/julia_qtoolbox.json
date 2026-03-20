@@ -9,11 +9,11 @@
     }
   },
   "run": {
-    "engine": "julia_qtoolbox",
+    "engine": "qtoolbox",
     "solver_mode": "me",
     "seed": 12345,
     "dt_s": 1.0e-9,
-    "t_padding_s": 0.0,
+    "t_padding_s": 50e-6,
     "allow_mock_fallback": false,
     "julia_bin": "julia"
   }

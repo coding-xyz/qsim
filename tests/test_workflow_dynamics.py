@@ -147,7 +147,7 @@ def test_workflow_emits_cross_engine_compare_artifact():
             shutil.rmtree(actual_out, ignore_errors=True)
 
 
-def test_workflow_cross_engine_pairwise_metrics_with_mock_fallback():
+def test_workflow_cross_engine_pairwise_metrics_for_qoptics():
     qasm_text = Path("examples/bell.qasm").read_text(encoding="utf-8")
     out_dir = Path("runs") / f"pytest_dyn_cmp_pair_{uuid.uuid4().hex[:8]}"
     actual_out = out_dir
@@ -160,8 +160,8 @@ def test_workflow_cross_engine_pairwise_metrics_with_mock_fallback():
                 persist_artifacts=True,
                 export_dxf=False,
                 export_plots=False,
-                compare_engines=["julia_qoptics"],
-                allow_mock_fallback=True,
+                compare_engines=["qoptics"],
+                allow_mock_fallback=False,
             )
         except Exception as exc:
             pytest.skip(f"julia runtime unavailable for compare test: {exc}")
@@ -173,10 +173,11 @@ def test_workflow_cross_engine_pairwise_metrics_with_mock_fallback():
         assert len(report["runs"]) >= 2
         assert len(report["pairwise"]) >= 1
         pair = report["pairwise"][0]
-        assert pair["comparable"] is False
-        assert "state encoding" in pair["reason"]
-        assert settings["workflow"]["allow_mock_fallback"] is True
-        assert "julia_qoptics" in settings["workflow"]["compare_engines_requested"]
+        assert pair["comparable"] is True
+        assert int(pair["samples_compared"]) > 0
+        assert float(pair["mse"]) >= 0.0
+        assert settings["workflow"]["allow_mock_fallback"] is False
+        assert "qoptics" in settings["workflow"]["compare_engines_requested"]
     finally:
         shutil.rmtree(out_dir, ignore_errors=True)
         if actual_out != out_dir:
@@ -199,7 +200,7 @@ measure q[0] -> c[0];
                 qasm_text=qasm_text,
                 backend_path="examples/backend.yaml",
                 out_dir=str(out_dir),
-                engine="julia_qtoolbox",
+                engine="qtoolbox",
                 persist_artifacts=True,
                 export_dxf=False,
                 export_plots=False,
@@ -211,7 +212,7 @@ measure q[0] -> c[0];
         trace = result["core"]["trace"]
         observables = json.loads((actual_out / "observables.json").read_text(encoding="utf-8"))
 
-        assert trace.metadata["state_encoding"] == "basis_population_single_qubit"
+        assert trace.metadata["state_encoding"] == "per_qubit_excited_probability"
         assert "final_q1_excited" not in observables["values"]
         assert float(observables["values"]["final_p1"]) >= 0.0
     finally:
@@ -257,7 +258,7 @@ def test_collect_runtime_dependencies_extracts_julia_versions():
         },
     )
 
-    deps = collect_runtime_dependencies(trace, "julia_qtoolbox")
+    deps = collect_runtime_dependencies(trace, "qtoolbox")
 
     assert deps["julia"] == "1.12.5"
     assert deps["julia_backend:QuantumToolbox"] == "0.31.0"

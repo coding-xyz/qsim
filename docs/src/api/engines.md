@@ -1,5 +1,9 @@
 # API - engines
 
+Julia-backed dynamics engines use backend-specific runtimes:
+- `src/qsim/engines/qoptics_runtime.jl`
+- `src/qsim/engines/qtoolbox_runtime.jl`
+
 ## `qsim.engines.base`
 
 ::: qsim.engines.base
@@ -20,10 +24,10 @@
 
 ::: qsim.engines.qutip_engine
 
-## `qsim.engines.julia_qtoolbox`
+## `qsim.engines.qtoolbox_engine`
 
-::: qsim.engines.julia_qtoolbox
+::: qsim.engines.qtoolbox_engine
 
-## `qsim.engines.julia_qoptics`
+## `qsim.engines.qoptics_engine`
 
-::: qsim.engines.julia_qoptics
+::: qsim.engines.qoptics_engine
