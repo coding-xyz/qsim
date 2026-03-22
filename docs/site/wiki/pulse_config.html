@@ -11,6 +11,10 @@
       
       
       
+        <link rel="prev" href="device_config.html">
+      
+      
+        <link rel="next" href="solver_config.html">
       
       
         
@@ -21,7 +25,7 @@
     
     
       
-        <title>后端与模型 - qsim 文档</title>
+        <title>脉冲配置 - qsim 文档</title>
       
     
     
@@ -100,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              后端与模型
+              脉冲配置
             
           </span>
         </div>
@@ -328,10 +332,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="pulse_config.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脉冲配置
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="pulse_config.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -347,6 +378,203 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 支持格式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 顶层结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 最小示例
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 常见参数分组
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 常见参数分组">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        门时长与载频
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        波形边缘与读出参数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset 相关参数
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 它在 workflow 里的位置
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 推荐起步写法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-pulseyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 什么时候应该单独拆出 pulse.yaml
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-pulse-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. pulse 和 device 的分工
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 常见错误
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 常见错误">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pulse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        脉冲配置文件顶层不是 pulse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulseyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        误以为 pulse.yaml 会单独运行
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一开始就把所有 reset 字段写满
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -880,35 +1108,179 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 支持格式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 顶层结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 最小示例
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 常见参数分组
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 常见参数分组">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        模型层级
+        门时长与载频
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#hamiltonian" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Hamiltonian 构成
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        脉冲形状
+        波形边缘与读出参数
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset 相关参数
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 它在 workflow 里的位置
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 推荐起步写法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-pulseyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 什么时候应该单独拆出 pulse.yaml
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-pulse-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. pulse 和 device 的分工
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 常见错误
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 常见错误">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pulse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        脉冲配置文件顶层不是 pulse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulseyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        误以为 pulse.yaml 会单独运行
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一开始就把所有 reset 字段写满
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -929,35 +1301,135 @@
 
 
 
-<h1 id="_1">后端与模型<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<h2 id="_2">模型层级<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>通过 <code>hardware.simulation_level</code> 选择：</p>
+<h1 id="_1">脉冲配置<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>脉冲配置文件用于描述门和读出相关的脉冲参数。它影响 lowering 结果、PulseIR 生成、时序图导出以及部分 reset / readout 行为，是“从逻辑门到控制脉冲”的关键配置层。</p>
+<h2 id="1">1. 支持格式<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p><code>pulse</code> 配置支持：</p>
 <ul>
-<li><code>qubit</code> -&gt; <code>qubit_network</code></li>
-<li><code>nlevel</code> -&gt; <code>transmon_nlevel</code></li>
-<li><code>cqed</code> -&gt; <code>cqed_jc</code></li>
+<li><code>.json</code></li>
+<li><code>.yaml</code></li>
+<li><code>.yml</code></li>
 </ul>
-<p>并包含自动回退逻辑（例如 <code>cqed</code> 且 <code>cavity_nmax&lt;=0</code> 时回退到 <code>nlevel/qubit</code>）。</p>
-<h2 id="hamiltonian">Hamiltonian 构成<a class="headerlink" href="#hamiltonian" title="Permanent link">&para;</a></h2>
+<p>文档默认使用 <code>YAML</code>。</p>
+<h2 id="2">2. 顶层结构<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>脉冲配置文件顶层结构必须为：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">pulse</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+</code></pre></div>
+<p>读取后，这个 <code>pulse</code> 段会被合并到运行态的设备配置中，最终参与：</p>
 <ul>
-<li>漂移项：<code>qubit_freqs_hz</code>、<code>anharmonicity_hz</code>、<code>cavity_freq_hz</code></li>
-<li>耦合项：<code>couplings</code>、<code>g_cavity_hz</code></li>
-<li>控制项：由 <code>PulseIR</code> 采样映射到 <code>controls</code></li>
+<li>lowering</li>
+<li>pulse sequence 生成</li>
+<li>PulseIR 输出</li>
+<li>时序图和 DXF 导出</li>
 </ul>
-<h2 id="_3">脉冲形状<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h2 id="3">3. 最小示例<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>默认模板大致如下：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">pulse</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">gate_duration_ns</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span>
+<span class="w">  </span><span class="nt">xy_freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5000000000.0</span>
+<span class="w">  </span><span class="nt">ro_freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6500000000.0</span>
+</code></pre></div>
+<p>模板文件：</p>
 <ul>
-<li><code>rect/dc</code></li>
-<li><code>gaussian</code></li>
-<li><code>drag</code></li>
-<li><code>readout</code></li>
+<li><code>src/qsim/workflow/templates/pulses/single_qubit_default.yaml</code></li>
 </ul>
-<p>默认门到脉冲映射：</p>
+<h2 id="4">4. 常见参数分组<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>从 <code>src/qsim/pulse/catalog.py</code> 可以看出，当前代码会读取多类脉冲参数。为了更容易理解，可以把它们分成以下几组。</p>
+<h3 id="_2">门时长与载频<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>x/sx/h</code> -&gt; <code>XY*</code> Gaussian</li>
-<li><code>z/rz</code> -&gt; <code>Z*</code> DC</li>
-<li><code>cx/cz</code> -&gt; 双通道 DRAG</li>
-<li><code>measure</code> -&gt; <code>RO*</code> Readout</li>
+<li><code>gate_duration_ns</code></li>
+<li><code>xy_freq_Hz</code></li>
+<li><code>ro_freq_Hz</code></li>
 </ul>
+<p>这几项通常是最基础的起步参数。<br />
+如果你只是想先让单比特门和读出脉冲顺利生成，通常先给这组字段就够了。</p>
+<h3 id="_3">波形边缘与读出参数<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>rect_edge_ns</code></li>
+<li><code>measure_duration_ns</code></li>
+<li><code>readout_edge_ns</code></li>
+</ul>
+<p>这些字段影响读出脉冲或矩形包络相关的时间结构。</p>
+<h3 id="reset">reset 相关参数<a class="headerlink" href="#reset" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>reset_measure_duration_ns</code></li>
+<li><code>reset_measure_amp</code></li>
+<li><code>reset_deplete_duration_ns</code></li>
+<li><code>reset_deplete_amp</code></li>
+<li><code>reset_latency_duration_ns</code></li>
+<li><code>reset_pi_duration_ns</code></li>
+<li><code>reset_pi_amp</code></li>
+<li><code>reset_cond_on</code></li>
+</ul>
+<p>这些字段主要在 reset 相关 lowering 逻辑中发挥作用，适合在你明确要研究 reset 行为时再逐步补充。</p>
+<h2 id="5-workflow">5. 它在 workflow 里的位置<a class="headerlink" href="#5-workflow" title="Permanent link">&para;</a></h2>
+<p>一次运行中，脉冲配置大致按下面顺序生效：</p>
+<ol>
+<li><code>task.input.pulse_config</code> 指向脉冲配置文件</li>
+<li><code>load_pulse_config_file()</code> 读取该文件</li>
+<li>读取结果被合并到 device 配置的 <code>pulse</code> 字段</li>
+<li><code>backend.lowering</code> 和 <code>pulse.sequence</code> 使用这些参数生成 <code>PulseIR</code></li>
+<li><code>pulse.visualize</code> 根据 <code>PulseIR</code> 和脉冲元数据导出图像</li>
+</ol>
+<p>因此，<code>pulse</code> 配置并不是孤立存在的，它实际处在“配置输入 -&gt; lowering -&gt; PulseIR -&gt; 可视化”这条链上。</p>
+<h2 id="6">6. 推荐起步写法<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<p>如果你是第一次编写 <code>pulse.yaml</code>，建议从最小版本开始：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">pulse</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">gate_duration_ns</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span>
+<span class="w">  </span><span class="nt">xy_freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0e9</span>
+<span class="w">  </span><span class="nt">ro_freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.5e9</span>
+</code></pre></div>
+<p>然后根据需要逐步增加：</p>
+<ul>
+<li>读出持续时间</li>
+<li>波形边缘时间</li>
+<li>reset 相关参数</li>
+</ul>
+<p>这种渐进式写法有两个优点：</p>
+<ul>
+<li>更容易定位是哪一组参数影响了结果</li>
+<li>更容易比较不同 pulse 设置对输出图和 trace 的影响</li>
+</ul>
+<h2 id="7-pulseyaml">7. 什么时候应该单独拆出 <code>pulse.yaml</code><a class="headerlink" href="#7-pulseyaml" title="Permanent link">&para;</a></h2>
+<p>如果你满足以下任一情况，建议明确使用独立的脉冲配置文件：</p>
+<ul>
+<li>经常调整门时长</li>
+<li>经常比较不同 readout 设置</li>
+<li>想测试 reset 策略</li>
+<li>想对比不同脉冲时序图</li>
+</ul>
+<p>如果你几乎不改 pulse 参数，也可以先只使用默认模板。</p>
+<h2 id="8-pulse-device">8. <code>pulse</code> 和 <code>device</code> 的分工<a class="headerlink" href="#8-pulse-device" title="Permanent link">&para;</a></h2>
+<p>最容易混淆的地方是：有些字段看起来都像“硬件参数”，但职责并不相同。</p>
+<p>推荐的划分方式如下：</p>
+<p><code>device</code> 更适合放：</p>
+<ul>
+<li>设备结构参数</li>
+<li>qubit 属性</li>
+<li>噪声模型</li>
+<li>系统级物理参数</li>
+</ul>
+<p><code>pulse</code> 更适合放：</p>
+<ul>
+<li>门时间</li>
+<li>脉冲载频</li>
+<li>读出时间</li>
+<li>reset 脉冲细节</li>
+</ul>
+<p>如果一个参数更接近“控制波形怎么打”，就更适合放在 <code>pulse</code>。</p>
+<h2 id="9">9. 常见错误<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h3 id="pulse">脉冲配置文件顶层不是 <code>pulse</code><a class="headerlink" href="#pulse" title="Permanent link">&para;</a></h3>
+<p>正确写法是：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">pulse</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">gate_duration_ns</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span>
+</code></pre></div>
+<p>不是直接把字段裸写在文件顶层。</p>
+<h3 id="pulseyaml">误以为 <code>pulse.yaml</code> 会单独运行<a class="headerlink" href="#pulseyaml" title="Permanent link">&para;</a></h3>
+<p>不会。<br />
+<code>pulse</code> 配置始终是 task workflow 的一部分，需要通过 <code>task.yaml</code> 或命令行传给 <code>qsim run-task</code>。</p>
+<h3 id="reset_1">一开始就把所有 reset 字段写满<a class="headerlink" href="#reset_1" title="Permanent link">&para;</a></h3>
+<p>不建议。<br />
+更推荐先用最小脉冲配置把主链路跑通，再逐步增加复杂参数。</p>
 
 
 

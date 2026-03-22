@@ -271,7 +271,21 @@ def load_task_config_file(
     require_solver_config: bool = True,
     require_device_config: bool = True,
 ) -> WorkflowTaskConfig:
-    """Load task config (target/input/output/features) from JSON/YAML file."""
+    """Load a task config file into ``WorkflowTaskConfig``.
+
+    The task config is the workflow-facing entry file that describes targets,
+    input references, optional features, and output policy.
+
+    Args:
+        path: Path to a JSON or YAML task config file.
+        require_solver_config: Whether ``input.solver_config`` must be present
+            when no external override is provided.
+        require_device_config: Whether ``input.device_config`` must be present
+            when no external override is provided.
+
+    Returns:
+        Parsed and validated ``WorkflowTaskConfig``.
+    """
     cfg_path, payload = _load_mapping(path)
     payload = _apply_template("tasks", payload)
     base_dir = cfg_path.parent
@@ -308,7 +322,11 @@ def load_task_config_file(
 
 
 def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
-    """Load solver config (backend+run) from JSON/YAML file."""
+    """Load a solver config file into ``WorkflowSolverConfig``.
+
+    The solver config controls the backend model level, runtime engine
+    selection, solver options, and reference-frame settings.
+    """
     cfg_path, payload = _load_mapping(path)
     payload = _apply_template("solvers", payload)
     base_dir = cfg_path.parent
@@ -333,7 +351,10 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
 
 
 def load_device_config_file(path: str | Path) -> WorkflowDeviceConfig:
-    """Load device/noise config from JSON/YAML file."""
+    """Load a device config file into ``WorkflowDeviceConfig``.
+
+    Device configs contain device-level parameters and noise model settings.
+    """
     _cfg_path, payload = _load_mapping(path)
     payload = _apply_template("device", payload)
 
@@ -346,7 +367,12 @@ def load_device_config_file(path: str | Path) -> WorkflowDeviceConfig:
 
 
 def load_pulse_config_file(path: str | Path) -> dict[str, Any]:
-    """Load pulse config from JSON/YAML file."""
+    """Load a pulse config file.
+
+    Pulse configs contain gate duration, carrier frequency, readout, and reset
+    pulse parameters. The returned mapping is later merged into
+    ``WorkflowDeviceConfig.pulse``.
+    """
     _cfg_path, payload = _load_mapping(path)
     payload = _apply_template("pulses", payload)
     _validate_pulse_payload(payload)
@@ -365,7 +391,11 @@ def load_config_bundle_files(
     device_config: str | Path | None = None,
     pulse_config: str | Path | None = None,
 ) -> WorkflowTask:
-    """Load and compose task/solver/device/pulse file set into ``WorkflowTask``."""
+    """Load and compose a 4-file config bundle into ``WorkflowTask``.
+
+    This is the main file-driven composition helper used by the CLI and by
+    ``run_task_files``.
+    """
     task_cfg = load_task_config_file(
         task_config,
         require_solver_config=(solver_config is None),

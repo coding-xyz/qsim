@@ -1,4 +1,12 @@
-"""QEC interfaces, prior builders, and decoders."""
+"""QEC public API.
+
+This package collects the main prior builders, decoders, and helper functions
+used by the workflow QEC stages. It is the primary API surface for:
+
+- selecting a decoder implementation
+- building priors from syndrome data
+- summarizing logical error outputs
+"""
 
 from qsim.qec.decoder import BPDecoder, MWPMDecoder, build_decoder_report, get_decoder, summarize_logical_error
 from qsim.qec.interfaces import IDecoder, IPriorBuilder

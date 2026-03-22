@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="visualization.html">
+        <link rel="prev" href="pulse_config.html">
       
       
-        <link rel="next" href="io_session.html">
+        <link rel="next" href="visualization.html">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>量子纠错 - qsim 文档</title>
+        <title>求解器配置 - qsim 文档</title>
       
     
     
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              量子纠错
+              求解器配置
             
           </span>
         </div>
@@ -359,10 +359,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="solver_config.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    求解器配置
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="solver_config.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -378,6 +405,474 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 支持格式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 顶层结构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 最小示例
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. backend 段说明
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. backend 段说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        level
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analysis_pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analysis_pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#truncation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        truncation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. run 段说明
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. run 段说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solver_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solver_mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        seed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dt_s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dt_s
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t_end_s-t_padding_s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        t_end_s 和 t_padding_s
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schedule_policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        schedule_policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset_feedback_policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset_feedback_policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compare_engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compare_engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allow_mock_fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allow_mock_fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcwf_ntraj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mcwf_ntraj
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prior_backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        prior_backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decoder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decoder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decoder_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decoder_options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qec_engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qec_engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-julia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Julia 相关字段
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. frame 段说明
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. frame 段说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rwa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rwa
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qubit_reference_freqs_hz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qubit_reference_freqs_Hz
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 不同目标对 run 的要求
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 不同目标对 run 的要求">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decoder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        不要求 decoder 的目标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rundecoder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        要求 run.decoder 的目标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runcompare_engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        要求 run.compare_engines 的目标
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 推荐写法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 常见错误
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 常见错误">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enginequtip-julia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        engine=qutip 却写了 Julia 字段
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qec-decoder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        需要 QEC 结果却没有配置 decoder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        把噪声参数写进 solver 配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solver_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        把输出参数写进 solver 配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -413,37 +908,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    量子纠错
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="qec_analysis.html" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="qec_analysis.html" class="md-nav__link">
         
   
   
@@ -459,413 +927,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="目录">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      目录
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. 当前能力定位
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-qec" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. QEC 主流程
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-trace-logical-error" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. 从 trace 到 logical error 的流程
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-prior" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. prior 是什么
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-decoder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. decoder 是什么
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-solver-qec" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. solver 配置里与 QEC 有关的字段
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-target" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. 不同 target 会跑到哪一步
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="7. 不同 target 会跑到哪一步">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#logical_error" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        logical_error
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sensitivity_report" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sensitivity_report
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decoder_eval_report" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        decoder_eval_report
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scaling_report" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        scaling_report
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error_budget_pauli_plus" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        error_budget_pauli_plus
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. 基础输出文件说明
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8. 基础输出文件说明">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#syndrome_framejson" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        syndrome_frame.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#prior_modeljson" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        prior_model.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#prior_reportjson" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        prior_report.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#prior_samplesnpz" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        prior_samples.npz
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decoder_inputjson" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        decoder_input.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decoder_outputjson" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        decoder_output.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decoder_reportjson" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        decoder_report.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#logical_errorjson" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        logical_error.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. 分析与扩展输出
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="9. 分析与扩展输出">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sensitivity-error-budget" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sensitivity / error budget
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decoder-eval" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        decoder eval
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pauli-scaling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pauli+ / scaling
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-decoder_eval" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. decoder_eval 适合什么时候用
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-resumeretries" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. resume、retries 和批量评估
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. 推荐的上手顺序
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        13. 常见问题
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="13. 常见问题">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#logical_errorjson_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        为什么没有生成 logical_error.json
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#prior-decoder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        为什么 prior / decoder 文件为空或缺失
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decoder-eval_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        为什么 decoder eval 没有输出表格
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前能不能做在线实时解码
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1321,7 +1382,7 @@
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 当前能力定位
+        1. 支持格式
       
     </span>
   </a>
@@ -1329,10 +1390,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-qec" class="md-nav__link">
+  <a href="#2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. QEC 主流程
+        2. 顶层结构
       
     </span>
   </a>
@@ -1340,10 +1401,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-trace-logical-error" class="md-nav__link">
+  <a href="#3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. 从 trace 到 logical error 的流程
+        3. 最小示例
       
     </span>
   </a>
@@ -1351,55 +1412,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-prior" class="md-nav__link">
+  <a href="#4-backend" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. prior 是什么
+        4. backend 段说明
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-decoder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. decoder 是什么
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-solver-qec" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. solver 配置里与 QEC 有关的字段
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-target" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. 不同 target 会跑到哪一步
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="7. 不同 target 会跑到哪一步">
+    <nav class="md-nav" aria-label="4. backend 段说明">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#logical_error" class="md-nav__link">
+  <a href="#level" class="md-nav__link">
     <span class="md-ellipsis">
       
-        logical_error
+        level
       
     </span>
   </a>
@@ -1407,10 +1435,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sensitivity_report" class="md-nav__link">
+  <a href="#analysis_pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        sensitivity_report
+        analysis_pipeline
       
     </span>
   </a>
@@ -1418,32 +1446,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decoder_eval_report" class="md-nav__link">
+  <a href="#truncation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        decoder_eval_report
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scaling_report" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        scaling_report
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#error_budget_pauli_plus" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        error_budget_pauli_plus
+        truncation
       
     </span>
   </a>
@@ -1456,22 +1462,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
+  <a href="#5-run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. 基础输出文件说明
+        5. run 段说明
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="8. 基础输出文件说明">
+    <nav class="md-nav" aria-label="5. run 段说明">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#syndrome_framejson" class="md-nav__link">
+  <a href="#engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        syndrome_frame.json
+        engine
       
     </span>
   </a>
@@ -1479,10 +1485,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#prior_modeljson" class="md-nav__link">
+  <a href="#solver_mode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        prior_model.json
+        solver_mode
       
     </span>
   </a>
@@ -1490,10 +1496,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#prior_reportjson" class="md-nav__link">
+  <a href="#seed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        prior_report.json
+        seed
       
     </span>
   </a>
@@ -1501,10 +1507,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#prior_samplesnpz" class="md-nav__link">
+  <a href="#dt_s" class="md-nav__link">
     <span class="md-ellipsis">
       
-        prior_samples.npz
+        dt_s
       
     </span>
   </a>
@@ -1512,10 +1518,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decoder_inputjson" class="md-nav__link">
+  <a href="#t_end_s-t_padding_s" class="md-nav__link">
     <span class="md-ellipsis">
       
-        decoder_input.json
+        t_end_s 和 t_padding_s
       
     </span>
   </a>
@@ -1523,10 +1529,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decoder_outputjson" class="md-nav__link">
+  <a href="#schedule_policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        decoder_output.json
+        schedule_policy
       
     </span>
   </a>
@@ -1534,10 +1540,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decoder_reportjson" class="md-nav__link">
+  <a href="#reset_feedback_policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        decoder_report.json
+        reset_feedback_policy
       
     </span>
   </a>
@@ -1545,10 +1551,198 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#logical_errorjson" class="md-nav__link">
+  <a href="#compare_engines" class="md-nav__link">
     <span class="md-ellipsis">
       
-        logical_error.json
+        compare_engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allow_mock_fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allow_mock_fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcwf_ntraj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mcwf_ntraj
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prior_backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        prior_backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decoder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decoder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decoder_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decoder_options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qec_engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qec_engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-julia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Julia 相关字段
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. frame 段说明
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. frame 段说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rwa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rwa
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qubit_reference_freqs_hz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qubit_reference_freqs_Hz
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 不同目标对 run 的要求
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 不同目标对 run 的要求">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decoder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        不要求 decoder 的目标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rundecoder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        要求 run.decoder 的目标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runcompare_engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        要求 run.compare_engines 的目标
       
     </span>
   </a>
@@ -1564,19 +1758,30 @@
   <a href="#9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. 分析与扩展输出
+        9. 推荐写法
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. 分析与扩展输出">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 常见错误
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 常见错误">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sensitivity-error-budget" class="md-nav__link">
+  <a href="#enginequtip-julia" class="md-nav__link">
     <span class="md-ellipsis">
       
-        sensitivity / error budget
+        engine=qutip 却写了 Julia 字段
       
     </span>
   </a>
@@ -1584,10 +1789,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#decoder-eval" class="md-nav__link">
+  <a href="#qec-decoder" class="md-nav__link">
     <span class="md-ellipsis">
       
-        decoder eval
+        需要 QEC 结果却没有配置 decoder
       
     </span>
   </a>
@@ -1595,71 +1800,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pauli-scaling" class="md-nav__link">
+  <a href="#solver" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pauli+ / scaling
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-decoder_eval" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. decoder_eval 适合什么时候用
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-resumeretries" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. resume、retries 和批量评估
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. 推荐的上手顺序
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        13. 常见问题
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="13. 常见问题">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#logical_errorjson_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        为什么没有生成 logical_error.json
+        把噪声参数写进 solver 配置
       
     </span>
   </a>
@@ -1667,32 +1811,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#prior-decoder" class="md-nav__link">
+  <a href="#solver_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        为什么 prior / decoder 文件为空或缺失
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#decoder-eval_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        为什么 decoder eval 没有输出表格
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前能不能做在线实时解码
+        把输出参数写进 solver 配置
       
     </span>
   </a>
@@ -1721,232 +1843,247 @@
 
 
 
-<h1 id="_1">量子纠错<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>本页说明 <code>qsim</code> 当前的量子纠错相关能力，包括离线分析流程、prior 与 decoder 的角色、不同 target 对应的执行阶段，以及典型输出文件的含义。它更适合当作 QEC 使用说明书来阅读。</p>
-<h2 id="1">1. 当前能力定位<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<p><code>qsim</code> 当前提供的是离线量子纠错分析能力，而不是在线实时反馈控制。</p>
-<p>这意味着它更适合：</p>
+<h1 id="_1">求解器配置<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>求解器配置文件用于描述求解引擎、运行参数、模型层级和参考系设置。它决定“同一个任务和同一个设备参数，究竟以什么方式求解”，因此是实验对比中最常切换的一类配置。</p>
+<h2 id="1">1. 支持格式<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p><code>solver</code> 配置支持：</p>
 <ul>
-<li>对一次仿真结果做 syndrome / prior / decoder 分析</li>
-<li>比较不同 decoder 配置</li>
-<li>生成 logical error、sensitivity、Pauli+ 相关结果</li>
-<li>做批量解码评估与结果归档</li>
+<li><code>.json</code></li>
+<li><code>.yaml</code></li>
+<li><code>.yml</code></li>
 </ul>
-<p>而不适合：</p>
+<p>文档默认使用 <code>YAML</code>。</p>
+<h2 id="2">2. 顶层结构<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>求解器配置文件顶层必须采用以下结构：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">backend</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="nt">frame</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+</code></pre></div>
+<p>这三个部分分别负责：</p>
 <ul>
-<li>在线流式 syndrome 输入</li>
-<li>实时控制回写</li>
-<li>硬件闭环反馈</li>
+<li><code>backend</code>：模型级别和后端分析配置</li>
+<li><code>run</code>：引擎与运行时选项</li>
+<li><code>frame</code>：参考系与 RWA 设置</li>
 </ul>
-<h2 id="2-qec">2. QEC 主流程<a class="headerlink" href="#2-qec" title="Permanent link">&para;</a></h2>
-<p>当任务目标需要量子纠错分析时，workflow 会沿着以下主链路运行：</p>
-<ol>
-<li><code>run_engine_stage</code></li>
-<li><code>run_decode_stage</code></li>
-<li><code>run_analysis_stage</code></li>
-</ol>
-<p>在这之后，还可能根据 feature 打开额外分支：</p>
+<h2 id="3">3. 最小示例<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>默认模板大致如下：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">backend</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qubit</span>
+<span class="w">  </span><span class="nt">analysis_pipeline</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="w">  </span><span class="nt">truncation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="nt">run</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">engine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qutip</span>
+<span class="w">  </span><span class="nt">solver_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">me</span>
+<span class="w">  </span><span class="nt">sweep</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<span class="w">  </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1234</span>
+<span class="w">  </span><span class="nt">dt_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
+<span class="w">  </span><span class="nt">schedule_policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">serial</span>
+<span class="w">  </span><span class="nt">reset_feedback_policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">parallel</span>
+<span class="nt">frame</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating</span>
+<span class="w">  </span><span class="nt">reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pulse_carrier</span>
+<span class="w">  </span><span class="nt">rwa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<p>模板文件：</p>
 <ul>
-<li><code>run_decoder_eval_plugin</code></li>
-<li><code>run_pauli_plus_plugin</code></li>
+<li><code>src/qsim/workflow/templates/solvers/qutip_default.yaml</code></li>
+<li><code>src/qsim/workflow/templates/solvers/julia_qoptics.yaml</code></li>
+<li><code>src/qsim/workflow/templates/solvers/julia_qtoolbox.yaml</code></li>
 </ul>
-<p>因此，QEC 在当前项目中不是独立入口，而是建立在已有仿真结果之上的后续分析流程。</p>
-<h2 id="3-trace-logical-error">3. 从 trace 到 logical error 的流程<a class="headerlink" href="#3-trace-logical-error" title="Permanent link">&para;</a></h2>
-<p>可以把当前 QEC 链路理解为下面几个步骤：</p>
-<ol>
-<li>仿真得到 <code>trace</code></li>
-<li>从 <code>trace</code> 中提取 syndrome frame</li>
-<li>根据 syndrome 构建 prior</li>
-<li>调用 decoder 得到解码结果</li>
-<li>汇总为 logical error</li>
-<li>根据需要继续做 sensitivity、Pauli+ 或 decoder eval</li>
-</ol>
-<p>这个流程中每一步都会产出对应文件，因此比较适合逐步排查问题。</p>
-<h2 id="4-prior">4. prior 是什么<a class="headerlink" href="#4-prior" title="Permanent link">&para;</a></h2>
-<p>prior 可以理解为“解码前的先验模型或先验信息来源”。<br />
-当前实现位于：</p>
+<h2 id="4-backend">4. <code>backend</code> 段说明<a class="headerlink" href="#4-backend" title="Permanent link">&para;</a></h2>
+<p><code>backend</code> 用于描述求解所需的模型层级与后端分析设置。</p>
+<h3 id="level"><code>level</code><a class="headerlink" href="#level" title="Permanent link">&para;</a></h3>
+<p>表示模型层级。<br />
+当前常见起步值是：</p>
 <ul>
-<li><code>src/qsim/qec/prior.py</code></li>
+<li><code>qubit</code></li>
 </ul>
-<p>支持的 prior backend 包括：</p>
+<p>它会进一步影响运行时 <code>simulation_level</code> 和 backend config 的构造方式。</p>
+<h3 id="analysis_pipeline"><code>analysis_pipeline</code><a class="headerlink" href="#analysis_pipeline" title="Permanent link">&para;</a></h3>
+<p>表示分析流水线名称。<br />
+如果你没有特别自定义分析路径，通常保持 <code>default</code> 即可。</p>
+<h3 id="truncation"><code>truncation</code><a class="headerlink" href="#truncation" title="Permanent link">&para;</a></h3>
+<p>用于记录与截断或多能级模型有关的参数。<br />
+如果当前任务只做比较基础的 qubit 级仿真，可以先保持为空映射。</p>
+<h2 id="5-run">5. <code>run</code> 段说明<a class="headerlink" href="#5-run" title="Permanent link">&para;</a></h2>
+<p><code>run</code> 是求解器配置里最核心的一段，它决定真正的运行方式。</p>
+<p>当前常见字段包括：</p>
 <ul>
+<li><code>engine</code></li>
+<li><code>solver_mode</code></li>
+<li><code>sweep</code></li>
+<li><code>seed</code></li>
+<li><code>dt_s</code></li>
+<li><code>t_end_s</code></li>
+<li><code>t_padding_s</code></li>
+<li><code>schedule_policy</code></li>
+<li><code>reset_feedback_policy</code></li>
+<li><code>compare_engines</code></li>
+<li><code>allow_mock_fallback</code></li>
+<li><code>mcwf_ntraj</code></li>
+<li><code>prior_backend</code></li>
+<li><code>decoder</code></li>
+<li><code>decoder_options</code></li>
+<li><code>qec_engine</code></li>
+</ul>
+<h3 id="engine"><code>engine</code><a class="headerlink" href="#engine" title="Permanent link">&para;</a></h3>
+<p>表示使用哪个求解引擎。<br />
+当前支持：</p>
+<ul>
+<li><code>qutip</code></li>
+<li><code>qoptics</code></li>
+<li><code>qtoolbox</code></li>
+</ul>
+<p>如果你只是第一次跑通流程，建议先从 <code>qutip</code> 开始。</p>
+<h3 id="solver_mode"><code>solver_mode</code><a class="headerlink" href="#solver_mode" title="Permanent link">&para;</a></h3>
+<p>表示求解器模式，例如主方程等。<br />
+在现有模板中，常见值是：</p>
+<ul>
+<li><code>me</code></li>
+</ul>
+<h3 id="seed"><code>seed</code><a class="headerlink" href="#seed" title="Permanent link">&para;</a></h3>
+<p>用于控制随机性。<br />
+如果你在做对比实验，建议显式固定这个值，便于复现。</p>
+<h3 id="dt_s"><code>dt_s</code><a class="headerlink" href="#dt_s" title="Permanent link">&para;</a></h3>
+<p>时间步长，单位为秒。<br />
+这个字段直接影响时间分辨率和仿真成本，因此通常需要根据任务规模谨慎调整。</p>
+<h3 id="t_end_s-t_padding_s"><code>t_end_s</code> 和 <code>t_padding_s</code><a class="headerlink" href="#t_end_s-t_padding_s" title="Permanent link">&para;</a></h3>
+<p>这两个字段用于更细地控制仿真时间范围。<br />
+如果没有特殊需求，可以先不写，沿用默认行为。</p>
+<h3 id="schedule_policy"><code>schedule_policy</code><a class="headerlink" href="#schedule_policy" title="Permanent link">&para;</a></h3>
+<p>控制调度策略。<br />
+默认模板中常见值是：</p>
+<ul>
+<li><code>serial</code></li>
+</ul>
+<h3 id="reset_feedback_policy"><code>reset_feedback_policy</code><a class="headerlink" href="#reset_feedback_policy" title="Permanent link">&para;</a></h3>
+<p>控制 reset 反馈相关策略。<br />
+默认模板中常见值是：</p>
+<ul>
+<li><code>parallel</code></li>
+</ul>
+<h3 id="compare_engines"><code>compare_engines</code><a class="headerlink" href="#compare_engines" title="Permanent link">&para;</a></h3>
+<p>用于 cross-engine compare 任务。<br />
+如果你希望对同一个模型比较多个引擎，这里应给出比较目标。</p>
+<h3 id="allow_mock_fallback"><code>allow_mock_fallback</code><a class="headerlink" href="#allow_mock_fallback" title="Permanent link">&para;</a></h3>
+<p>在某些依赖不可用或引擎不可运行时，是否允许回退到 mock 路径。</p>
+<h3 id="mcwf_ntraj"><code>mcwf_ntraj</code><a class="headerlink" href="#mcwf_ntraj" title="Permanent link">&para;</a></h3>
+<p>与 MCWF 相关的轨迹数设置。<br />
+如果你的运行不涉及相关模式，可以先保持默认。</p>
+<h3 id="prior_backend"><code>prior_backend</code><a class="headerlink" href="#prior_backend" title="Permanent link">&para;</a></h3>
+<p>用于量子纠错分析中 prior 的构建来源，例如：</p>
+<ul>
+<li><code>auto</code></li>
 <li><code>stim</code></li>
 <li><code>cirq</code></li>
 <li><code>mock</code></li>
-<li><code>auto</code></li>
 </ul>
-<p>其中：</p>
+<h3 id="decoder"><code>decoder</code><a class="headerlink" href="#decoder" title="Permanent link">&para;</a></h3>
+<p>指定使用哪个 decoder。<br />
+当你的任务目标涉及：</p>
 <ul>
-<li><code>auto</code> 会在多个可用后端之间自动选择</li>
-<li><code>mock</code> 适合依赖缺失时做占位或流程测试</li>
+<li><code>logical_error</code></li>
+<li><code>sensitivity_report</code></li>
+<li><code>decoder_eval_report</code></li>
+<li><code>scaling_report</code></li>
+<li><code>error_budget_pauli_plus</code></li>
 </ul>
-<h2 id="5-decoder">5. decoder 是什么<a class="headerlink" href="#5-decoder" title="Permanent link">&para;</a></h2>
-<p>decoder 负责利用 syndrome 和 prior 做离线解码分析。<br />
-当前实现位于：</p>
+<p>这类 target 时，<code>decoder</code> 通常必须配置。</p>
+<h3 id="decoder_options"><code>decoder_options</code><a class="headerlink" href="#decoder_options" title="Permanent link">&para;</a></h3>
+<p>为 decoder 提供更细的选项，例如 BP 的迭代次数、阻尼等。</p>
+<h3 id="qec_engine"><code>qec_engine</code><a class="headerlink" href="#qec_engine" title="Permanent link">&para;</a></h3>
+<p>控制 QEC 分析使用的引擎来源，常见写法是 <code>auto</code>。</p>
+<h2 id="6-julia">6. Julia 相关字段<a class="headerlink" href="#6-julia" title="Permanent link">&para;</a></h2>
+<p>当 <code>engine</code> 取值为：</p>
 <ul>
-<li><code>src/qsim/qec/decoder.py</code></li>
+<li><code>qoptics</code></li>
+<li><code>qtoolbox</code></li>
 </ul>
-<p>当前支持：</p>
+<p>时，还可以使用 Julia 相关字段：</p>
 <ul>
-<li><code>mwpm</code></li>
-<li><code>bp</code></li>
-<li><code>mock</code></li>
+<li><code>julia_bin</code></li>
+<li><code>julia_depot_path</code></li>
+<li><code>julia_timeout_s</code></li>
 </ul>
-<p>通常可以这样理解：</p>
+<p>如果当前 <code>engine</code> 是 <code>qutip</code>，这些 Julia 专属字段不应写入，否则校验会报错。</p>
+<h2 id="7-frame">7. <code>frame</code> 段说明<a class="headerlink" href="#7-frame" title="Permanent link">&para;</a></h2>
+<p><code>frame</code> 用于控制参考系和旋波近似。</p>
+<p>当前支持字段：</p>
 <ul>
-<li><code>mwpm</code>：适合做匹配类解码</li>
-<li><code>bp</code>：适合 belief propagation 风格实验</li>
-<li><code>mock</code>：适合流程打通和占位测试</li>
+<li><code>mode</code></li>
+<li><code>reference</code></li>
+<li><code>rwa</code></li>
+<li><code>qubit_reference_freqs_Hz</code></li>
 </ul>
-<h2 id="6-solver-qec">6. solver 配置里与 QEC 有关的字段<a class="headerlink" href="#6-solver-qec" title="Permanent link">&para;</a></h2>
-<p>QEC 相关运行主要依赖 solver 配置中的以下字段：</p>
+<h3 id="mode"><code>mode</code><a class="headerlink" href="#mode" title="Permanent link">&para;</a></h3>
+<p>常见值是：</p>
 <ul>
-<li><code>run.prior_backend</code></li>
-<li><code>run.decoder</code></li>
-<li><code>run.decoder_options</code></li>
-<li><code>run.qec_engine</code></li>
+<li><code>rotating</code></li>
 </ul>
-<p>其中最关键的是：</p>
+<h3 id="reference"><code>reference</code><a class="headerlink" href="#reference" title="Permanent link">&para;</a></h3>
+<p>用于指定参考频率的来源。<br />
+模板中常见值为：</p>
 <ul>
-<li><code>run.decoder</code></li>
+<li><code>pulse_carrier</code></li>
 </ul>
-<p>如果任务目标需要进入 decode 或 analysis 阶段，而这里没有配置 decoder，执行计划会拒绝运行。</p>
-<h2 id="7-target">7. 不同 target 会跑到哪一步<a class="headerlink" href="#7-target" title="Permanent link">&para;</a></h2>
-<p>当前常见 target 与阶段关系如下：</p>
-<h3 id="logical_error"><code>logical_error</code><a class="headerlink" href="#logical_error" title="Permanent link">&para;</a></h3>
-<p>会运行到 decode 阶段，生成逻辑误差相关结果。</p>
-<h3 id="sensitivity_report"><code>sensitivity_report</code><a class="headerlink" href="#sensitivity_report" title="Permanent link">&para;</a></h3>
-<p>会在 decode 之后继续进入 analysis 阶段。</p>
-<h3 id="decoder_eval_report"><code>decoder_eval_report</code><a class="headerlink" href="#decoder_eval_report" title="Permanent link">&para;</a></h3>
-<p>会在 decode 基础上继续执行 decoder eval 插件。</p>
-<h3 id="scaling_report"><code>scaling_report</code><a class="headerlink" href="#scaling_report" title="Permanent link">&para;</a></h3>
-<p>会在 analysis 基础上继续执行 Pauli+ 插件。</p>
-<h3 id="error_budget_pauli_plus"><code>error_budget_pauli_plus</code><a class="headerlink" href="#error_budget_pauli_plus" title="Permanent link">&para;</a></h3>
-<p>同样依赖 Pauli+ 分析分支。</p>
-<p>这些目标通常都要求：</p>
+<h3 id="rwa"><code>rwa</code><a class="headerlink" href="#rwa" title="Permanent link">&para;</a></h3>
+<p>是否启用旋波近似。<br />
+在多数基础任务中，默认值通常可以直接使用。</p>
+<h3 id="qubit_reference_freqs_hz"><code>qubit_reference_freqs_Hz</code><a class="headerlink" href="#qubit_reference_freqs_hz" title="Permanent link">&para;</a></h3>
+<p>如果你需要显式指定每个 qubit 的参考频率，可以在这里给出。</p>
+<h2 id="8-run">8. 不同目标对 <code>run</code> 的要求<a class="headerlink" href="#8-run" title="Permanent link">&para;</a></h2>
+<p>从执行计划规则来看，不同 target 对 <code>run</code> 字段的要求并不相同。</p>
+<h3 id="decoder_1">不要求 decoder 的目标<a class="headerlink" href="#decoder_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>solver.run.decoder</code> 已配置</li>
+<li><code>trace</code></li>
 </ul>
-<h2 id="8">8. 基础输出文件说明<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
-<p>当 QEC 主链路运行后，常见输出包括：</p>
+<h3 id="rundecoder">要求 <code>run.decoder</code> 的目标<a class="headerlink" href="#rundecoder" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>syndrome_frame.json</code></li>
-<li><code>prior_model.json</code></li>
-<li><code>prior_report.json</code></li>
-<li><code>prior_samples.npz</code></li>
-<li><code>decoder_input.json</code></li>
-<li><code>decoder_output.json</code></li>
-<li><code>decoder_report.json</code></li>
-<li><code>logical_error.json</code></li>
+<li><code>logical_error</code></li>
+<li><code>sensitivity_report</code></li>
+<li><code>decoder_eval_report</code></li>
+<li><code>scaling_report</code></li>
+<li><code>error_budget_pauli_plus</code></li>
 </ul>
-<p>这些文件可以按下面方式理解。</p>
-<h3 id="syndrome_framejson"><code>syndrome_frame.json</code><a class="headerlink" href="#syndrome_framejson" title="Permanent link">&para;</a></h3>
-<p>表示从 trace 中提取出来的 syndrome 信息。<br />
-它是后续 prior 和 decoder 的直接输入基础。</p>
-<h3 id="prior_modeljson"><code>prior_model.json</code><a class="headerlink" href="#prior_modeljson" title="Permanent link">&para;</a></h3>
-<p>表示本次运行构建出的 prior 模型。</p>
-<h3 id="prior_reportjson"><code>prior_report.json</code><a class="headerlink" href="#prior_reportjson" title="Permanent link">&para;</a></h3>
-<p>表示 prior 构建过程的说明性结果，通常适合用于检查：</p>
+<h3 id="runcompare_engines">要求 <code>run.compare_engines</code> 的目标<a class="headerlink" href="#runcompare_engines" title="Permanent link">&para;</a></h3>
 <ul>
-<li>实际采用了哪个 prior backend</li>
-<li>是否发生了 fallback</li>
+<li><code>cross_engine_compare</code></li>
 </ul>
-<h3 id="prior_samplesnpz"><code>prior_samples.npz</code><a class="headerlink" href="#prior_samplesnpz" title="Permanent link">&para;</a></h3>
-<p>表示 prior 相关的采样数据。</p>
-<h3 id="decoder_inputjson"><code>decoder_input.json</code><a class="headerlink" href="#decoder_inputjson" title="Permanent link">&para;</a></h3>
-<p>表示真正送进 decoder 的输入结构。<br />
-如果你怀疑 decoder 行为异常，这通常是重点排查对象。</p>
-<h3 id="decoder_outputjson"><code>decoder_output.json</code><a class="headerlink" href="#decoder_outputjson" title="Permanent link">&para;</a></h3>
-<p>表示 decoder 的输出结果。</p>
-<h3 id="decoder_reportjson"><code>decoder_report.json</code><a class="headerlink" href="#decoder_reportjson" title="Permanent link">&para;</a></h3>
-<p>表示 decoder 运行过程的汇总报告，适合快速浏览。</p>
-<h3 id="logical_errorjson"><code>logical_error.json</code><a class="headerlink" href="#logical_errorjson" title="Permanent link">&para;</a></h3>
-<p>表示最终的逻辑误差摘要，是最常被直接引用的 QEC 结果文件之一。</p>
-<h2 id="9">9. 分析与扩展输出<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
-<p>如果任务目标进一步包含分析分支，还会出现以下文件。</p>
-<h3 id="sensitivity-error-budget">sensitivity / error budget<a class="headerlink" href="#sensitivity-error-budget" title="Permanent link">&para;</a></h3>
+<p>因此，在写 solver 配置前，最好先确认你的 <code>task.target</code> 究竟是什么。</p>
+<h2 id="9">9. 推荐写法<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<p>第一次上手建议先使用比较朴素的配置：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">backend</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qubit</span>
+<span class="w">  </span><span class="nt">analysis_pipeline</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="w">  </span><span class="nt">truncation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="nt">run</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">engine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qutip</span>
+<span class="w">  </span><span class="nt">solver_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">me</span>
+<span class="w">  </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1234</span>
+<span class="w">  </span><span class="nt">dt_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
+<span class="w">  </span><span class="nt">schedule_policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">serial</span>
+<span class="w">  </span><span class="nt">reset_feedback_policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">parallel</span>
+<span class="nt">frame</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating</span>
+<span class="w">  </span><span class="nt">reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pulse_carrier</span>
+<span class="w">  </span><span class="nt">rwa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<p>在此基础上，再逐步增加：</p>
 <ul>
-<li><code>sensitivity_report.json</code></li>
-<li><code>error_budget_v2.json</code></li>
+<li><code>decoder</code></li>
+<li><code>decoder_options</code></li>
+<li><code>compare_engines</code></li>
+<li>Julia 相关字段</li>
 </ul>
-<p>适合用来查看：</p>
-<ul>
-<li>参数敏感度</li>
-<li>误差项排序</li>
-<li>不同配置之间的趋势比较</li>
-</ul>
-<h3 id="decoder-eval">decoder eval<a class="headerlink" href="#decoder-eval" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>decoder_eval_report.json</code></li>
-<li><code>decoder_eval_table.csv</code></li>
-<li><code>batch_manifest.json</code></li>
-<li><code>resume_state.json</code></li>
-<li><code>failed_tasks.jsonl</code></li>
-</ul>
-<p>这组文件适合做：</p>
-<ul>
-<li>多 decoder 比较</li>
-<li>多 seed 重复评估</li>
-<li>参数扫描</li>
-<li>中断后续跑</li>
-</ul>
-<h3 id="pauli-scaling">Pauli+ / scaling<a class="headerlink" href="#pauli-scaling" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>scaling_report.json</code></li>
-<li><code>error_budget_pauli_plus.json</code></li>
-<li><code>component_ablation.csv</code></li>
-</ul>
-<p>这组文件主要服务于更深入的误差预算与缩放分析。</p>
-<h2 id="10-decoder_eval">10. <code>decoder_eval</code> 适合什么时候用<a class="headerlink" href="#10-decoder_eval" title="Permanent link">&para;</a></h2>
-<p>当你满足以下任一需求时，建议打开 decoder eval：</p>
-<ul>
-<li>比较 <code>mwpm</code> 和 <code>bp</code></li>
-<li>研究 decoder 参数设置</li>
-<li>比较不同 seeds 下的表现</li>
-<li>需要批量结果表格输出</li>
-</ul>
-<p>如果你只是想先确认主链路是否能产生 logical error，先不要急着打开 <code>decoder_eval</code>。</p>
-<h2 id="11-resumeretries">11. <code>resume</code>、<code>retries</code> 和批量评估<a class="headerlink" href="#11-resumeretries" title="Permanent link">&para;</a></h2>
-<p>decoder eval 相关 feature 中，有几项特别适合大规模实验：</p>
-<ul>
-<li><code>eval_parallelism</code></li>
-<li><code>eval_retries</code></li>
-<li><code>eval_resume</code></li>
-</ul>
-<p>使用建议：</p>
-<ul>
-<li>小规模测试时可以先保持默认</li>
-<li>大批量扫描时再打开并行和续跑</li>
-<li>如果担心中途中断，优先保留 <code>resume_state.json</code></li>
-</ul>
-<h2 id="12">12. 推荐的上手顺序<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
-<p>如果你第一次使用 QEC 能力，建议按下面顺序逐步增加复杂度：</p>
-<ol>
-<li>先用 <code>trace</code> 跑通基础仿真</li>
-<li>再切到 <code>logical_error</code></li>
-<li>确认 <code>decoder_output.json</code> 和 <code>logical_error.json</code> 能正常生成</li>
-<li>再增加 <code>sensitivity_report</code></li>
-<li>最后再启用 <code>decoder_eval</code> 或 Pauli+ 分支</li>
-</ol>
-<p>这样会更容易定位问题，也更符合当前项目的工作流设计。</p>
-<h2 id="13">13. 常见问题<a class="headerlink" href="#13" title="Permanent link">&para;</a></h2>
-<h3 id="logical_errorjson_1">为什么没有生成 <code>logical_error.json</code><a class="headerlink" href="#logical_errorjson_1" title="Permanent link">&para;</a></h3>
-<p>优先检查：</p>
-<ul>
-<li><code>target</code> 是否包含 <code>logical_error</code> 或更高层的 QEC 目标</li>
-<li><code>solver.run.decoder</code> 是否已配置</li>
-</ul>
-<h3 id="prior-decoder">为什么 prior / decoder 文件为空或缺失<a class="headerlink" href="#prior-decoder" title="Permanent link">&para;</a></h3>
-<p>通常说明本次运行没有真正进入 decode 阶段，或者 target 不包含对应分支。</p>
-<h3 id="decoder-eval_1">为什么 decoder eval 没有输出表格<a class="headerlink" href="#decoder-eval_1" title="Permanent link">&para;</a></h3>
-<p>优先检查：</p>
-<ul>
-<li>是否启用了 <code>decoder_eval_report</code> 目标或 <code>decoder_eval</code> feature</li>
-<li>decode 阶段是否已经成功运行</li>
-</ul>
-<h3 id="_2">当前能不能做在线实时解码<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
-<p>不能。<br />
-当前项目的定位仍然是离线分析与可复现评估。</p>
+<h2 id="10">10. 常见错误<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<h3 id="enginequtip-julia"><code>engine=qutip</code> 却写了 Julia 字段<a class="headerlink" href="#enginequtip-julia" title="Permanent link">&para;</a></h3>
+<p>这是不允许的，校验阶段就会报错。</p>
+<h3 id="qec-decoder">需要 QEC 结果却没有配置 <code>decoder</code><a class="headerlink" href="#qec-decoder" title="Permanent link">&para;</a></h3>
+<p>如果目标涉及逻辑误差或解码分析，通常必须设置 <code>run.decoder</code>。</p>
+<h3 id="solver">把噪声参数写进 solver 配置<a class="headerlink" href="#solver" title="Permanent link">&para;</a></h3>
+<p>噪声应放在 <code>device</code> 配置中，而不是 <code>solver</code>。</p>
+<h3 id="solver_1">把输出参数写进 solver 配置<a class="headerlink" href="#solver_1" title="Permanent link">&para;</a></h3>
+<p>例如 <code>out_dir</code>、<code>export_plots</code> 一类内容属于 <code>task.output</code>，不属于 <code>solver</code>。</p>
 
 
 

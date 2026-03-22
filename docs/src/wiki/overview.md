@@ -1,84 +1,102 @@
-﻿# Wiki 概览
+# 概览
 
-## 1. 入口
+`qsim` 提供了一条从量子电路输入到仿真、分析和结果归档的完整工作流。它的目标不是只完成某一个单点功能，而是把量子模拟任务中常见的几个环节串成统一流程：电路读取、编译与 lowering、设备和脉冲参数注入、求解器执行、误差分析、量子纠错分析，以及最终的文件输出与结果复现。
 
-Workflow 入口统一为两种调用方式：
+## 整体流程
 
-- Python：`qsim.workflow.run_task_files(task_config=...)`
-- CLI：`qsim run-task --task-config ...`
+一次典型运行通常包含以下阶段：
 
-`task` 主配置内通过 `input.solver_config` / `input.hardware_config` 引用另外两个文件；
-也支持在调用时传 `solver_config`/`hardware_config` 做覆盖。
+1. 读取 `task / solver / device / pulse` 四类配置
+2. 解析 OpenQASM 电路并完成标准化
+3. 根据设备和脉冲参数执行编译与 lowering
+4. 构建求解模型并调用仿真引擎
+5. 按任务目标决定是否执行 decode、analysis 或额外插件
+6. 导出图像、JSON、HDF5、manifest 和 session 结果
 
-核心原则：配置职责拆分为 `task / solver / hardware` 三个文件。
+常用入口：
 
-## 2. Top-Down 结构
+- `qsim.workflow.run_task`
+- `qsim.workflow.run_task_files`
+- `qsim run-task`
 
-`src/qsim/workflow/` 按分层组织：
+## 功能组成
 
-1. 应用层（入口）
-- `pipeline.py`
-- 负责：加载/合成配置、生成执行计划、串联主链路与分支链路
+### 电路层
 
-2. 编排层（计划）
-- `planner.py`
-- 负责：`target -> stages/artifacts` 裁剪、基础依赖校验
+`src/qsim/circuit/` 负责电路导入、标准化和导出。
 
-3. 阶段层（主链路）
-- `stages.py`
-- 负责：`parse/compile/lower/model -> engine -> decode -> analysis`
+- OpenQASM 导入
+- 电路标准化
+- OpenQASM 导出
 
-4. 分支层（可选能力）
-- `plugins.py`
-- 负责：`decoder_eval`、`pauli_plus`、`cross_engine_compare`
+### 后端与模型层
 
-5. 基础设施层
-- `task_io.py`：三配置加载、模板合并、target/engine 字段校验
-- `persistence.py`：结构化写盘与 manifest 输出
-- `output.py`：图形与文件导出辅助
-- `session_adapter.py`：结果提交 session
-- `engines.py`：引擎选择与跨引擎比较辅助
+`src/qsim/backend/` 负责把电路转换为后续求解所需的数据结构。
 
-## 3. 主链路与分支链路
+- 编译 pipeline
+- lowering
+- pulse compile
+- model build
+- scheduling
 
-主链路（始终执行至少 parse+engine）：
+### 脉冲层
 
-1. `parse_compile_lower_model`
-2. `run_engine_stage`
-3. `run_decode_stage`（按 target/plan 触发）
-4. `run_analysis_stage`（按 target/plan 触发）
+`src/qsim/pulse/` 负责门到脉冲的映射、PulseIR 生成和可视化导出。
 
-分支链路（按 target/features 触发）：
+- 门到脉冲配方
+- pulse sequence 生成
+- 脉冲绘图与 DXF 导出
+- gate mapping catalog
 
-1. `run_decoder_eval_plugin`
-2. `run_pauli_plus_plugin`
-3. `run_cross_engine_compare_plugin`
+### 求解与分析层
 
-收口：
+`src/qsim/engines/` 和 `src/qsim/analysis/` 负责数值求解与结果分析。
 
-1. `write_artifacts`
-2. `export_visualizations`
-3. `build_manifest`
-4. `commit_result_to_session`（可选）
+- QuTiP 仿真引擎
+- Julia 相关求解接口
+- sensitivity
+- error budget
+- Pauli+ / component ablation
+- cross-engine compare
 
-## 4. 依赖约束边界
+### 量子纠错层
 
-1. `target` 决定：
-- 可执行阶段
-- 可开启分支
-- `task.features` 支持键
-- `targeted` 模式下可写产物
+`src/qsim/qec/` 提供离线量子纠错分析能力。
 
-2. `engine` 决定：
-- `solver.run` 可用参数集合（例如 julia 专属键）
+- prior 构建
+- decoder
+- decoder eval
+- logical error 汇总
 
-3. `task/solver/hardware` 职责不交叉：
-- `task` 不承载 engine/hardware 细节
-- `solver` 不承载具体噪声场景
-- `hardware` 不承载任务目标与输出策略
+### 工作流与结果管理
 
-## 5. 相关阅读
+`src/qsim/workflow/` 和 `src/qsim/session/` 负责把这些功能组织成可重复执行的任务。
 
-- [Workflow 用法（三配置 + key 支持矩阵）](./workflow_task_config.md)
-- [IO 与会话](./io_session.md)
-- [后端与模型](./backend_model.md)
+- 配置读取与合并
+- target 驱动执行计划
+- 主阶段与插件阶段编排
+- 产物落盘与 manifest
+- session 自动提交
+
+## 任务目标
+
+工作流会根据 `target` 决定执行哪些阶段。当前常见目标包括：
+
+- `trace`
+- `logical_error`
+- `sensitivity_report`
+- `decoder_eval_report`
+- `scaling_report`
+- `error_budget_pauli_plus`
+- `cross_engine_compare`
+
+## 配置组织方式
+
+`qsim` 采用四类配置分工：
+
+- `task`：定义本次任务的目标、输入和输出
+- `solver`：定义求解器、运行参数和 frame
+- `device`：定义设备与噪声
+- `pulse`：定义脉冲相关参数
+
+这种拆分方式便于在不改动整条任务的前提下，单独替换某一类配置做对比实验。

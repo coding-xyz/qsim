@@ -1,4 +1,13 @@
-﻿"""Workflow contracts, loaders, and task execution API."""
+"""Workflow public API.
+
+This package contains the main entrypoints used by the documentation and CLI:
+
+- workflow dataclasses such as ``WorkflowTask`` and ``WorkflowRunOptions``
+- config-file loaders for task / solver / device / pulse inputs
+- execution planning helpers
+- ``run_task`` and ``run_task_files`` for launching workflows
+- session commit helpers for persisting selected outputs
+"""
 
 from qsim.workflow.contracts import (
     SolverBackendConfig,

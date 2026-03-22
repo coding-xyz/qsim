@@ -1,4 +1,8 @@
-"""Public exports for qsim analysis helpers."""
+"""Analysis public API.
+
+This package currently exposes registry-oriented helpers for running analysis
+steps and managing analysis implementations.
+"""
 
 from qsim.analysis.registry import AnalysisRegistry, AnalysisRunner
 

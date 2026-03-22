@@ -505,7 +505,19 @@ def run_task(
     device_config: WorkflowDeviceConfig | str | Path | None = None,
     pulse_config: dict | str | Path | None = None,
 ) -> dict:
-    """Run qsim workflow from merged task or task/solver/device/pulse configs."""
+    """Run a qsim workflow and return a structured result payload.
+
+    Args:
+        task: Either a fully composed ``WorkflowTask``, a
+            ``WorkflowTaskConfig``, or a path to a task config file.
+        solver_config: Optional solver config object or config path.
+        device_config: Optional device config object or config path.
+        pulse_config: Optional pulse config mapping or config path.
+
+    Returns:
+        A nested result dictionary containing core artifacts, QEC outputs,
+        analysis outputs, optional plugin outputs, and runtime metadata.
+    """
     task = _resolve_runtime_task(
         task,
         solver_config=solver_config,
@@ -547,7 +559,11 @@ def run_task_files(
     device_config: str | Path | None = None,
     pulse_config: str | Path | None = None,
 ) -> dict:
-    """Run workflow from task config, with optional solver/device/pulse overrides."""
+    """Run a workflow from config files.
+
+    This is the most common file-driven entrypoint and mirrors the CLI command
+    ``qsim run-task``.
+    """
     return run_task(
         task_config,
         solver_config=solver_config,

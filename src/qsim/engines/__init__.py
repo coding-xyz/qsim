@@ -1,4 +1,8 @@
-"""Public exports for qsim simulation and QEC engines."""
+"""Simulation and QEC engine public API.
+
+This package groups the main simulation engines and QEC analysis engines used
+by the workflow pipeline, including QuTiP and Julia-oriented backends.
+"""
 
 from qsim.engines.base import Engine
 from qsim.engines.cirq_qec_engine import CirqQECAnalysisEngine

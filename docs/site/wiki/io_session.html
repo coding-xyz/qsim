@@ -11,21 +11,21 @@
       
       
       
-        <link rel="prev" href="visualization.html">
+        <link rel="prev" href="qec_analysis.html">
       
       
-        <link rel="next" href="qec_analysis.html">
+        <link rel="next" href="gaps.html">
       
       
         
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>IO 与会话 - qsim 文档</title>
+        <title>文件IO - qsim 文档</title>
       
     
     
@@ -80,7 +80,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="页眉">
     <a href="../index.html" title="qsim 文档" class="md-header__button md-logo" aria-label="qsim 文档" data-md-component="logo">
       
@@ -102,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              IO 与会话
+              文件IO
             
           </span>
         </div>
@@ -164,76 +166,6 @@
       
         
           
-            
-<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
-  <div class="md-grid">
-    <ul class="md-tabs__list">
-      
-        
-  
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../index.html" class="md-tabs__link">
-        
-  
-  
-    
-  
-  首页
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-    
-  
-  
-    
-    
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../WIKI.html" class="md-tabs__link">
-          
-  
-  
-  Wiki
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../api/index.html" class="md-tabs__link">
-          
-  
-  
-  API 参考
-
-        </a>
-      </li>
-    
-  
-
-      
-    </ul>
-  </div>
-</nav>
-          
         
       
       <main class="md-main" data-md-component="main">
@@ -247,10 +179,8 @@
                     
 
 
-  
 
-
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+<nav class="md-nav md-nav--primary" aria-label="导航栏" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../index.html" title="qsim 文档" class="md-nav__button md-logo" aria-label="qsim 文档" data-md-component="logo">
       
@@ -294,91 +224,6 @@
       
   
   
-    
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Wiki
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Wiki
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../WIKI.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    入口
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
   
   
     <li class="md-nav__item">
@@ -401,10 +246,36 @@
     </li>
   
 
-              
-            
-              
-                
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="basic_usage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    基本用法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
   
   
   
@@ -417,7 +288,7 @@
   <span class="md-ellipsis">
     
   
-    Workflow 用法
+    任务配置
   
 
     
@@ -429,23 +300,22 @@
     </li>
   
 
-              
-            
-              
-                
+    
+      
+      
   
   
   
   
     <li class="md-nav__item">
-      <a href="circuit.html" class="md-nav__link">
+      <a href="device_config.html" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    电路层
+    设备配置
   
 
     
@@ -457,23 +327,22 @@
     </li>
   
 
-              
-            
-              
-                
+    
+      
+      
   
   
   
   
     <li class="md-nav__item">
-      <a href="backend_model.html" class="md-nav__link">
+      <a href="pulse_config.html" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    后端与模型
+    脉冲配置
   
 
     
@@ -485,23 +354,22 @@
     </li>
   
 
-              
-            
-              
-                
+    
+      
+      
   
   
   
   
     <li class="md-nav__item">
-      <a href="noise_engine.html" class="md-nav__link">
+      <a href="solver_config.html" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    噪声与求解器
+    求解器配置
   
 
     
@@ -513,10 +381,9 @@
     </li>
   
 
-              
-            
-              
-                
+    
+      
+      
   
   
   
@@ -541,10 +408,36 @@
     </li>
   
 
-              
-            
-              
-                
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="qec_analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    量子纠错
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
   
   
     
@@ -566,7 +459,7 @@
   <span class="md-ellipsis">
     
   
-    IO 与会话
+    文件IO
   
 
     
@@ -584,7 +477,7 @@
   <span class="md-ellipsis">
     
   
-    IO 与会话
+    文件IO
   
 
     
@@ -610,10 +503,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        常见产物
+        1. 输出目录的作用
       
     </span>
   </a>
@@ -621,6 +514,117 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 常见输出文件总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 基础产物分别表示什么
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 基础产物分别表示什么">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#circuitjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        circuit.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend_configjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        backend_config.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normalized_circuitjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        normalized_circuit.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compile_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compile_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulse_irjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_ir.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulse_samplesnpz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_samples.npz
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executable_modeljson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        executable_model.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model_specjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model_spec.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#traceh5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -630,12 +634,39 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#manifest" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#settings_reportjson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Manifest
+        settings_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timingsjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        timings.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-traceh5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. trace.h5 里有什么
       
     </span>
   </a>
@@ -643,13 +674,168 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#session" class="md-nav__link">
+  <a href="#5-run_manifestjson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Session 自动提交
+        5. run_manifest.json 的作用
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-qec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. QEC 和分析相关输出
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. QEC 和分析相关输出">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decode 相关
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analysis 相关
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decoder-eval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decoder eval 相关
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 图像文件
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. session 自动提交是什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 默认会提交哪些类别
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. session 目录里会发生什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 推荐的检查顺序
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 常见问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. 常见问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么结果目录里文件很多
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        我只想保留关键结果怎么办
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么某些 QEC 文件没有生成
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -660,38 +846,9 @@
     </li>
   
 
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="qec_analysis.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
     
-  
-    量子纠错
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
+      
+      
   
   
   
@@ -704,7 +861,7 @@
   <span class="md-ellipsis">
     
   
-    差距清单
+    开发进度
   
 
     
@@ -716,14 +873,6 @@
     </li>
   
 
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
     
       
       
@@ -735,20 +884,20 @@
     
     
     
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
             
   
   
@@ -766,8 +915,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1119,10 +1268,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        常见产物
+        1. 输出目录的作用
       
     </span>
   </a>
@@ -1130,6 +1279,117 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 常见输出文件总览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 基础产物分别表示什么
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 基础产物分别表示什么">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#circuitjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        circuit.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend_configjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        backend_config.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normalized_circuitjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        normalized_circuit.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compile_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compile_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulse_irjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_ir.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pulse_samplesnpz" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pulse_samples.npz
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#executable_modeljson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        executable_model.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model_specjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model_spec.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#traceh5" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1139,12 +1399,39 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#manifest" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#settings_reportjson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Manifest
+        settings_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timingsjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        timings.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-traceh5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. trace.h5 里有什么
       
     </span>
   </a>
@@ -1152,13 +1439,168 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#session" class="md-nav__link">
+  <a href="#5-run_manifestjson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Session 自动提交
+        5. run_manifest.json 的作用
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-qec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. QEC 和分析相关输出
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. QEC 和分析相关输出">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decode 相关
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analysis 相关
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decoder-eval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decoder eval 相关
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 图像文件
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. session 自动提交是什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 默认会提交哪些类别
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. session 目录里会发生什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 推荐的检查顺序
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 常见问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. 常见问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么结果目录里文件很多
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        我只想保留关键结果怎么办
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么某些 QEC 文件没有生成
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1179,43 +1621,233 @@
 
 
 
-<h1 id="io">IO 与会话<a class="headerlink" href="#io" title="Permanent link">&para;</a></h1>
-<p><code>run_task_files(task, solver, hardware)</code> 与 CLI <code>qsim run-task --task-config ... --solver-config ... --hardware-config ...</code> 的产物一致。</p>
-<h2 id="_1">常见产物<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<h1 id="io">文件 IO<a class="headerlink" href="#io" title="Permanent link">&para;</a></h1>
+<p>本页说明一次 workflow 运行会生成哪些文件、这些文件分别表示什么，以及 session 归档机制如何工作。对于需要检查结果目录、复盘运行过程或做后续自动处理的用户，这一页是结果文件说明书。</p>
+<h2 id="1">1. 输出目录的作用<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>每次运行都会把结果写入 <code>task.output.out_dir</code> 指定的目录。<br />
+这个目录既保存最终结果，也保存中间产物、图像、汇总报告和 manifest，因此可以把它理解为一次完整运行的“结果快照”。</p>
+<p>如果 <code>persist_artifacts</code> 为 <code>true</code>，大多数关键对象都会被写出到磁盘。</p>
+<h2 id="2">2. 常见输出文件总览<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>基础 workflow 常见会生成：</p>
 <ul>
 <li><code>circuit.json</code></li>
 <li><code>backend_config.json</code></li>
+<li><code>normalized_circuit.json</code></li>
+<li><code>compile_report.json</code></li>
 <li><code>pulse_ir.json</code></li>
+<li><code>pulse_samples.npz</code></li>
+<li><code>executable_model.json</code></li>
 <li><code>model_spec.json</code></li>
 <li><code>trace.h5</code></li>
-<li><code>logical_error.json</code>（按 target）</li>
-<li><code>sensitivity_report.json</code>（按 target）</li>
 <li><code>settings_report.json</code></li>
 <li><code>run_manifest.json</code></li>
 <li><code>timings.json</code></li>
 </ul>
-<p>启用图形导出时还会生成 <code>trace.png</code>、<code>report.png</code>、<code>pulse_timing.png</code>、<code>timing_diagram.dxf</code> 等。</p>
-<h2 id="traceh5"><code>trace.h5</code><a class="headerlink" href="#traceh5" title="Permanent link">&para;</a></h2>
-<p><code>trace.h5</code> 保存求解输出的时间轴与状态采样：</p>
+<p>根据 target 和 feature 不同，还可能额外生成：</p>
+<ul>
+<li><code>syndrome_frame.json</code></li>
+<li><code>prior_model.json</code></li>
+<li><code>prior_report.json</code></li>
+<li><code>prior_samples.npz</code></li>
+<li><code>decoder_input.json</code></li>
+<li><code>decoder_output.json</code></li>
+<li><code>decoder_report.json</code></li>
+<li><code>logical_error.json</code></li>
+<li><code>sensitivity_report.json</code></li>
+<li><code>error_budget_v2.json</code></li>
+<li><code>decoder_eval_report.json</code></li>
+<li><code>decoder_eval_table.csv</code></li>
+<li><code>batch_manifest.json</code></li>
+<li><code>resume_state.json</code></li>
+<li><code>failed_tasks.jsonl</code></li>
+<li><code>scaling_report.json</code></li>
+<li><code>error_budget_pauli_plus.json</code></li>
+<li><code>component_ablation.csv</code></li>
+</ul>
+<h2 id="3">3. 基础产物分别表示什么<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<h3 id="circuitjson"><code>circuit.json</code><a class="headerlink" href="#circuitjson" title="Permanent link">&para;</a></h3>
+<p>表示导入并规范化后的电路信息。<br />
+适合用来确认：</p>
+<ul>
+<li>电路是否被正确读取</li>
+<li>量子比特和操作是否符合预期</li>
+</ul>
+<h3 id="backend_configjson"><code>backend_config.json</code><a class="headerlink" href="#backend_configjson" title="Permanent link">&para;</a></h3>
+<p>表示最终进入 workflow 主链路的 backend 配置。<br />
+它适合用于确认：</p>
+<ul>
+<li>solver 与 noise 组合后到底形成了什么 backend 设置</li>
+<li>某些字段是否被默认值补齐</li>
+</ul>
+<h3 id="normalized_circuitjson"><code>normalized_circuit.json</code><a class="headerlink" href="#normalized_circuitjson" title="Permanent link">&para;</a></h3>
+<p>表示标准化之后的电路版本。<br />
+如果原始输入和后续求解行为不一致，这个文件通常是排查入口之一。</p>
+<h3 id="compile_reportjson"><code>compile_report.json</code><a class="headerlink" href="#compile_reportjson" title="Permanent link">&para;</a></h3>
+<p>用于记录编译阶段的结果和摘要。<br />
+它适合查看：</p>
+<ul>
+<li>编译过程中做了哪些处理</li>
+<li>是否命中了特定 lowering / compile 路径</li>
+</ul>
+<h3 id="pulse_irjson"><code>pulse_ir.json</code><a class="headerlink" href="#pulse_irjson" title="Permanent link">&para;</a></h3>
+<p>表示脉冲中间表示。<br />
+如果你关心门是怎样被映射为脉冲的，这是最重要的输出之一。</p>
+<h3 id="pulse_samplesnpz"><code>pulse_samples.npz</code><a class="headerlink" href="#pulse_samplesnpz" title="Permanent link">&para;</a></h3>
+<p>保存采样后的脉冲数据。<br />
+常用于：</p>
+<ul>
+<li>可视化</li>
+<li>后续度量统计</li>
+<li>pulse 级调试</li>
+</ul>
+<h3 id="executable_modeljson"><code>executable_model.json</code><a class="headerlink" href="#executable_modeljson" title="Permanent link">&para;</a></h3>
+<p>表示更靠近执行层的模型表示。<br />
+它适合在编译与求解之间检查模型是否构造正确。</p>
+<h3 id="model_specjson"><code>model_spec.json</code><a class="headerlink" href="#model_specjson" title="Permanent link">&para;</a></h3>
+<p>表示最终送入引擎前的模型规格。<br />
+它可以帮助确认：</p>
+<ul>
+<li>求解模式</li>
+<li>模型维度</li>
+<li>引擎实际接收到的结构信息</li>
+</ul>
+<h3 id="traceh5"><code>trace.h5</code><a class="headerlink" href="#traceh5" title="Permanent link">&para;</a></h3>
+<p>保存求解器输出的时间轴和状态采样，是数值结果的核心文件之一。</p>
+<h3 id="settings_reportjson"><code>settings_report.json</code><a class="headerlink" href="#settings_reportjson" title="Permanent link">&para;</a></h3>
+<p>汇总一次运行中关键设置的报告，通常适合快速总览本次实验条件。</p>
+<h3 id="timingsjson"><code>timings.json</code><a class="headerlink" href="#timingsjson" title="Permanent link">&para;</a></h3>
+<p>记录各阶段耗时，适合分析：</p>
+<ul>
+<li>哪个阶段最耗时</li>
+<li>不同任务之间的性能差异</li>
+</ul>
+<h2 id="4-traceh5">4. <code>trace.h5</code> 里有什么<a class="headerlink" href="#4-traceh5" title="Permanent link">&para;</a></h2>
+<p><code>trace.h5</code> 是最重要的运行结果文件之一。<br />
+常见内容包括：</p>
 <ul>
 <li>dataset: <code>times</code></li>
 <li>dataset: <code>states</code></li>
-<li>attrs: <code>engine</code>, <code>state_encoding</code>, <code>num_qubits</code>, <code>model_dimension</code></li>
+<li>attrs: <code>engine</code></li>
+<li>attrs: <code>state_encoding</code></li>
+<li>attrs: <code>num_qubits</code></li>
+<li>attrs: <code>model_dimension</code></li>
 </ul>
-<h2 id="manifest">Manifest<a class="headerlink" href="#manifest" title="Permanent link">&para;</a></h2>
-<p><code>run_manifest.json</code> 记录：</p>
+<p>它的典型用途包括：</p>
 <ul>
-<li>输入摘要（qasm 摘要、solver 配置来源）</li>
-<li>产物映射（逻辑产物名 -&gt; 相对路径）</li>
-<li>依赖版本与指纹</li>
+<li>后续绘图</li>
+<li>数值分析</li>
+<li>跨引擎结果比较</li>
+<li>结果复盘</li>
 </ul>
-<h2 id="session">Session 自动提交<a class="headerlink" href="#session" title="Permanent link">&para;</a></h2>
-<p>当 <code>task.output.session_auto_commit=true</code> 且设置 <code>task.output.session_dir</code> 时：</p>
+<h2 id="5-run_manifestjson">5. <code>run_manifest.json</code> 的作用<a class="headerlink" href="#5-run_manifestjson" title="Permanent link">&para;</a></h2>
+<p><code>run_manifest.json</code> 用于给一次运行建立统一索引。<br />
+可以把它理解为“本次运行的目录说明书”。</p>
+<p>它通常会记录：</p>
 <ul>
-<li>运行结束后自动把选定结果提交到 session</li>
-<li>在 run 输出目录写 <code>session_commit_report.json</code></li>
+<li>输出文件映射</li>
+<li>依赖版本</li>
+<li>依赖指纹</li>
+<li>backend 来源</li>
+<li>qasm 摘要</li>
 </ul>
-<p>可通过 <code>task.output.session_commit_kinds</code> 限制提交类别。</p>
+<p>这个文件对以下工作尤其重要：</p>
+<ul>
+<li>长期归档</li>
+<li>结果比对</li>
+<li>自动扫描一批运行目录</li>
+</ul>
+<h2 id="6-qec">6. QEC 和分析相关输出<a class="headerlink" href="#6-qec" title="Permanent link">&para;</a></h2>
+<p>当任务目标涉及 decode 或 analysis 时，会出现更多专门文件。</p>
+<h3 id="decode">decode 相关<a class="headerlink" href="#decode" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>syndrome_frame.json</code></li>
+<li><code>prior_model.json</code></li>
+<li><code>prior_report.json</code></li>
+<li><code>prior_samples.npz</code></li>
+<li><code>decoder_input.json</code></li>
+<li><code>decoder_output.json</code></li>
+<li><code>decoder_report.json</code></li>
+<li><code>logical_error.json</code></li>
+</ul>
+<h3 id="analysis">analysis 相关<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>sensitivity_report.json</code></li>
+<li><code>error_budget_v2.json</code></li>
+<li><code>scaling_report.json</code></li>
+<li><code>error_budget_pauli_plus.json</code></li>
+<li><code>component_ablation.csv</code></li>
+</ul>
+<h3 id="decoder-eval">decoder eval 相关<a class="headerlink" href="#decoder-eval" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>decoder_eval_report.json</code></li>
+<li><code>decoder_eval_table.csv</code></li>
+<li><code>batch_manifest.json</code></li>
+<li><code>resume_state.json</code></li>
+<li><code>failed_tasks.jsonl</code></li>
+</ul>
+<h2 id="7">7. 图像文件<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<p>当 <code>export_plots</code> 或 <code>export_dxf</code> 打开时，结果目录中还可能出现：</p>
+<ul>
+<li><code>pulse_timing.png</code></li>
+<li><code>trace.png</code></li>
+<li><code>report.png</code></li>
+<li><code>timing_diagram.dxf</code></li>
+</ul>
+<p>这些文件属于辅助检查和展示型输出，但在很多实验中同样非常重要。</p>
+<h2 id="8-session">8. session 自动提交是什么<a class="headerlink" href="#8-session" title="Permanent link">&para;</a></h2>
+<p>除了把文件写进 <code>out_dir</code> 之外，workflow 还支持把部分结果自动提交到 session。</p>
+<p>只有下面两个条件同时满足时，session 自动提交才会发生：</p>
+<ul>
+<li><code>output.session_auto_commit: true</code></li>
+<li><code>output.session_dir</code> 已设置</li>
+</ul>
+<p>对应逻辑在：</p>
+<ul>
+<li><code>src/qsim/workflow/session_adapter.py</code></li>
+</ul>
+<h2 id="9">9. 默认会提交哪些类别<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<p>默认会尝试提交的类别包括：</p>
+<ul>
+<li><code>settings</code></li>
+<li><code>timings</code></li>
+<li><code>logical_error</code></li>
+<li><code>decoder_report</code></li>
+<li><code>sensitivity_report</code></li>
+<li><code>error_budget_v2</code></li>
+</ul>
+<p>如果某个结果在本次运行中不存在，那么对应类别会被跳过。</p>
+<p>你也可以通过 <code>output.session_commit_kinds</code> 自定义提交类别集合。</p>
+<h2 id="10-session">10. session 目录里会发生什么<a class="headerlink" href="#10-session" title="Permanent link">&para;</a></h2>
+<p><code>src/qsim/session/session.py</code> 中的 <code>Session</code> 会负责：</p>
+<ul>
+<li>在 <code>artifacts/</code> 下按 revision 存放 JSON 产物</li>
+<li>在 <code>session_manifest.json</code> 中登记 revision 元数据</li>
+<li>为每次提交记录输入、依赖、时间戳和标签</li>
+</ul>
+<p>这意味着 session 更像是“结果版本库”，而不仅仅是普通文件夹。</p>
+<h2 id="11">11. 推荐的检查顺序<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
+<p>当一次运行结束后，建议按以下顺序查看结果目录：</p>
+<ol>
+<li>先看 <code>run_manifest.json</code></li>
+<li>再看 <code>settings_report.json</code></li>
+<li>再看 <code>timings.json</code></li>
+<li>然后看 <code>trace.h5</code></li>
+<li>如果有 QEC，继续看 <code>logical_error.json</code> 和 <code>decoder_report.json</code></li>
+<li>如果有分析，继续看 <code>sensitivity_report.json</code>、<code>error_budget_v2.json</code></li>
+</ol>
+<p>这样可以先确认“任务是怎么跑的”，再去看“任务跑出了什么”。</p>
+<h2 id="12">12. 常见问题<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<h3 id="_1">为什么结果目录里文件很多<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p>因为 workflow 默认会写出一整套中间产物和结果文件，这正是它可复现和可追踪的优势。</p>
+<h3 id="_2">我只想保留关键结果怎么办<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>可以考虑：</p>
+<ul>
+<li>使用 <code>artifact_mode: targeted</code></li>
+<li>关闭不需要的图像导出</li>
+<li>只保留必要的 session 提交类别</li>
+</ul>
+<h3 id="qec">为什么某些 QEC 文件没有生成<a class="headerlink" href="#qec" title="Permanent link">&para;</a></h3>
+<p>通常是因为本次 <code>target</code> 没有包含相应阶段，或者 <code>decoder</code>、feature 等条件没有满足。</p>
 
 
 
@@ -1265,7 +1897,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
