@@ -13,23 +13,23 @@ def select_engine(name: str):
     key = str(name).strip().lower()
     if key == "qutip":
         return QuTiPEngine()
-    if key in {"qtoolbox", "quantumtoolbox"}:
+    if key == "qtoolbox":
         return QToolboxEngine()
-    if key in {"qoptics", "quantumoptics"}:
+    if key == "qoptics":
         return QOpticsEngine()
-    return QuTiPEngine()
+    raise ValueError(f"Unknown engine: {name!r}. Supported engines: qutip, qoptics, qtoolbox.")
 
 
 def canonical_engine_name(name: str) -> str:
     """Normalize an engine name alias to canonical form."""
     key = str(name).strip().lower()
-    if key in {"qtoolbox", "quantumtoolbox"}:
+    if key == "qtoolbox":
         return "qtoolbox"
-    if key in {"qoptics", "quantumoptics"}:
+    if key == "qoptics":
         return "qoptics"
     if key == "qutip":
         return "qutip"
-    return key
+    raise ValueError(f"Unknown engine: {name!r}. Supported engines: qutip, qoptics, qtoolbox.")
 
 
 def trace_summary(trace) -> dict:

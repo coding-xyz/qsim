@@ -5,6 +5,16 @@ from qsim.engines.qoptics_engine import QOpticsEngine
 from qsim.engines.qtoolbox_engine import QToolboxEngine
 
 
+def _run_or_skip(engine, spec: ModelSpec):
+    try:
+        return engine.run(spec, run_options={})
+    except RuntimeError as exc:
+        msg = str(exc).lower()
+        if "julia executable not found" in msg or "julia runtime failed" in msg or "dependency unavailable" in msg:
+            pytest.skip(str(exc))
+        raise
+
+
 def _minimal_spec(solver: str = "me") -> ModelSpec:
     return ModelSpec(
         solver=solver,
@@ -116,3 +126,76 @@ def test_julia_engines_short_pulse_on_long_timeline(engine_cls):
     except Exception:
         return
     assert max((row[0] for row in trace.states), default=0.0) > 1.0e-3
+
+
+@pytest.mark.parametrize("engine_cls", [QOpticsEngine, QToolboxEngine])
+def test_julia_engines_support_transmon_nlevel(engine_cls):
+    spec = ModelSpec(
+        solver="se",
+        dimension=3,
+        t_end=2.0e-8,
+        dt=1.0e-9,
+        payload={
+            "model_type": "transmon_nlevel",
+            "num_qubits": 1,
+            "transmon_levels": 3,
+            "qubit_omega_rad_s": [0.0],
+            "anharmonicity_rad_s": [-0.2],
+            "frame": {"mode": "rotating", "reference": "pulse_carrier", "rwa": True},
+            "controls": [
+                {
+                    "target": 0,
+                    "axis": "x",
+                    "times": [0.0, 1.0e-8, 2.0e-8],
+                    "values": [0.0, 1.0e8, 0.0],
+                    "scale": 1.0,
+                    "carrier_omega_rad_s": 0.0,
+                    "drive_delta_rad_s": 0.0,
+                    "carrier_phase_rad": 0.0,
+                }
+            ],
+            "collapse_operators": [],
+        },
+    )
+    trace = _run_or_skip(engine_cls(), spec)
+    vals = [row[0] for row in trace.states if row]
+    assert trace.metadata.get("model_type") == "transmon_nlevel"
+    assert max(vals, default=0.0) > 1.0e-3
+
+
+@pytest.mark.parametrize("engine_cls", [QOpticsEngine, QToolboxEngine])
+def test_julia_engines_support_cqed_jc(engine_cls):
+    spec = ModelSpec(
+        solver="se",
+        dimension=12,
+        t_end=2.0e-8,
+        dt=1.0e-9,
+        payload={
+            "model_type": "cqed_jc",
+            "num_qubits": 1,
+            "transmon_levels": 3,
+            "cavity_nmax": 3,
+            "cavity_omega_rad_s": 0.05,
+            "g_cavity_rad_s": [0.01],
+            "qubit_omega_rad_s": [0.0],
+            "anharmonicity_rad_s": [-0.2],
+            "frame": {"mode": "rotating", "reference": "pulse_carrier", "rwa": True},
+            "controls": [
+                {
+                    "target": 0,
+                    "axis": "x",
+                    "times": [0.0, 1.0e-8, 2.0e-8],
+                    "values": [0.0, 1.0e8, 0.0],
+                    "scale": 1.0,
+                    "carrier_omega_rad_s": 0.0,
+                    "drive_delta_rad_s": 0.0,
+                    "carrier_phase_rad": 0.0,
+                }
+            ],
+            "collapse_operators": [],
+        },
+    )
+    trace = _run_or_skip(engine_cls(), spec)
+    vals = [row[0] for row in trace.states if row]
+    assert trace.metadata.get("model_type") == "cqed_jc"
+    assert max(vals, default=0.0) > 1.0e-3

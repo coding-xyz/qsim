@@ -3,7 +3,7 @@
   "tag": "task4_nonstationary_noise",
   "title": "Task 4 非静态噪声",
   "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[1] q;\nbit[1] c;\nh q[0];\nx q[0];\nmeasure q[0] -> c[0];\n",
-  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "engines": ["qutip", "qtoolbox", "qoptics"],
   "solver_mode": "me",
   "display_metrics": ["final_p1_obs", "final_state_last"],
   "cases": [

@@ -3,7 +3,7 @@
   "tag": "task3_relaxation_dephasing",
   "title": "Task 3 弛豫与退相干",
   "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[1] q;\nbit[1] c;\nh q[0];\ndelay[40ns] q[0];\nmeasure q[0] -> c[0];\n",
-  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "engines": ["qutip", "qtoolbox", "qoptics"],
   "solver_mode": "me",
   "display_metrics": ["final_p1_obs", "mean_excited_obs"],
   "cases": [

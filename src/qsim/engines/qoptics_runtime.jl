@@ -8,6 +8,16 @@ include(joinpath(@__DIR__, "_julia_runtime_common.jl"))
 
 function _qo_build_ops(ctx)
     n = Int(ctx["num_qubits"])
+    model_type = String(ctx["model_type"])
+    if model_type == "qubit_network"
+        return _qo_build_qubit_ops(n)
+    elseif model_type == "transmon_nlevel"
+        return _qo_build_nlevel_ops(n, Int(ctx["transmon_levels"]))
+    end
+    return _qo_build_cqed_ops(n, Int(ctx["transmon_levels"]), Int(ctx["cavity_nmax"]))
+end
+
+function _qo_build_qubit_ops(n::Int)
     b0 = QuantumOptics.SpinBasis(1 // 2)
     basis = n == 1 ? b0 : reduce(QuantumOptics.tensor, [b0 for _ in 1:n])
     sx = Any[]
@@ -38,6 +48,7 @@ function _qo_build_ops(ctx)
     psi0 = n == 1 ? QuantumOptics.spinup(b0) : reduce(QuantumOptics.tensor, [QuantumOptics.spinup(b0) for _ in 1:n])
     return Dict(
         "basis" => basis,
+        "ident" => ident,
         "sx" => sx,
         "sy" => sy,
         "sz" => sz,
@@ -46,6 +57,101 @@ function _qo_build_ops(ctx)
         "p1_ops" => p1_ops,
         "psi0" => psi0,
         "zero_op" => 0 * sx[1],
+    )
+end
+
+function _qo_build_nlevel_ops(n::Int, levels::Int)
+    b0 = QuantumOptics.FockBasis(levels)
+    basis = n == 1 ? b0 : reduce(QuantumOptics.tensor, [b0 for _ in 1:n])
+    sx = Any[]
+    sy = Any[]
+    sz = Any[]
+    sm = Any[]
+    sp = Any[]
+    p1_ops = Any[]
+    ident = n == 1 ? QuantumOptics.identityoperator(b0) : QuantumOptics.identityoperator(basis)
+    local_a = QuantumOptics.destroy(b0)
+    local_adag = QuantumOptics.create(b0)
+    local_n = QuantumOptics.number(b0)
+    local_p1 = QuantumOptics.dm(QuantumOptics.fockstate(b0, 1))
+    for i in 1:n
+        op_a = n == 1 ? local_a : QuantumOptics.embed(basis, basis, i, local_a)
+        op_adag = n == 1 ? local_adag : QuantumOptics.embed(basis, basis, i, local_adag)
+        op_n = n == 1 ? local_n : QuantumOptics.embed(basis, basis, i, local_n)
+        op_p1 = n == 1 ? local_p1 : QuantumOptics.embed(basis, basis, i, local_p1)
+        push!(sm, op_a)
+        push!(sp, op_adag)
+        push!(sz, op_n)
+        push!(sx, op_a + op_adag)
+        push!(sy, -1im * (op_a - op_adag))
+        push!(p1_ops, op_p1)
+    end
+    psi0 = n == 1 ? QuantumOptics.fockstate(b0, 0) : reduce(QuantumOptics.tensor, [QuantumOptics.fockstate(b0, 0) for _ in 1:n])
+    return Dict(
+        "basis" => basis,
+        "ident" => ident,
+        "sx" => sx,
+        "sy" => sy,
+        "sz" => sz,
+        "sm" => sm,
+        "sp" => sp,
+        "p1_ops" => p1_ops,
+        "psi0" => psi0,
+        "zero_op" => 0 * sz[1],
+    )
+end
+
+function _qo_build_cqed_ops(n::Int, levels::Int, cavity_nmax::Int)
+    bc = QuantumOptics.FockBasis(cavity_nmax + 1)
+    bq = QuantumOptics.FockBasis(levels)
+    factors = [bc]
+    append!(factors, [bq for _ in 1:n])
+    basis = reduce(QuantumOptics.tensor, factors)
+    ident = QuantumOptics.identityoperator(basis)
+    cavity_a_local = QuantumOptics.destroy(bc)
+    cavity_adag_local = QuantumOptics.create(bc)
+    cavity_n_local = QuantumOptics.number(bc)
+    a_c = QuantumOptics.embed(basis, basis, 1, cavity_a_local)
+    adag_c = QuantumOptics.embed(basis, basis, 1, cavity_adag_local)
+    n_c = QuantumOptics.embed(basis, basis, 1, cavity_n_local)
+    qubit_a_local = QuantumOptics.destroy(bq)
+    qubit_adag_local = QuantumOptics.create(bq)
+    qubit_n_local = QuantumOptics.number(bq)
+    qubit_p1_local = QuantumOptics.dm(QuantumOptics.fockstate(bq, 1))
+    sx = Any[]
+    sy = Any[]
+    sz = Any[]
+    sm = Any[]
+    sp = Any[]
+    p1_ops = Any[]
+    for i in 1:n
+        idx = i + 1
+        op_a = QuantumOptics.embed(basis, basis, idx, qubit_a_local)
+        op_adag = QuantumOptics.embed(basis, basis, idx, qubit_adag_local)
+        op_n = QuantumOptics.embed(basis, basis, idx, qubit_n_local)
+        op_p1 = QuantumOptics.embed(basis, basis, idx, qubit_p1_local)
+        push!(sm, op_a)
+        push!(sp, op_adag)
+        push!(sz, op_n)
+        push!(sx, op_a + op_adag)
+        push!(sy, -1im * (op_a - op_adag))
+        push!(p1_ops, op_p1)
+    end
+    psi0 = QuantumOptics.tensor(QuantumOptics.fockstate(bc, 0), [QuantumOptics.fockstate(bq, 0) for _ in 1:n]...)
+    return Dict(
+        "basis" => basis,
+        "ident" => ident,
+        "a_c" => a_c,
+        "adag_c" => adag_c,
+        "n_c" => n_c,
+        "sx" => sx,
+        "sy" => sy,
+        "sz" => sz,
+        "sm" => sm,
+        "sp" => sp,
+        "p1_ops" => p1_ops,
+        "psi0" => psi0,
+        "zero_op" => 0 * ident,
     )
 end
 

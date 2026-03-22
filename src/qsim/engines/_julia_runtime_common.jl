@@ -191,11 +191,13 @@ end
 
 function _qubit_context(payload, times::Vector{Float64})
     model_type = lowercase(String(get(payload, "model_type", "qubit_network")))
-    if model_type != "qubit_network"
-        error("Julia engines currently support qubit_network payloads only; got model_type=$(model_type)")
+    if !(model_type in ("qubit_network", "transmon_nlevel", "cqed_jc"))
+        error("Unsupported Julia engine model_type=$(model_type)")
     end
     n_qubits = max(1, _safe_int(get(payload, "num_qubits", 1), 1))
     freqs = _float_list_with_default(payload, "qubit_omega_rad_s", n_qubits)
+    anh = _float_list_with_default(payload, "anharmonicity_rad_s", n_qubits)
+    g_cavity = _float_list_with_default(payload, "g_cavity_rad_s", n_qubits)
     frame_cfg = get(payload, "frame", Dict{String, Any}())
     frame_mode = lowercase(String(get(frame_cfg, "mode", "rotating")))
     rwa = Bool(get(frame_cfg, "rwa", true))
@@ -203,6 +205,11 @@ function _qubit_context(payload, times::Vector{Float64})
         "model_type" => model_type,
         "num_qubits" => n_qubits,
         "freqs" => freqs,
+        "anh" => anh,
+        "transmon_levels" => max(2, _safe_int(get(payload, "transmon_levels", 2), 2)),
+        "cavity_nmax" => max(0, _safe_int(get(payload, "cavity_nmax", 0), 0)),
+        "cavity_omega_rad_s" => _safe_float(get(payload, "cavity_omega_rad_s", 0.0), 0.0),
+        "g_cavity_rad_s" => g_cavity,
         "frame_mode" => frame_mode,
         "rwa" => rwa,
         "times" => times,
@@ -211,12 +218,33 @@ end
 
 function _build_static_hamiltonian!(H0, payload, ctx, ops)
     n = Int(ctx["num_qubits"])
+    model_type = String(ctx["model_type"])
     freqs = ctx["freqs"]
+    anh = ctx["anh"]
     sx = ops["sx"]
     sy = ops["sy"]
     sz = ops["sz"]
-    for i in 1:n
-        H0 += 0.5 * freqs[i] * sz[i]
+    ident = ops["ident"]
+    if model_type == "qubit_network"
+        for i in 1:n
+            H0 += 0.5 * freqs[i] * sz[i]
+        end
+    elseif model_type == "transmon_nlevel"
+        for i in 1:n
+            H0 += freqs[i] * sz[i] + 0.5 * anh[i] * (sz[i] * (sz[i] - ident))
+        end
+    else
+        H0 += _safe_float(ctx["cavity_omega_rad_s"], 0.0) * ops["n_c"]
+        for i in 1:n
+            H0 += freqs[i] * sz[i] + 0.5 * anh[i] * (sz[i] * (sz[i] - ident))
+        end
+        g_cavity = ctx["g_cavity_rad_s"]
+        for i in 1:n
+            g = _safe_float(g_cavity[i], 0.0)
+            if g != 0.0
+                H0 += g * (ops["adag_c"] * ops["sm"][i] + ops["a_c"] * ops["sp"][i])
+            end
+        end
     end
     for item in get(payload, "couplings", Any[])
         i = _safe_int(get(item, "i", 0), 0) + 1
@@ -231,7 +259,11 @@ function _build_static_hamiltonian!(H0, payload, ctx, ops)
         elseif kind == "xx"
             H0 += g * (sx[i] * sx[j])
         else
-            H0 += g * ((sx[i] * sx[j]) + (sy[i] * sy[j]))
+            if model_type == "qubit_network"
+                H0 += g * ((sx[i] * sx[j]) + (sy[i] * sy[j]))
+            else
+                H0 += g * (ops["sp"][i] * ops["sm"][j] + ops["sm"][i] * ops["sp"][j])
+            end
         end
     end
     return H0

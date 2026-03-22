@@ -1362,11 +1362,11 @@
 <h2 id="6-engine">6. Engine 依赖规则<a class="headerlink" href="#6-engine" title="Permanent link">&para;</a></h2>
 <p>通用 <code>run</code> 键：
 - <code>engine</code>, <code>solver_mode</code>, <code>sweep</code>, <code>seed</code>, <code>dt</code>, <code>schedule_policy</code>, <code>reset_feedback_policy</code>
-- <code>compare_engines</code>, <code>allow_mock_fallback</code>, <code>mcwf_ntraj</code>
+- <code>compare_engines</code>, <code>mcwf_ntraj</code>
 - <code>prior_backend</code>, <code>decoder</code>, <code>decoder_options</code>, <code>qec_engine</code></p>
 <p>Julia 专属键：
 - <code>julia_bin</code>, <code>julia_depot_path</code>, <code>julia_timeout_s</code></p>
-<p><code>engine=qutip</code> 传入 Julia 专属键会报错。</p>
+<p><code>engine=qutip</code> 传入 Julia 专属键会报错；当前仅支持 <code>qutip</code>、<code>qoptics</code>、<code>qtoolbox</code> 三个 engine 名称。</p>
 
 
 

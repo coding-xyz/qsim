@@ -3,7 +3,7 @@
   "tag": "task7_crosstalk_proxy",
   "title": "Task 7 串扰代理场景",
   "qasm_text": "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[2] q;\nbit[2] c;\nx q[0];\ndelay[20ns] q[1];\nmeasure q -> c;\n",
-  "engines": ["qutip", "julia_qtoolbox", "julia_qoptics"],
+  "engines": ["qutip", "qtoolbox", "qoptics"],
   "solver_mode": "me",
   "display_metrics": ["RO_0_abs_area", "final_p1_obs", "final_state_last"],
   "cases": [

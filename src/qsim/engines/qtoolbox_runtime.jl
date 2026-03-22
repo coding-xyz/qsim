@@ -19,6 +19,16 @@ end
 
 function _qt_build_ops(ctx)
     n = Int(ctx["num_qubits"])
+    model_type = String(ctx["model_type"])
+    if model_type == "qubit_network"
+        return _qt_build_qubit_ops(n)
+    elseif model_type == "transmon_nlevel"
+        return _qt_build_nlevel_ops(n, Int(ctx["transmon_levels"]))
+    end
+    return _qt_build_cqed_ops(n, Int(ctx["transmon_levels"]), Int(ctx["cavity_nmax"]))
+end
+
+function _qt_build_qubit_ops(n::Int)
     sx0 = QuantumToolbox.sigmax()
     sy0 = QuantumToolbox.sigmay()
     sz0 = QuantumToolbox.sigmaz()
@@ -43,6 +53,7 @@ function _qt_build_ops(ctx)
     end
     psi0 = _qt_tensor_n([QuantumToolbox.basis(2, 0) for _ in 1:n])
     return Dict(
+        "ident" => ident,
         "sx" => sx,
         "sy" => sy,
         "sz" => sz,
@@ -51,6 +62,99 @@ function _qt_build_ops(ctx)
         "p1_ops" => p1_ops,
         "psi0" => psi0,
         "zero_op" => 0 * sx[1],
+    )
+end
+
+function _qt_build_nlevel_ops(n::Int, levels::Int)
+    a0 = QuantumToolbox.destroy(levels)
+    adag0 = QuantumToolbox.create(levels)
+    n0 = QuantumToolbox.num(levels)
+    id0 = QuantumToolbox.qeye(levels)
+    p10 = QuantumToolbox.basis(levels, 1) * QuantumToolbox.basis(levels, 1)'
+    sx = Any[]
+    sy = Any[]
+    sz = Any[]
+    sm = Any[]
+    sp = Any[]
+    p1_ops = Any[]
+    ident = _qt_tensor_n([id0 for _ in 1:n])
+    for i in 1:n
+        op_a = _qt_tensor_n([j == i ? a0 : id0 for j in 1:n])
+        op_adag = _qt_tensor_n([j == i ? adag0 : id0 for j in 1:n])
+        op_n = _qt_tensor_n([j == i ? n0 : id0 for j in 1:n])
+        op_p1 = _qt_tensor_n([j == i ? p10 : id0 for j in 1:n])
+        push!(sm, op_a)
+        push!(sp, op_adag)
+        push!(sz, op_n)
+        push!(sx, op_a + op_adag)
+        push!(sy, -1im * (op_a - op_adag))
+        push!(p1_ops, op_p1)
+    end
+    psi0 = _qt_tensor_n([QuantumToolbox.basis(levels, 0) for _ in 1:n])
+    return Dict(
+        "ident" => ident,
+        "sx" => sx,
+        "sy" => sy,
+        "sz" => sz,
+        "sm" => sm,
+        "sp" => sp,
+        "p1_ops" => p1_ops,
+        "psi0" => psi0,
+        "zero_op" => 0 * sz[1],
+    )
+end
+
+function _qt_build_cqed_ops(n::Int, levels::Int, cavity_nmax::Int)
+    nc = cavity_nmax + 1
+    a_c0 = QuantumToolbox.destroy(nc)
+    adag_c0 = QuantumToolbox.create(nc)
+    n_c0 = QuantumToolbox.num(nc)
+    idc = QuantumToolbox.qeye(nc)
+    a0 = QuantumToolbox.destroy(levels)
+    adag0 = QuantumToolbox.create(levels)
+    n0 = QuantumToolbox.num(levels)
+    id0 = QuantumToolbox.qeye(levels)
+    p10 = QuantumToolbox.basis(levels, 1) * QuantumToolbox.basis(levels, 1)'
+    ident = _qt_tensor_n(vcat([idc], [id0 for _ in 1:n]))
+    a_c = _qt_tensor_n(vcat([a_c0], [id0 for _ in 1:n]))
+    adag_c = _qt_tensor_n(vcat([adag_c0], [id0 for _ in 1:n]))
+    n_c = _qt_tensor_n(vcat([n_c0], [id0 for _ in 1:n]))
+    sx = Any[]
+    sy = Any[]
+    sz = Any[]
+    sm = Any[]
+    sp = Any[]
+    p1_ops = Any[]
+    for i in 1:n
+        qubit_ops = [j == i ? a0 : id0 for j in 1:n]
+        qubit_adag_ops = [j == i ? adag0 : id0 for j in 1:n]
+        qubit_n_ops = [j == i ? n0 : id0 for j in 1:n]
+        qubit_p1_ops = [j == i ? p10 : id0 for j in 1:n]
+        op_a = _qt_tensor_n(vcat([idc], qubit_ops))
+        op_adag = _qt_tensor_n(vcat([idc], qubit_adag_ops))
+        op_n = _qt_tensor_n(vcat([idc], qubit_n_ops))
+        op_p1 = _qt_tensor_n(vcat([idc], qubit_p1_ops))
+        push!(sm, op_a)
+        push!(sp, op_adag)
+        push!(sz, op_n)
+        push!(sx, op_a + op_adag)
+        push!(sy, -1im * (op_a - op_adag))
+        push!(p1_ops, op_p1)
+    end
+    psi0 = _qt_tensor_n(vcat([QuantumToolbox.basis(nc, 0)], [QuantumToolbox.basis(levels, 0) for _ in 1:n]))
+    return Dict(
+        "ident" => ident,
+        "a_c" => a_c,
+        "adag_c" => adag_c,
+        "n_c" => n_c,
+        "sx" => sx,
+        "sy" => sy,
+        "sz" => sz,
+        "sm" => sm,
+        "sp" => sp,
+        "p1_ops" => p1_ops,
+        "psi0" => psi0,
+        "zero_op" => 0 * ident,
     )
 end
 

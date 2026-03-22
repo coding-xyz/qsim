@@ -232,8 +232,10 @@ def _validate_solver_payload(payload: dict[str, Any]) -> str:
     _reject_unknown("solver.frame", set(raw_frame), _SOLVER_FRAME_KEYS)
 
     engine = str(raw_run.get("engine", "qutip")).strip().lower()
+    if engine not in {"qutip", "qoptics", "qtoolbox"}:
+        raise ValueError(f"Unsupported solver.run.engine: {engine!r}. Supported engines: qutip, qoptics, qtoolbox.")
     allowed_run = set(_SOLVER_RUN_COMMON_KEYS)
-    is_julia = engine in {"quantumoptics", "quantumtoolbox", "qoptics", "qtoolbox"}
+    is_julia = engine in {"qoptics", "qtoolbox"}
     if is_julia:
         allowed_run.update(_SOLVER_RUN_JULIA_KEYS)
 

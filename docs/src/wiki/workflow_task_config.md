@@ -108,10 +108,10 @@ noise:
 
 通用 `run` 键：
 - `engine`, `solver_mode`, `sweep`, `seed`, `dt`, `schedule_policy`, `reset_feedback_policy`
-- `compare_engines`, `allow_mock_fallback`, `mcwf_ntraj`
+- `compare_engines`, `mcwf_ntraj`
 - `prior_backend`, `decoder`, `decoder_options`, `qec_engine`
 
 Julia 专属键：
 - `julia_bin`, `julia_depot_path`, `julia_timeout_s`
 
-`engine=qutip` 传入 Julia 专属键会报错。
+`engine=qutip` 传入 Julia 专属键会报错；当前仅支持 `qutip`、`qoptics`、`qtoolbox` 三个 engine 名称。

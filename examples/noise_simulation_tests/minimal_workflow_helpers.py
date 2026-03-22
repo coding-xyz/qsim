@@ -29,8 +29,8 @@ from qsim.workflow.contracts import WorkflowInput, WorkflowOutputOptions, Workfl
 DEFAULT_TRUNCATION = {"transmon_levels": 3, "cavity_nmax": 8}
 ENGINE_TO_REFERENCE = {
     "qutip": "qutip_native",
-    "julia_qoptics": "julia_qoptics_native",
-    "julia_qtoolbox": "julia_quantumtoolbox_native",
+    "qoptics": "qoptics_native",
+    "qtoolbox": "qtoolbox_native",
 }
 
 
@@ -250,13 +250,13 @@ def run_reference(*, include_julia: bool = True, julia_bin: str = "julia") -> di
         )
     }
     if include_julia:
-        references["julia_qoptics_native"] = _run_reference_command(
+        references["qoptics_native"] = _run_reference_command(
             [julia_bin, str(REFERENCE_DIR / "task1_quantumoptics_native_reference.jl")],
-            "julia_qoptics_native",
+            "qoptics_native",
         )
-        references["julia_quantumtoolbox_native"] = _run_reference_command(
+        references["qtoolbox_native"] = _run_reference_command(
             [julia_bin, str(REFERENCE_DIR / "task1_quantumtoolbox_native_reference.jl")],
-            "julia_quantumtoolbox_native",
+            "qtoolbox_native",
         )
     return references
 

@@ -64,7 +64,7 @@ cases = Dict(
         dt      = 1.0),
 )
 result = Dict(
-    "engine" => "julia_qoptics_native",
+    "engine" => "qoptics_native",
     "cases" => Dict{String, Any}(),
 )
 

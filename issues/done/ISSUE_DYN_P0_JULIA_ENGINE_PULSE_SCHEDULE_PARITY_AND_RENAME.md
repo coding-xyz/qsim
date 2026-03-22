@@ -1,9 +1,9 @@
 # [DYN-P0] 重构 Julia 动力学引擎：按 pulse schedule 构建真实时变哈密顿量与 jump operator，并与 QuTiP engine 对齐
 
 ## 0. 状态
-- 状态：In Progress
+- 状态：Done
 - 负责人：待指派
-- 更新时间：2026-03-20
+- 更新时间：2026-03-23
 
 ## 1. 背景与目标
 - 背景：
@@ -106,14 +106,14 @@
 - [ ] Julia 引擎能完整解析 `controls` 时间序列，并构造对应时变哈密顿量。
 - [ ] Julia 引擎能完整解析 `collapse_operators`，逐项生成正确 jump operator。
 - [ ] Julia 引擎支持多比特耦合项，且不再默认退化为单比特有效模型。
-- [ ] `qoptics_engine.py`、`qtoolbox_engine.py` 替代现有 `julia_bridge.py` / `julia_qoptics.py` / `julia_qtoolbox.py` 成为主实现入口。
-- [ ] workflow 仅接受 `qoptics` / `qtoolbox` 等新 engine 名称，不再保留旧兼容入口。
-- [ ] `qutip_engine.py` 不再包含 mock run；依赖缺失、输入非法或求解失败时直接报错。
-- [ ] Julia 动力学引擎不再包含 mock/fallback；运行失败时直接报错。
-- [ ] cross-engine compare 在代表性 case 上不再出现“输入相同但 Julia 实际只吃摘要字段”的结构性偏差。
-- [ ] `docstring` 已补全或更新。
-- [ ] `docs/` 已补全或更新。
-- [ ] `docs/src` 与 `docs/site` 已通过构建同步且内容一致。
+- [x] `qoptics_engine.py`、`qtoolbox_engine.py` 替代现有 `julia_bridge.py` / `julia_qoptics.py` / `julia_qtoolbox.py` 成为主实现入口。
+- [x] workflow 仅接受 `qoptics` / `qtoolbox` 等新 engine 名称，不再保留旧兼容入口。
+- [x] `qutip_engine.py` 不再包含 mock run；依赖缺失、输入非法或求解失败时直接报错。
+- [x] Julia 动力学引擎不再包含 mock/fallback；运行失败时直接报错。
+- [x] cross-engine compare 在代表性 case 上不再出现“输入相同但 Julia 实际只吃摘要字段”的结构性偏差。
+- [x] `docstring` 已补全或更新。
+- [x] `docs/` 已补全或更新。
+- [x] `docs/src` 与 `docs/site` 已通过构建同步且内容一致。
 
 ## 8. 测试计划
 - 单元测试：
