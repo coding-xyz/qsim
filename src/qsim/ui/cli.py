@@ -1,4 +1,4 @@
-﻿"""Command-line interface for task/solver/device/pulse workflow execution."""
+"""Command-line interface for task/solver/device/pulse workflow execution."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def main() -> None:
         device_config=(args.device_config or None),
         pulse_config=(args.pulse_config or None),
     )
-    print(f"Workflow completed. Outputs saved to: {result['runtime']['out_dir']}")
+    print(f"Workflow completed. Outputs saved to: {result['artifacts']['out_dir']}")
 
 
 if __name__ == "__main__":

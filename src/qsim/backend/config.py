@@ -22,7 +22,7 @@ def load_backend_config(yaml_path: str | Path) -> BackendConfig:
         level=str(raw.get("level", "qubit")),
         noise=str(raw.get("noise", "deterministic")),
         solver=str(raw.get("solver", "se")),
-        analysis_pipeline=str(raw.get("analysis_pipeline", "default")),
+        analysis_pipeline=str(raw.get("analysis", raw.get("analysis_pipeline", "default"))),
         truncation=dict(raw.get("truncation", {})),
         sweep=list(raw.get("sweep", [])),
         seed=int(raw.get("seed", 1234)),

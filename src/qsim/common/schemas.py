@@ -79,6 +79,14 @@ class BackendConfig:
     sweep: list[dict[str, Any]] = field(default_factory=list)
     seed: int = 1234
 
+    @property
+    def analysis(self) -> str:
+        return str(self.analysis_pipeline)
+
+    @analysis.setter
+    def analysis(self, value: str) -> None:
+        self.analysis_pipeline = str(value)
+
 
 @dataclass
 class Carrier:

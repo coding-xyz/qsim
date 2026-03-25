@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict, is_dataclass
 from pathlib import Path
 import time
 
-from qsim.common.schemas import write_json
+from qsim.common.schemas import Carrier, ChannelSpec, PulseIR, PulseSpec, Trace, utc_now_iso, write_json
 from qsim.pulse.visualize import plot_pulses, plot_report, plot_trace
 from qsim.workflow.contracts import (
     WorkflowDeviceConfig,
@@ -39,15 +40,65 @@ def _tick(timings: dict[str, float], stage: str, started_at: float) -> None:
     timings[stage] = time.perf_counter() - started_at
 
 
+def _public_value(value):
+    if is_dataclass(value):
+        return asdict(value)
+    if isinstance(value, dict):
+        return {str(k): _public_value(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_public_value(item) for item in value]
+    return value
+
+
+def _pulse_ir_from_public_payload(payload: dict | None) -> PulseIR | None:
+    raw = dict(payload or {})
+    channels_payload = list(raw.get("channels", []) or [])
+    if not channels_payload:
+        return None
+    channels: list[ChannelSpec] = []
+    for ch in channels_payload:
+        if not isinstance(ch, dict):
+            continue
+        pulses: list[PulseSpec] = []
+        for pulse in list(ch.get("pulses", []) or []):
+            if not isinstance(pulse, dict):
+                continue
+            carrier_payload = pulse.get("carrier")
+            carrier = None
+            if isinstance(carrier_payload, dict):
+                carrier = Carrier(
+                    freq=float(carrier_payload.get("freq", 0.0)),
+                    phase=float(carrier_payload.get("phase", 0.0)),
+                )
+            pulses.append(
+                PulseSpec(
+                    t0_s=float(pulse.get("t0_s", 0.0)),
+                    t1_s=float(pulse.get("t1_s", 0.0)),
+                    amp=float(pulse.get("amp", 0.0)),
+                    shape=str(pulse.get("shape", "rect")),
+                    params=dict(pulse.get("params", {}) or {}),
+                    carrier=carrier,
+                )
+            )
+        channels.append(ChannelSpec(name=str(ch.get("name", "")), pulses=pulses))
+    return PulseIR(
+        schema_version=str(raw.get("schema_version", "1.0")),
+        t_end_s=float(raw.get("t_end_s", 0.0)),
+        channels=channels,
+    )
+
+
 def _run_core_stages(*, task: WorkflowTask, out: Path, timings: dict[str, float], plan: ExecutionPlan) -> dict:
     parsed = parse_compile_lower_model(
         qasm_text=task.input.qasm_text,
         backend_path=task.input.backend_path,
         backend_config=task.input.backend_config,
         out=out,
-        device=task.input.device,
+        device=(task.input.device_model or task.input.device),
         pulse=task.input.pulse,
         frame=task.input.frame,
+        analysis=task.input.analysis,
+        study=task.input.study,
         schedule_policy=task.input.schedule_policy,
         reset_feedback_policy=task.input.reset_feedback_policy,
         noise=task.input.noise,
@@ -106,12 +157,13 @@ def _run_core_stages(*, task: WorkflowTask, out: Path, timings: dict[str, float]
         "error_budget_v2": None,
         "timings": {},
     }
-    if plan.run_analysis and decoded.get("logical_error") is not None:
+    if plan.run_analysis:
         analyzed = run_analysis_stage(
             trace=trace,
             model_spec=parsed["model_spec"],
             cfg=parsed["cfg"],
             logical_error=decoded["logical_error"],
+            analysis_cfg=task.input.analysis,
         )
         timings.update(analyzed["timings"])
 
@@ -221,6 +273,9 @@ def _persist_and_finalize(
         device=parsed["device_cfg"],
         pulse=parsed["pulse_cfg"],
         frame=parsed["frame_cfg"],
+        analysis=task.input.analysis,
+        study=parsed.get("study"),
+        primary_step=parsed.get("primary_step"),
         noise=task.input.noise,
         model_spec=parsed["model_spec"],
         trace=trace,
@@ -379,51 +434,85 @@ def _build_result_payload(
     plan: ExecutionPlan,
 ) -> dict:
     parsed = core_ctx["parsed"]
+    trace = core_ctx["trace"]
     decoded = core_ctx["decoded"]
     analyzed = core_ctx["analyzed"]
-    decoder_eval_payload = optional_ctx["decoder_eval_payload"]
-    pauli_plus_payload = optional_ctx["pauli_plus_payload"]
+    model_spec = parsed["model_spec"]
+    model_payload = dict(model_spec.payload or {})
+    results_trace = dict(analyzed.get("analysis", {}).get("trace", {}) or {})
+    results_metrics = dict(analyzed.get("analysis", {}).get("metrics", {}) or {})
+    results_report = dict(analyzed.get("analysis", {}).get("report", {}) or {})
+
+    qec_payload = {
+        "syndrome": decoded.get("syndrome"),
+        "prior_model": decoded.get("prior_model"),
+        "prior_report": decoded.get("prior_report"),
+        "decoder_input": decoded.get("decoder_input"),
+        "decoder_output": decoded.get("decoder_output"),
+        "decoder_report": decoded.get("decoder_report"),
+        "logical_error": decoded.get("logical_error"),
+    }
+    if not any(value is not None for value in qec_payload.values()):
+        qec_payload = None
 
     return {
-        "core": {
-            "circuit": parsed["circuit"],
-            "backend_config": parsed["cfg"],
-            "normalized": parsed["normalized"],
-            "pulse_ir": parsed["pulse_ir"],
-            "model_spec": parsed["model_spec"],
-            "trace": core_ctx["trace"],
+        "meta": {
+            "schema_version": "3.0",
+            "run_id": out.name,
+            "created_at": utc_now_iso(),
+            "task": {
+                "template": plan.template,
+                "targets": list(plan.targets),
+                "tags": list(task.tags or []),
+            },
         },
-        "qec": {
-            "syndrome": decoded.get("syndrome"),
-            "prior_model": decoded.get("prior_model"),
-            "prior_report": decoded.get("prior_report"),
-            "decoder_input": decoded.get("decoder_input"),
-            "decoder_output": decoded.get("decoder_output"),
-            "decoder_report": decoded.get("decoder_report"),
-            "logical_error": decoded.get("logical_error"),
+        "inputs": {
+            "task": {
+                "targets": list(plan.targets),
+                "qasm_text": task.input.qasm_text,
+                "param_bindings": dict(task.input.param_bindings or {}),
+            },
+            "solver": {
+                "engine": task.run.engine,
+                "study": list(task.input.study or []),
+                "analysis": dict(task.input.analysis or {}),
+                "schedule": {"policy": task.input.schedule_policy} if task.input.schedule_policy else {},
+                "frame": dict(task.input.frame or {}),
+            },
+            "device": _public_value(parsed["device_cfg"] or {}),
+            "pulse": _public_value(parsed["pulse_cfg"] or {}),
+            "noise": _public_value(task.input.noise or {}),
         },
-        "analysis": {
-            "analysis": analyzed.get("analysis", {}),
-            "sensitivity_report": analyzed.get("sensitivity_report"),
-            "error_budget_v2": analyzed.get("error_budget_v2"),
-            "settings": finalized["settings_report"],
+        "model": {
+            "runtime_level": model_payload.get("simulation_level", "qubit"),
+            "model_type": model_payload.get("model_type", "unknown"),
+            "dimension": model_spec.dimension,
+            "num_qubits": model_payload.get("num_qubits"),
+            "component_summary": model_payload.get("component_summary", {}),
+            "study_summary": model_payload.get("study_summary", {}),
+            "executable": {
+                "circuit": _public_value(parsed["circuit"]),
+                "normalized_circuit": _public_value(parsed["normalized"]),
+                "compile_report": _public_value(parsed["compile_report"]),
+                "pulse_ir": _public_value(parsed["pulse_ir"]),
+                "executable_model": _public_value(parsed["executable"]),
+                "model_spec": _public_value(model_spec),
+            },
         },
-        "optional": {
-            "cross_engine_compare": optional_ctx["cross_engine_compare"],
-            "decoder_eval_report": decoder_eval_payload.get("decoder_eval_report"),
-            "decoder_eval_batch_manifest": decoder_eval_payload.get("decoder_eval_batch_manifest"),
-            "decoder_eval_resume_state": decoder_eval_payload.get("decoder_eval_resume_state"),
-            "failed_eval_tasks": decoder_eval_payload.get("failed_eval_tasks"),
-            "scaling_report": pauli_plus_payload.get("scaling_report"),
-            "error_budget_pauli_plus": pauli_plus_payload.get("error_budget_pauli_plus"),
-            "component_ablation": finalized["component_ablation_rel"],
-            "session_commit_report": finalized["session_commit_report"],
+        "results": {
+            "trace": _public_value(results_trace),
+            "metrics": _public_value(results_metrics),
+            "report": _public_value(results_report),
+            "qec": _public_value(qec_payload),
+            "sensitivity": _public_value(analyzed.get("sensitivity_report")),
+            "error_budget": _public_value(analyzed.get("error_budget_v2")),
         },
         "runtime": {
-            "out_dir": str(out),
-            "timings": timings,
-            "solver_mode": parsed["model_spec"].solver,
-            "param_bindings": dict(task.input.param_bindings or {}),
+            "engine_requested": task.run.engine,
+            "engine_used": trace.engine,
+            "solver_mode": str(task.run.solver_mode or model_spec.solver),
+            "seed": int(parsed["cfg"].seed),
+            "timings": {str(k): float(v) for k, v in timings.items()},
             "execution_plan": {
                 "template": plan.template,
                 "targets": list(plan.targets),
@@ -432,6 +521,10 @@ def _build_result_payload(
                 "artifact_outputs": list(plan.artifact_outputs),
                 "warnings": list(plan.warnings),
             },
+        },
+        "artifacts": {
+            "out_dir": str(out),
+            "files": dict(finalized["outputs_map"]),
         },
     }
 
@@ -515,8 +608,8 @@ def run_task(
         pulse_config: Optional pulse config mapping or config path.
 
     Returns:
-        A nested result dictionary containing core artifacts, QEC outputs,
-        analysis outputs, optional plugin outputs, and runtime metadata.
+        A structured result dictionary with top-level groups:
+        ``meta``, ``inputs``, ``model``, ``results``, ``runtime``, and ``artifacts``.
     """
     task = _resolve_runtime_task(
         task,
@@ -578,11 +671,29 @@ def plot_default(result: dict) -> dict:
     Returns a dict containing matplotlib figures with keys:
     ``pulses``, ``trace``, and ``report``.
     """
-    core = dict(result.get("core", {}))
-    analysis_group = dict(result.get("analysis", {}))
-    analysis = dict(analysis_group.get("analysis", {}))
+    model = dict(result.get("model", {}) or {})
+    executable = dict(model.get("executable", {}) or {})
+    results = dict(result.get("results", {}) or {})
+    trace_payload = dict(results.get("trace", {}) or {})
+    pulse_ir = _pulse_ir_from_public_payload(executable.get("pulse_ir"))
+    plot_trace_obj = None
+    states = list(trace_payload.get("states", []) or [])
+    times = list(trace_payload.get("times", []) or [])
+    representation = dict(trace_payload.get("state_representation", {}) or {})
+    if (
+        representation.get("encoding") != "complex_pairs"
+        and states
+        and times
+        and isinstance(states[0], list)
+        and all(not isinstance(item, (list, tuple)) for item in states[0])
+    ):
+        plot_trace_obj = Trace(
+            engine=str(dict(result.get("runtime", {}) or {}).get("engine_used", "unknown")),
+            times=[float(t) for t in times],
+            states=[[float(v) for v in row] for row in states],
+        )
     return {
-        "pulses": plot_pulses(core["pulse_ir"]),
-        "trace": plot_trace(core["trace"]),
-        "report": plot_report(analysis.get("report", {})),
+        "pulses": plot_pulses(pulse_ir) if pulse_ir is not None else None,
+        "trace": plot_trace(plot_trace_obj) if plot_trace_obj is not None else None,
+        "report": plot_report(results.get("report", {})),
     }

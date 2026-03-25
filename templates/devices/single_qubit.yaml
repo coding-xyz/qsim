@@ -1,0 +1,21 @@
+schema_version: "3.0"
+device:
+  components:
+    - id: q0
+      type: transmon
+      representation: quantum
+      role: coupled
+      basis:
+        kind: nlevel
+        levels: 3
+      ports:
+        drive: drive_port
+      parameters:
+        freq_Hz: 5.0e9
+        anharmonicity_Hz: -2.0e8
+      noise:
+        T1_s: 120.0e-6
+        T2_s: 90.0e-6
+  connections: []
+  parameters: {}
+  noise: {}

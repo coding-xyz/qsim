@@ -170,6 +170,9 @@ end
 function _run_quantumoptics_native(times::Vector{Float64}, solver_mode::String, payload, run_options)
     ctx = _qubit_context(payload, times)
     n_qubits = Int(ctx["num_qubits"])
+    analysis_cfg = get(payload, "analysis", Dict{String, Any}())
+    trace_cfg = get(analysis_cfg, "trace", Dict{String, Any}())
+    requested_state_kind = lowercase(String(get(trace_cfg, "states", "")))
     ops = _qo_build_ops(ctx)
     H0 = _build_static_hamiltonian!(ops["zero_op"], payload, ctx, ops)
     coeffs, dyn_ops, selected_noise = _collect_dynamic_terms(payload, ctx, ops, run_options)
@@ -180,13 +183,16 @@ function _run_quantumoptics_native(times::Vector{Float64}, solver_mode::String, 
 
     solver_impl = ""
     states = Vector{Vector{Float64}}()
+    quantum_state_trace = nothing
     if solver_mode == "se"
         _, psi_t = QuantumOptics.timeevolution.schroedinger_dynamic(times, psi0, H; dtmax=dtmax)
         states = _qo_rows_from_states(psi_t, ops["p1_ops"])
+        quantum_state_trace = _serialize_quantum_state_trace(psi_t, requested_state_kind)
         solver_impl = "quantumoptics.timeevolution.schroedinger_dynamic"
     elseif solver_mode == "mcwf"
         ntraj = max(1, _safe_int(get(run_options, "ntraj", 128), 128))
         accum = [zeros(Float64, n_qubits) for _ in 1:length(times)]
+        first_trace = Any[]
         for traj in 1:ntraj
             seed = UInt(max(0, _safe_int(get(run_options, "seed", 12345), 12345) + traj))
             if isempty(c_ops)
@@ -203,18 +209,23 @@ function _run_quantumoptics_native(times::Vector{Float64}, solver_mode::String, 
                     display_afterevent=false,
                 )
             end
+            if traj == 1
+                first_trace = psi_t
+            end
             rows = _qo_rows_from_states(psi_t, ops["p1_ops"])
             for k in eachindex(rows)
                 accum[k] .+= rows[k]
             end
         end
         states = [row ./ ntraj for row in accum]
+        quantum_state_trace = _serialize_quantum_state_trace(first_trace, requested_state_kind)
         solver_impl = isempty(c_ops) ? "quantumoptics.timeevolution.schroedinger_dynamic" : "quantumoptics.timeevolution.mcwf_dynamic"
         collapse_counts["ntraj"] = ntraj
     else
         rho0 = QuantumOptics.dm(psi0)
         _, rho_t = QuantumOptics.timeevolution.master_dynamic(times, rho0, H, c_ops; dtmax=dtmax)
         states = _qo_rows_from_states(rho_t, ops["p1_ops"])
+        quantum_state_trace = _serialize_quantum_state_trace(rho_t, requested_state_kind)
         solver_impl = "quantumoptics.timeevolution.master_dynamic"
     end
 
@@ -230,6 +241,9 @@ function _run_quantumoptics_native(times::Vector{Float64}, solver_mode::String, 
         "dtmax" => dtmax,
         "collapse_counts" => collapse_counts,
     )
+    if quantum_state_trace !== nothing
+        meta["quantum_state_trace"] = quantum_state_trace
+    end
     return states, meta
 end
 

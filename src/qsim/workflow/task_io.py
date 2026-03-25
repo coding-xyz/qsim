@@ -1,4 +1,4 @@
-﻿"""Task/Solver/Hardware config loading, template merge, and validation."""
+"""Task/Solver/Hardware config loading, template merge, and validation."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from qsim.workflow.contracts import (
 )
 
 
-_TASK_TOP_KEYS = {"schema_version", "target", "input", "features", "output", "tags", "template", "targets"}
+_TASK_TOP_KEYS = {"schema_version", "target", "input", "features", "output", "tags", "template", "targets", "task"}
 _TASK_INPUT_KEYS = {"qasm_text", "qasm_path", "solver_config", "device_config", "pulse_config", "param_bindings"}
 _TASK_OUTPUT_KEYS = {
     "out_dir",
@@ -68,8 +68,8 @@ _TARGET_FEATURE_KEYS: dict[str, set[str]] = {
     "cross_engine_compare": set(),
 }
 
-_SOLVER_TOP_KEYS = {"schema_version", "template", "backend", "run", "frame"}
-_SOLVER_BACKEND_KEYS = {"level", "analysis_pipeline", "truncation"}
+_SOLVER_TOP_KEYS = {"schema_version", "template", "backend", "run", "frame", "solver"}
+_SOLVER_BACKEND_KEYS = {"level", "analysis_pipeline", "analysis", "truncation"}
 _SOLVER_FRAME_KEYS = {"mode", "reference", "rwa", "qubit_reference_freqs_Hz"}
 _SOLVER_RUN_COMMON_KEYS = {
     "engine",
@@ -80,6 +80,7 @@ _SOLVER_RUN_COMMON_KEYS = {
     "t_end_s",
     "t_padding_s",
     "schedule_policy",
+    "schedule",
     "reset_feedback_policy",
     "compare_engines",
     "allow_mock_fallback",
@@ -93,6 +94,100 @@ _SOLVER_RUN_JULIA_KEYS = {"julia_bin", "julia_depot_path", "julia_timeout_s"}
 
 _DEVICE_TOP_KEYS = {"schema_version", "template", "device", "noise"}
 _PULSE_TOP_KEYS = {"schema_version", "template", "pulse"}
+
+
+def _is_v3_task_payload(payload: dict[str, Any]) -> bool:
+    return isinstance(payload.get("task"), dict)
+
+
+def _is_v3_solver_payload(payload: dict[str, Any]) -> bool:
+    return isinstance(payload.get("solver"), dict)
+
+
+def _is_v3_pulse_payload(payload: dict[str, Any]) -> bool:
+    raw_pulse = payload.get("pulse", {}) or {}
+    return isinstance(raw_pulse, dict) and any(k in raw_pulse for k in {"channels", "carriers", "waveforms", "operations", "acquisition"})
+
+
+def _map_v3_task_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    task = dict(payload.get("task", {}) or {})
+    task_input = dict(task.get("input", {}) or {})
+    task_output = dict(task.get("output", {}) or {})
+    qasm_text = task_input.get("qasm_text")
+    sequence = task.get("sequence")
+    if not qasm_text and isinstance(sequence, dict):
+        qasm_text = sequence.get("qasm_text")
+    mapped: dict[str, Any] = {
+        "schema_version": str(payload.get("schema_version", "3.0")),
+        "target": "trace",
+        "input": {
+            "qasm_text": qasm_text,
+            "solver_config": task_input.get("solver_config"),
+            "device_config": task_input.get("device_config"),
+            "pulse_config": task_input.get("pulse_config"),
+            "param_bindings": dict(task_input.get("param_bindings", {}) or {}) or None,
+        },
+        "output": {
+            "out_dir": task_output.get("out_dir", "runs/qsim"),
+            "persist_artifacts": bool(task_output.get("persist_artifacts", True)),
+            "artifact_mode": str(task_output.get("artifact_mode", "all")),
+            "export_dxf": bool(task_output.get("export_dxf", False)),
+            "export_plots": bool(task_output.get("export_plots", False)),
+        },
+        "tags": [str(task.get("experiment", "task")).strip().lower()],
+    }
+    return mapped
+
+
+def _map_v3_pulse_payload(raw_pulse: dict[str, Any]) -> dict[str, Any]:
+    channels = list(raw_pulse.get("channels", []) or [])
+    carriers = dict(raw_pulse.get("carriers", {}) or {})
+    waveforms = dict(raw_pulse.get("waveforms", {}) or {})
+    operations = dict(raw_pulse.get("operations", {}) or {})
+    acquisition = dict(raw_pulse.get("acquisition", {}) or {})
+
+    def _carrier_freq_for_kind(kind: str, default: float) -> float:
+        for ch in channels:
+            if not isinstance(ch, dict):
+                continue
+            if str(ch.get("kind", "")).strip().lower() != kind:
+                continue
+            name = str(ch.get("name", ""))
+            if isinstance(carriers.get(name), dict) and "freq_Hz" in carriers[name]:
+                return float(carriers[name]["freq_Hz"])
+        return float(default)
+
+    def _waveform_from_operation(name: str, fallback_shapes: set[str]) -> dict[str, Any]:
+        steps = list(operations.get(name, []) or [])
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            wf_name = str(step.get("waveform", ""))
+            if wf_name and isinstance(waveforms.get(wf_name), dict):
+                return dict(waveforms[wf_name])
+        for wf in waveforms.values():
+            if isinstance(wf, dict) and str(wf.get("shape", "")).strip().lower() in fallback_shapes:
+                return dict(wf)
+        return {}
+
+    gate_wf = _waveform_from_operation("x", {"drag", "gaussian", "rect"})
+    measure_wf = _waveform_from_operation("measure", {"readout", "rect"})
+
+    mapped: dict[str, Any] = {}
+    mapped["xy_freq_Hz"] = _carrier_freq_for_kind("drive", 5.0e9)
+    mapped["ro_freq_Hz"] = _carrier_freq_for_kind("readout_drive", mapped["xy_freq_Hz"])
+    if "duration_ns" in gate_wf:
+        mapped["gate_duration_ns"] = float(gate_wf["duration_ns"])
+    if "duration_ns" in measure_wf:
+        mapped["measure_duration_ns"] = float(measure_wf["duration_ns"])
+    if "edge_ns" in measure_wf:
+        mapped["readout_edge_ns"] = float(measure_wf["edge_ns"])
+    if "integration_window_ns" in acquisition:
+        mapped["measure_duration_ns"] = float(acquisition["integration_window_ns"])
+    schedule_cfg = dict(raw_pulse.get("schedule", {}) or {})
+    if schedule_cfg.get("policy"):
+        mapped["schedule_policy"] = str(schedule_cfg.get("policy"))
+    return mapped
 
 
 def _resolve_path(base_dir: Path, value: str | None) -> str | None:
@@ -288,6 +383,8 @@ def load_task_config_file(
     """
     cfg_path, payload = _load_mapping(path)
     payload = _apply_template("tasks", payload)
+    if _is_v3_task_payload(payload):
+        payload = _map_v3_task_payload(payload)
     base_dir = cfg_path.parent
 
     targets = _validate_task_payload(
@@ -329,12 +426,43 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
     """
     cfg_path, payload = _load_mapping(path)
     payload = _apply_template("solvers", payload)
+    if _is_v3_solver_payload(payload):
+        solver = dict(payload.get("solver", {}) or {})
+        engine = str(solver.get("engine", "qutip")).strip().lower()
+        if engine not in {"qutip", "qoptics", "qtoolbox"}:
+            raise ValueError(f"Unsupported solver.engine: {engine!r}. Supported engines: qutip, qoptics, qtoolbox.")
+        raw_study = [dict(step) for step in list(solver.get("study", []) or []) if isinstance(step, dict)] or None
+        raw_analysis = dict(solver.get("analysis", {}) or {}) or None
+        raw_schedule = dict(solver.get("schedule", {}) or {})
+        raw_run = {
+            "engine": engine,
+            "seed": int(solver.get("seed", 12345)),
+            "schedule_policy": raw_schedule.get("policy"),
+        }
+        solver_cfg = WorkflowSolverConfig(
+            backend=SolverBackendConfig(level="qubit", analysis_pipeline="structured", truncation={}),
+            run=WorkflowRunOptions(**raw_run),
+            frame=WorkflowFrameOptions(),
+            analysis=raw_analysis,
+            study=raw_study,
+        )
+        if raw_run.get("julia_bin"):
+            solver_cfg.run.julia_bin = _resolve_path(cfg_path.parent, str(raw_run["julia_bin"]))
+        if raw_run.get("julia_depot_path"):
+            solver_cfg.run.julia_depot_path = _resolve_path(cfg_path.parent, str(raw_run["julia_depot_path"]))
+        validate_backend_config(solver_cfg.to_backend_config())
+        return solver_cfg
     base_dir = cfg_path.parent
 
     _validate_solver_payload(payload)
     raw_backend = dict(payload.get("backend", {}) or {})
     raw_run = dict(payload.get("run", {}) or {})
     raw_frame = dict(payload.get("frame", {}) or {})
+
+    if "analysis" in raw_backend and "analysis_pipeline" not in raw_backend:
+        raw_backend["analysis_pipeline"] = raw_backend["analysis"]
+    if "schedule" in raw_run and "schedule_policy" not in raw_run:
+        raw_run["schedule_policy"] = raw_run["schedule"]
 
     if raw_run.get("julia_bin"):
         raw_run["julia_bin"] = _resolve_path(base_dir, str(raw_run["julia_bin"]))
@@ -360,9 +488,12 @@ def load_device_config_file(path: str | Path) -> WorkflowDeviceConfig:
 
     _validate_device_payload(payload)
     raw_device = dict(payload.get("device", {}) or {})
+    nested_noise = dict(raw_device.get("noise", {}) or {}) if isinstance(raw_device.get("noise"), dict) else {}
+    raw_device = {k: v for k, v in raw_device.items() if k != "noise"}
+    top_noise = dict(payload.get("noise", {}) or {})
     return WorkflowDeviceConfig(
         device=raw_device or None,
-        noise=dict(payload.get("noise", {}) or {}) or None,
+        noise=top_noise or nested_noise or None,
     )
 
 
@@ -376,7 +507,10 @@ def load_pulse_config_file(path: str | Path) -> dict[str, Any]:
     _cfg_path, payload = _load_mapping(path)
     payload = _apply_template("pulses", payload)
     _validate_pulse_payload(payload)
-    return dict(payload.get("pulse", {}) or {})
+    raw_pulse = dict(payload.get("pulse", {}) or {})
+    if _is_v3_pulse_payload(payload):
+        return _map_v3_pulse_payload(raw_pulse)
+    return raw_pulse
 
 
 def load_task_file(path: str | Path) -> WorkflowTaskConfig:

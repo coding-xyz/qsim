@@ -8,8 +8,6 @@ import json
 import numpy as np
 import pandas as pd
 
-from qsim.analysis.trace_semantics import state_encoding
-
 
 def _integrate_abs(y: np.ndarray, t: np.ndarray) -> float:
     """Integrate ``|y|`` over ``t`` with NumPy-version fallback."""
@@ -60,44 +58,74 @@ def summarize_workflow_result(
     note: str = "",
 ) -> dict:
     """Build one flat summary row from a ``run_task`` result payload."""
-    core = dict(result.get("core", {}))
-    runtime = dict(result.get("runtime", {}))
-    analysis_group = dict(result.get("analysis", {}))
-    trace = core.get("trace", result.get("trace"))
-    if trace is None:
-        raise KeyError("result missing core.trace")
-    final_state = [float(x) for x in (trace.states[-1] if trace.states else [])]
-    analysis_payload = dict(analysis_group.get("analysis", result.get("analysis", {})))
-    obs = analysis_payload.get("observables", {}).get("values", {})
-    meta = dict(getattr(trace, "metadata", {}) or {})
-    details = dict(meta.get("details", {}) or {})
+    runtime = dict(result.get("runtime", {}) or {})
+    artifacts = dict(result.get("artifacts", {}) or {})
+    model = dict(result.get("model", {}) or {})
+    results = dict(result.get("results", {}) or {})
+    trace_payload = dict(results.get("trace", {}) or {})
+    if not trace_payload:
+        raise KeyError("result missing results.trace")
+    metrics = dict(results.get("metrics", {}) or {})
+    state_repr = dict(trace_payload.get("state_representation", {}) or {})
+    final_state_raw = trace_payload.get("final_state")
+    times = list(trace_payload.get("times", []) or [])
+    details = dict(runtime.get("details", {}) or {})
     device = dict(device or {})
     noise = dict(noise or {})
+
+    final_state_json = json.dumps(final_state_raw, ensure_ascii=False)
+    final_state_sum = np.nan
+    final_state_last = np.nan
+    final_state_max = np.nan
+    state_len = 0
+    if isinstance(final_state_raw, list):
+        state_len = len(final_state_raw)
+        if final_state_raw and all(isinstance(x, (int, float)) for x in final_state_raw):
+            numeric_state = [float(x) for x in final_state_raw]
+            final_state_sum = float(sum(numeric_state))
+            final_state_last = float(numeric_state[-1])
+            final_state_max = float(max(numeric_state))
+
+    population_metric = dict(metrics.get("population", {}) or {})
+    population_series = dict(population_metric.get("series", {}) or {})
+    final_p0 = np.nan
+    final_p1 = np.nan
+    if isinstance(population_series.get("0"), list) and population_series["0"]:
+        final_p0 = float(population_series["0"][-1])
+    if isinstance(population_series.get("1"), list) and population_series["1"]:
+        final_p1 = float(population_series["1"][-1])
+
+    mean_excited_metric = dict(metrics.get("mean_excited", {}) or {})
+    mean_excited_values = list(mean_excited_metric.get("values", []) or [])
+    variance_metric = dict(metrics.get("variance", {}) or {})
+    variance_values = list(variance_metric.get("values", []) or [])
 
     row = {
         "task": task_tag,
         "task_title": task_title,
         "case": case_tag,
         "engine": engine,
-        "trace_engine": trace.engine,
-        "state_encoding": state_encoding(trace),
-        "num_qubits": int(meta.get("num_qubits", 0) or 0),
-        "state_len": int(len(final_state)),
-        "final_state_json": json.dumps(final_state, ensure_ascii=False),
-        "final_state_sum": float(sum(final_state)) if final_state else 0.0,
-        "final_state_last": float(final_state[-1]) if final_state else np.nan,
-        "final_state_max": float(max(final_state)) if final_state else np.nan,
-        "samples": int(len(trace.times)),
-        "final_p1_obs": float(obs.get("final_p1", np.nan)),
-        "final_p0_obs": float(obs.get("final_p0", np.nan)),
-        "mean_excited_obs": float(obs.get("mean_excited", np.nan)),
-        "solver": str(meta.get("solver", runtime.get("solver_mode", result.get("solver_mode", "")))),
+        "trace_engine": str(runtime.get("engine_used", "")),
+        "state_encoding": str(state_repr.get("encoding", "unknown")),
+        "state_kind": str(state_repr.get("actual", "")),
+        "num_qubits": int(model.get("num_qubits", 0) or 0),
+        "state_len": int(state_len),
+        "final_state_json": final_state_json,
+        "final_state_sum": final_state_sum,
+        "final_state_last": final_state_last,
+        "final_state_max": final_state_max,
+        "samples": int(len(times)),
+        "final_p1_obs": final_p1,
+        "final_p0_obs": final_p0,
+        "mean_excited_obs": float(mean_excited_values[-1]) if mean_excited_values else np.nan,
+        "variance_obs": float(variance_values[-1]) if variance_values else np.nan,
         "solver_impl": str(details.get("solver_impl", "")),
-        "native_solver": bool(meta.get("native_solver", False)),
+        "solver": str(runtime.get("solver_mode", "")),
+        "native_solver": bool(details.get("native_solver", False)),
         "note": str(note),
         "device_json": json.dumps(device, ensure_ascii=False, sort_keys=True),
         "noise_json": json.dumps(noise, ensure_ascii=False, sort_keys=True),
-        "out_dir": str(runtime.get("out_dir", result.get("out_dir", ""))),
+        "out_dir": str(artifacts.get("out_dir", "")),
     }
     row.update(collect_pulse_metrics(row["out_dir"]))
     return row

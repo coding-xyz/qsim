@@ -28,6 +28,9 @@ class IModelBuilder(Protocol):
         pulse_samples: dict[str, dict[str, Any]] | None = None,
         frame: dict[str, Any] | None = None,
         solver_run: dict[str, Any] | None = None,
+        analysis: dict[str, Any] | None = None,
+        study: list[dict[str, Any]] | None = None,
+        primary_step: dict[str, Any] | None = None,
     ) -> ModelSpec:
         ...
 
@@ -83,6 +86,88 @@ class DefaultModelBuilder:
         explicit_refs = DefaultModelBuilder._expand_value(frame.get("qubit_reference_freqs_Hz"), num_qubits, 0.0)
         return mode, reference, rwa, explicit_refs
 
+    @staticmethod
+    def _composite_metadata(hw: dict[str, Any] | None) -> dict[str, Any]:
+        hw = hw or {}
+        components = [dict(comp) for comp in list(hw.get("components", []) or []) if isinstance(comp, dict)]
+        connections = [dict(conn) for conn in list(hw.get("connections", []) or []) if isinstance(conn, dict)]
+        component_summary = {
+            "count": len(components),
+            "ids": [str(comp.get("id", "")) for comp in components],
+            "types": [str(comp.get("type", "")) for comp in components],
+            "representations": [str(comp.get("representation", "")) for comp in components],
+        }
+        readout_lines = [
+            {
+                "id": str(comp.get("id", "")),
+                "representation": str(comp.get("representation", "")),
+                "role": str(comp.get("role", "")),
+                "parameters": dict(comp.get("parameters", {}) or {}),
+            }
+            for comp in components
+            if str(comp.get("type", "")).strip().lower() == "readout_line"
+        ]
+        return {
+            "components": components,
+            "connections": connections,
+            "component_summary": component_summary,
+            "readout_lines": readout_lines,
+        }
+
+    @staticmethod
+    def _composite_quantum_projection(hw: dict[str, Any] | None) -> dict[str, Any]:
+        hw = hw or {}
+        components = [dict(comp) for comp in list(hw.get("components", []) or []) if isinstance(comp, dict)]
+        qubits: list[dict[str, Any]] = []
+        cavity_freq_hz = 0.0
+        cavity_nmax = 0
+        transmon_levels = 2
+        for comp in components:
+            if str(comp.get("representation", "quantum")).strip().lower() == "disabled":
+                continue
+            comp_type = str(comp.get("type", "")).strip().lower()
+            basis = dict(comp.get("basis", {}) or {})
+            parameters = dict(comp.get("parameters", {}) or {})
+            local_noise = dict(comp.get("noise", {}) or {})
+            if comp_type == "transmon":
+                q_payload = {
+                    "freq_Hz": float(parameters.get("freq_Hz", 0.0)),
+                    "anharmonicity_Hz": float(parameters.get("anharmonicity_Hz", -2.0e8)),
+                }
+                for key in ("T1_s", "T2_s", "Tphi_s", "Tup_s", "gamma1_Hz", "gamma_phi_Hz", "gamma_up_Hz"):
+                    if key in local_noise:
+                        q_payload[key] = local_noise[key]
+                qubits.append(q_payload)
+                if str(basis.get("kind", "")).strip().lower() == "nlevel":
+                    transmon_levels = max(transmon_levels, int(basis.get("levels", 2) or 2))
+            elif comp_type == "resonator" and str(comp.get("representation", "quantum")).strip().lower() == "quantum":
+                if cavity_freq_hz == 0.0:
+                    cavity_freq_hz = float(parameters.get("freq_Hz", 0.0))
+                    cavity_nmax = int(basis.get("nmax", 0) or 0)
+        return {
+            "qubits": qubits,
+            "cavity_freq_Hz": cavity_freq_hz,
+            "cavity_nmax": cavity_nmax,
+            "transmon_levels": transmon_levels,
+        }
+
+    @staticmethod
+    def _study_metadata(study: list[dict[str, Any]] | None, primary_step: dict[str, Any] | None) -> dict[str, Any]:
+        steps = [dict(step) for step in list(study or []) if isinstance(step, dict)]
+        selected = dict(primary_step or {})
+        return {
+            "study": steps,
+            "primary_step": selected,
+            "study_summary": {
+                "count": len(steps),
+                "names": [str(step.get("name", "")) for step in steps],
+                "solver_modes": [str(step.get("solver_mode", "")) for step in steps],
+                "primary_name": str(selected.get("name", "")),
+                "active_components": list(selected.get("active_components", []) or []),
+                "active_connections": list(selected.get("active_connections", []) or []),
+            },
+        }
+
     def build(
         self,
         executable: ExecutableModel,
@@ -91,6 +176,9 @@ class DefaultModelBuilder:
         pulse_samples: dict[str, dict[str, Any]] | None = None,
         frame: dict[str, Any] | None = None,
         solver_run: dict[str, Any] | None = None,
+        analysis: dict[str, Any] | None = None,
+        study: list[dict[str, Any]] | None = None,
+        primary_step: dict[str, Any] | None = None,
     ) -> ModelSpec:
         """Construct normalized ``ModelSpec`` consumed by simulation engines."""
         hw = hw or {}
@@ -104,7 +192,8 @@ class DefaultModelBuilder:
 
         num_qubits = int(max(1, executable.metadata.get("num_qubits", 1)))
         frame_mode, frame_reference, frame_rwa, explicit_reference_freqs_Hz = self._normalize_frame(frame, num_qubits)
-        raw_qubits = list(hw.get("qubits", []) or [])
+        composite_quantum = self._composite_quantum_projection(hw)
+        raw_qubits = list(hw.get("qubits", []) or composite_quantum.get("qubits", []) or [])
         inferred_t_end_s = float(executable.metadata.get("t_end_s", 0.0))
         inferred_dt_s = 1.0 * NS_TO_S
 
@@ -129,8 +218,8 @@ class DefaultModelBuilder:
         t_end_raw = solver_run.get("t_end_s")
         t_end = (inferred_t_end_s + t_padding_s) if t_end_raw is None else float(t_end_raw)
         trunc = dict(executable.metadata.get("truncation", {}))
-        transmon_levels = int(hw.get("transmon_levels", trunc.get("transmon_levels", 2)))
-        cavity_nmax = int(hw.get("cavity_nmax", trunc.get("cavity_nmax", 0)))
+        transmon_levels = int(hw.get("transmon_levels", composite_quantum.get("transmon_levels", trunc.get("transmon_levels", 2))))
+        cavity_nmax = int(hw.get("cavity_nmax", composite_quantum.get("cavity_nmax", trunc.get("cavity_nmax", 0))))
         req_level = str(hw.get("simulation_level", executable.level)).strip().lower()
         if req_level not in {"qubit", "nlevel", "cqed"}:
             req_level = "qubit"
@@ -221,6 +310,8 @@ class DefaultModelBuilder:
         reference_omega_rad_s = [self._TWO_PI * float(x) for x in reference_freqs_Hz]
         pulse_carrier_reference_omega_rad_s = [self._TWO_PI * float(x) for x in pulse_carrier_reference_freqs_Hz]
 
+        composite_meta = self._composite_metadata(hw)
+        study_meta = self._study_metadata(study, primary_step)
         couplings = []
         for c in hw.get("couplings", []):
             if not isinstance(c, dict):
@@ -390,8 +481,8 @@ class DefaultModelBuilder:
                 },
                 "anharmonicity_Hz": anharmonicity_Hz,
                 "anharmonicity_rad_s": [self._TWO_PI * float(x) for x in anharmonicity_Hz],
-                "cavity_freq_Hz": float(hw.get("cavity_freq_Hz", 0.0)),
-                "cavity_omega_rad_s": self._TWO_PI * float(hw.get("cavity_freq_Hz", 0.0)),
+                "cavity_freq_Hz": float(hw.get("cavity_freq_Hz", composite_quantum.get("cavity_freq_Hz", 0.0))),
+                "cavity_omega_rad_s": self._TWO_PI * float(hw.get("cavity_freq_Hz", composite_quantum.get("cavity_freq_Hz", 0.0))),
                 "g_cavity_Hz": g_cavity_Hz,
                 "g_cavity_rad_s": [self._TWO_PI * float(x) for x in g_cavity_Hz],
                 "couplings": couplings,
@@ -409,10 +500,19 @@ class DefaultModelBuilder:
                 "noise_terms": executable.noise_terms,
                 "reset_events": list(executable.metadata.get("reset_events", [])),
                 "noise_cfg": noise,
+                "analysis": dict(analysis or {}),
+                "components": composite_meta["components"],
+                "connections": composite_meta["connections"],
+                "component_summary": composite_meta["component_summary"],
+                "readout_lines": composite_meta["readout_lines"],
+                "study": study_meta["study"],
+                "primary_step": study_meta["primary_step"],
+                "study_summary": study_meta["study_summary"],
                 "model_assumptions": {
                     "qubit_representation": "two_level_pauli (qubit) or truncated_oscillator (nlevel/cqed)",
                     "subsystem_model": "qubit_network | transmon_nlevel | cqed_jc",
                     "truncation_cfg_from_backend": executable.metadata.get("truncation", {}),
+                    "study_selection": study_meta["study_summary"],
                 },
             },
         )

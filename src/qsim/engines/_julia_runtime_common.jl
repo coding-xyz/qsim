@@ -444,3 +444,43 @@ function _to_json(x)
         return _to_json(string(x))
     end
 end
+
+function _complex_pair(z)
+    return [_safe_float(real(z), 0.0), _safe_float(imag(z), 0.0)]
+end
+
+function _serialize_quantum_state(state)
+    dense = Array(state.data)
+    if ndims(dense) == 1
+        return Dict(
+            "kind" => "wave_function",
+            "data" => [_complex_pair(v) for v in dense],
+        )
+    elseif ndims(dense) == 2 && (size(dense, 1) == 1 || size(dense, 2) == 1)
+        vec = vec(dense)
+        return Dict(
+            "kind" => "wave_function",
+            "data" => [_complex_pair(v) for v in vec],
+        )
+    end
+    return Dict(
+        "kind" => "density_matrix",
+        "data" => [[_complex_pair(v) for v in row] for row in eachrow(dense)],
+    )
+end
+
+function _serialize_quantum_state_trace(states, requested_kind::String)
+    if isempty(states)
+        return nothing
+    end
+    serialized = [_serialize_quantum_state(state) for state in states]
+    actual_kind = String(get(serialized[1], "kind", "unknown"))
+    note = requested_kind == "wave_function" && actual_kind != "wave_function" ? "requested wave_function but solver returned density_matrix" : ""
+    return Dict(
+        "requested_kind" => isempty(requested_kind) ? actual_kind : requested_kind,
+        "actual_kind" => actual_kind,
+        "encoding" => "complex_pairs",
+        "snapshots" => [item["data"] for item in serialized],
+        "note" => note,
+    )
+end

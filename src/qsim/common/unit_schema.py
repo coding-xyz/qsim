@@ -24,6 +24,7 @@ PULSE_KEYS = {
 
 LOWERING_HARDWARE_KEYS = PULSE_KEYS | {
     "schedule_policy",
+    "schedule",
     "reset_feedback_policy",
 }
 
@@ -47,6 +48,9 @@ MODEL_HARDWARE_KEYS = LOWERING_HARDWARE_KEYS | {
     "T2_s",
     "Tphi_s",
     "Tup_s",
+    "components",
+    "connections",
+    "parameters",
 }
 
 COUPLING_KEYS = {"i", "j", "g_Hz", "kind"}

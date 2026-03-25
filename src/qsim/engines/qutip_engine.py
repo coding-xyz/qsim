@@ -127,6 +127,58 @@ class QuTiPEngine(Engine):
             out[k] = a * out[k - 1] + b * float(rng.normal())
         return out
 
+    @staticmethod
+    def _solver_options_with_state_storage(qt, options):
+        if options is None:
+            return {"store_states": True}
+        if isinstance(options, dict):
+            out = dict(options)
+            out["store_states"] = True
+            return out
+        try:
+            setattr(options, "store_states", True)
+        except Exception:
+            pass
+        return options
+
+    @staticmethod
+    def _complex_pairs_vector(values) -> list[list[float]]:
+        arr = np.asarray(values, dtype=complex).reshape(-1)
+        return [[float(v.real), float(v.imag)] for v in arr]
+
+    @classmethod
+    def _serialize_qobj_state(cls, qobj) -> dict[str, object]:
+        data = np.asarray(qobj.full(), dtype=complex)
+        if data.ndim == 2 and 1 in data.shape:
+            return {"kind": "wave_function", "data": cls._complex_pairs_vector(data.reshape(-1))}
+        return {
+            "kind": "density_matrix",
+            "data": [[cls._complex_pairs_vector(row) for row in data]][0],
+        }
+
+    @classmethod
+    def _extract_quantum_state_trace(cls, result, solver: str, requested_kind: str) -> dict[str, object] | None:
+        raw_states = list(getattr(result, "states", []) or [])
+        if not raw_states and solver == "mcwf":
+            raw_states = list(getattr(result, "runs_states", [])[:1] or [])
+            if raw_states and isinstance(raw_states[0], list):
+                raw_states = list(raw_states[0])
+        if not raw_states:
+            return None
+        serialized = [cls._serialize_qobj_state(state) for state in raw_states]
+        actual_kind = str(serialized[0].get("kind", "unknown"))
+        if requested_kind == "wave_function" and actual_kind != "wave_function":
+            note = "requested wave_function but solver returned density_matrix"
+        else:
+            note = ""
+        return {
+            "requested_kind": requested_kind or actual_kind,
+            "actual_kind": actual_kind,
+            "encoding": "complex_pairs",
+            "snapshots": [item.get("data", []) for item in serialized],
+            "note": note,
+        }
+
     def _build_qubit_ops(self, qt, n_qubits: int):
         dims = [2 for _ in range(n_qubits)]
         sx = [self._tensor_op(qt, dims, i, qt.sigmax()) for i in range(n_qubits)]
@@ -379,7 +431,10 @@ class QuTiPEngine(Engine):
                 H.append([z_ops[target], lambda t, _a=None, s=series, x=tlist: float(np.interp(float(t), x, s))])
 
         solver = str(model_spec.solver).lower()
-        options = run_options.get("qutip_options", None)
+        options = self._solver_options_with_state_storage(qt, run_options.get("qutip_options", None))
+        analysis_cfg = dict(payload.get("analysis", {}) or {})
+        trace_cfg = dict(analysis_cfg.get("trace", {}) or {})
+        requested_state_kind = str(trace_cfg.get("states", "")).strip().lower()
 
         if solver not in {"se", "me", "mcwf"}:
             raise ValueError(f"Unsupported solver for QuTiP engine: {model_spec.solver}")
@@ -403,18 +458,23 @@ class QuTiPEngine(Engine):
             row = [float(np.clip(expect[i][k], 0.0, 1.0)) for i in range(len(expect))]
             states.append(row)
 
+        quantum_state_trace = self._extract_quantum_state_trace(result, solver, requested_state_kind)
+        metadata = {
+            "solver": solver,
+            "model_type": model_type,
+            "num_qubits": n_qubits,
+            "num_controls": len(payload.get("controls", [])),
+            "num_collapse_ops": len(c_ops),
+            "selected_noise": selected_noise,
+            "frame_mode": frame_mode,
+            "rwa": rwa,
+        }
+        if quantum_state_trace is not None:
+            metadata["quantum_state_trace"] = quantum_state_trace
+
         return Trace(
             engine="qutip",
             times=tlist.astype(float).tolist(),
             states=states,
-            metadata={
-                "solver": solver,
-                "model_type": model_type,
-                "num_qubits": n_qubits,
-                "num_controls": len(payload.get("controls", [])),
-                "num_collapse_ops": len(c_ops),
-                "selected_noise": selected_noise,
-                "frame_mode": frame_mode,
-                "rwa": rwa,
-            },
+            metadata=metadata,
         )

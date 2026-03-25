@@ -33,6 +33,14 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
 
+exclude_docs: |
+  WIKI*.md
+  schema.md
+  schema_*.md
+  wiki/backend_model.md
+  wiki/circuit.md
+  wiki/noise_engine.md
+
 nav:
   - 首页: index.md
   - 概览: wiki/overview.md

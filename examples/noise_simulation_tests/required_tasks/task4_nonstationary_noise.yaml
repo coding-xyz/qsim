@@ -1,0 +1,34 @@
+schema_version: "1.0"
+tag: task4_nonstationary_noise
+title: "Task 4 Nonstationary Noise"
+qasm_text: |
+  OPENQASM 3;
+  include "stdgates.inc";
+  qubit[1] q;
+  bit[1] c;
+  h q[0];
+  x q[0];
+  measure q[0] -> c[0];
+engines: [qutip, qtoolbox, qoptics]
+solver_mode: me
+display_metrics: [final_p1_obs, final_state_last]
+cases:
+  - tag: one_over_f
+    device: {}
+    pulse:
+      gate_duration_ns: 22.0
+    noise:
+      model: one_over_f
+      one_over_f_amp_Hz: 4.0e7
+      one_over_f_fmin_Hz: 1.0e6
+      one_over_f_fmax_Hz: 1.0e8
+    note: 1/f surrogate noise
+  - tag: ou_drift
+    device: {}
+    pulse:
+      gate_duration_ns: 22.0
+    noise:
+      model: ou
+      ou_sigma_Hz: 4.0e7
+      ou_tau_s: 1.2e-8
+    note: OU frequency drift surrogate

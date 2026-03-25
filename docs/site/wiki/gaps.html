@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
@@ -533,90 +533,18 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        已经具备
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="已经具备">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        workflow 主线
+        当前口径
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        电路与编译
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        求解与分析
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qec" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        QEC
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        可视化与数据导出
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前仍需注意
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        推荐后续补齐方向
+        对使用者的建议
       
     </span>
   </a>
@@ -1028,90 +956,18 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        已经具备
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="已经具备">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        workflow 主线
+        当前口径
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        电路与编译
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        求解与分析
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qec" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        QEC
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        可视化与数据导出
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        当前仍需注意
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        推荐后续补齐方向
+        对使用者的建议
       
     </span>
   </a>
@@ -1136,61 +992,21 @@
 
 
 <h1 id="_1">开发进度<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>本页按当前 <code>src/qsim</code> 实现状态整理，不再保留旧的笼统差距清单。</p>
-<h2 id="_2">已经具备<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<h3 id="workflow">workflow 主线<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h3>
+<p>本页记录当前文档和配置体系里最值得注意的状态。</p>
+<h2 id="_2">当前口径<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <ul>
-<li>4 文件配置装配：task / solver / device / pulse</li>
-<li>CLI 入口：<code>qsim run-task</code></li>
-<li>Python 入口：<code>run_task</code>、<code>run_task_files</code></li>
-<li>target 驱动执行计划</li>
-<li>结构化产物落盘与 manifest</li>
-<li>session 自动提交</li>
+<li><code>task</code> 使用扁平写法</li>
+<li><code>device</code> 使用组件化结构</li>
+<li><code>pulse</code> 使用结构化通道、波形和操作映射</li>
+<li><code>solver</code> 使用结构化求解器写法</li>
 </ul>
-<h3 id="_3">电路与编译<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h2 id="_3">对使用者的建议<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ul>
-<li>OpenQASM 导入</li>
-<li>电路标准化</li>
-<li>编译、lowering、模型构建</li>
-<li>PulseIR 与 executable model 导出</li>
+<li>新任务直接从仓库模板起步</li>
+<li>优先保持四类配置分工清晰</li>
+<li>先做最小可运行示例，再逐步加复杂度</li>
+<li>文档只保留当前推荐写法</li>
 </ul>
-<h3 id="_4">求解与分析<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
-<ul>
-<li>QuTiP 引擎</li>
-<li>Julia 相关引擎接口与配置入口</li>
-<li>sensitivity report</li>
-<li><code>error_budget_v2</code></li>
-<li>Pauli+ / component ablation</li>
-<li>cross-engine compare</li>
-</ul>
-<h3 id="qec">QEC<a class="headerlink" href="#qec" title="Permanent link">&para;</a></h3>
-<ul>
-<li>prior 构建</li>
-<li>decoder</li>
-<li>decoder eval</li>
-<li>resume / retry / batch manifest</li>
-</ul>
-<h3 id="_5">可视化与数据导出<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
-<ul>
-<li>pulse timing 图</li>
-<li>trace/report 图</li>
-<li>DXF 导出</li>
-<li>JSON -&gt; CSV/XLSX 表格导出</li>
-</ul>
-<h2 id="_6">当前仍需注意<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>run_workflow</code> 仍出现在历史生成文件 <code>src/qsim.egg-info/PKG-INFO</code> 中，但不是当前源码入口</li>
-<li>文档里旧的 <code>hardware_config</code> 命名已经过时，当前外部接口应统一使用 <code>device_config</code></li>
-<li>Julia 求解路径在代码中已有接口和模板，但实际可用性仍取决于本机 Julia 环境</li>
-<li>在线实时 QEC 反馈控制目前还没有实现</li>
-</ul>
-<h2 id="_7">推荐后续补齐方向<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
-<ol>
-<li>清理历史文档与打包产物中的旧入口命名</li>
-<li>给 <code>device</code> 和 <code>pulse</code> 模板补更完整的示例</li>
-<li>为 <code>solver.run</code>、<code>device</code>、<code>pulse</code> 字段补字段级 API 文档</li>
-<li>明确 Julia 后端的安装与验证流程</li>
-</ol>
 
 
 

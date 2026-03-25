@@ -19,7 +19,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
@@ -1381,10 +1381,54 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.filter_composite_device_for_step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter_composite_device_for_step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.infer_runtime_level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        infer_runtime_level
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.merge_solver_runtime_from_study" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge_solver_runtime_from_study
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qsim.workflow.contracts.normalize_targets" class="md-nav__link">
     <span class="md-ellipsis">
       
         normalize_targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.select_primary_study_step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        select_primary_study_step
       
     </span>
   </a>
@@ -2640,10 +2684,54 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.filter_composite_device_for_step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter_composite_device_for_step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.infer_runtime_level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        infer_runtime_level
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.merge_solver_runtime_from_study" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge_solver_runtime_from_study
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#qsim.workflow.contracts.normalize_targets" class="md-nav__link">
     <span class="md-ellipsis">
       
         normalize_targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qsim.workflow.contracts.select_primary_study_step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        select_primary_study_step
       
     </span>
   </a>
@@ -3932,7 +4020,7 @@
 
 
 <h4 id="qsim.workflow.WorkflowSolverConfig.to_backend_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">to_backend_config</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">to_backend_config</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">runtime_level</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.WorkflowSolverConfig.to_backend_config" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4449,7 +4537,7 @@ when no external override is provided.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A nested result dictionary containing core artifacts, QEC outputs,</p>
+                <p>A structured result dictionary with top-level groups:</p>
               </div>
             </td>
           </tr>
@@ -4459,7 +4547,7 @@ when no external override is provided.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>analysis outputs, optional plugin outputs, and runtime metadata.</p>
+                <p><code>meta</code>, <code>inputs</code>, <code>model</code>, <code>results</code>, <code>runtime</code>, and <code>artifacts</code>.</p>
               </div>
             </td>
           </tr>
@@ -4980,7 +5068,7 @@ when no external override is provided.</p>
 
 
 <h4 id="qsim.workflow.contracts.WorkflowSolverConfig.to_backend_config" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">to_backend_config</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">to_backend_config</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">runtime_level</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.contracts.WorkflowSolverConfig.to_backend_config" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -5124,6 +5212,60 @@ when no external override is provided.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="qsim.workflow.contracts.filter_composite_device_for_step" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">filter_composite_device_for_step</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.contracts.filter_composite_device_for_step" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Filter composite device payload by active components/connections of one study step.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.contracts.infer_runtime_level" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">infer_runtime_level</span><span class="p">(</span><span class="n">device</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.contracts.infer_runtime_level" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Infer legacy runtime level from old or composite device payload.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.contracts.merge_solver_runtime_from_study" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">merge_solver_runtime_from_study</span><span class="p">(</span><span class="n">solver_cfg</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.contracts.merge_solver_runtime_from_study" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Apply primary study-step defaults onto runtime run/frame options.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="qsim.workflow.contracts.normalize_targets" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">normalize_targets</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></code>
 
@@ -5133,6 +5275,24 @@ when no external override is provided.</p>
     <div class="doc doc-contents ">
 
         <p>Normalize one-or-many target field to deduplicated lowercase list.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="qsim.workflow.contracts.select_primary_study_step" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">select_primary_study_step</span><span class="p">(</span><span class="n">study</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fallback_solver_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#qsim.workflow.contracts.select_primary_study_step" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Select the current primary solver step from a composite study definition.</p>
 
 
     </div>
@@ -5337,7 +5497,7 @@ when no external override is provided.</p>
 
 
 <h3 id="qsim.workflow.output.build_settings_report" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">build_settings_report</span><span class="p">(</span><span class="n">backend_path</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">selected_engine_name</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">solver_run</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">compare_engines</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">build_settings_report</span><span class="p">(</span><span class="n">backend_path</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">study</span><span class="p">,</span> <span class="n">primary_step</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">selected_engine_name</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">solver_run</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">allow_mock_fallback</span><span class="p">,</span> <span class="n">compare_engines</span><span class="p">,</span> <span class="n">julia_bin</span><span class="p">,</span> <span class="n">julia_depot_path</span><span class="p">,</span> <span class="n">julia_timeout_s</span><span class="p">,</span> <span class="n">mcwf_ntraj</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.output.build_settings_report" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -5934,7 +6094,7 @@ when no external override is provided.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A nested result dictionary containing core artifacts, QEC outputs,</p>
+                <p>A structured result dictionary with top-level groups:</p>
               </div>
             </td>
           </tr>
@@ -5944,7 +6104,7 @@ when no external override is provided.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>analysis outputs, optional plugin outputs, and runtime metadata.</p>
+                <p><code>meta</code>, <code>inputs</code>, <code>model</code>, <code>results</code>, <code>runtime</code>, and <code>artifacts</code>.</p>
               </div>
             </td>
           </tr>
@@ -6342,7 +6502,7 @@ when no external override is provided.</p>
 
 
 <h3 id="qsim.workflow.stages.parse_compile_lower_model" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">parse_compile_lower_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">backend_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">schedule_policy</span><span class="p">,</span> <span class="n">reset_feedback_policy</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">solver_run</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">parse_compile_lower_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">qasm_text</span><span class="p">,</span> <span class="n">backend_path</span><span class="p">,</span> <span class="n">backend_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">schedule_policy</span><span class="p">,</span> <span class="n">reset_feedback_policy</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">solver_run</span><span class="p">,</span> <span class="n">solver_mode</span><span class="p">,</span> <span class="n">param_bindings</span><span class="p">,</span> <span class="n">persist_artifacts</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">study</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.stages.parse_compile_lower_model" class="headerlink" title="Permanent link">&para;</a></h3>
 
@@ -6360,7 +6520,7 @@ when no external override is provided.</p>
 
 
 <h3 id="qsim.workflow.stages.run_analysis_stage" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">run_analysis_stage</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">logical_error</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">run_analysis_stage</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">logical_error</span><span class="p">,</span> <span class="n">analysis_cfg</span><span class="p">)</span></code>
 
 <a href="#qsim.workflow.stages.run_analysis_stage" class="headerlink" title="Permanent link">&para;</a></h3>
 

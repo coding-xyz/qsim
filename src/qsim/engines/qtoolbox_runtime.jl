@@ -188,6 +188,9 @@ end
 function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String, payload, run_options)
     ctx = _qubit_context(payload, times)
     n_qubits = Int(ctx["num_qubits"])
+    analysis_cfg = get(payload, "analysis", Dict{String, Any}())
+    trace_cfg = get(analysis_cfg, "trace", Dict{String, Any}())
+    requested_state_kind = lowercase(String(get(trace_cfg, "states", "")))
     ops = _qt_build_ops(ctx)
     H0 = _build_static_hamiltonian!(ops["zero_op"], payload, ctx, ops)
     coeffs, dyn_ops, selected_noise = _collect_dynamic_terms(payload, ctx, ops, run_options)
@@ -202,9 +205,13 @@ function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String,
     dtmax = _integration_dtmax(payload, times)
 
     solver_impl = ""
+    quantum_state_trace = nothing
+    state_series = Any[]
     if solver_mode == "se"
         sol = QuantumToolbox.sesolve(H, psi0, times; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
         states = _qt_expect_rows(sol.expect, length(times), n_qubits)
+        state_series = hasproperty(sol, :states) ? getproperty(sol, :states) : Any[]
+        quantum_state_trace = _serialize_quantum_state_trace(state_series, requested_state_kind)
         solver_impl = "quantumtoolbox.sesolve"
     elseif solver_mode == "mcwf"
         ntraj = max(1, _safe_int(get(run_options, "ntraj", 128), 128))
@@ -227,10 +234,14 @@ function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String,
             solver_impl = "quantumtoolbox.mcsolve"
         end
         states = _qt_expect_rows(sol.expect, length(times), n_qubits)
+        state_series = hasproperty(sol, :states) ? getproperty(sol, :states) : Any[]
+        quantum_state_trace = _serialize_quantum_state_trace(state_series, requested_state_kind)
         collapse_counts["ntraj"] = ntraj
     else
         sol = QuantumToolbox.mesolve(H, psi0, times, c_ops; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
         states = _qt_expect_rows(sol.expect, length(times), n_qubits)
+        state_series = hasproperty(sol, :states) ? getproperty(sol, :states) : Any[]
+        quantum_state_trace = _serialize_quantum_state_trace(state_series, requested_state_kind)
         solver_impl = "quantumtoolbox.mesolve"
     end
 
@@ -246,6 +257,9 @@ function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String,
         "dtmax" => dtmax,
         "collapse_counts" => collapse_counts,
     )
+    if quantum_state_trace !== nothing
+        meta["quantum_state_trace"] = quantum_state_trace
+    end
     return states, meta
 end
 

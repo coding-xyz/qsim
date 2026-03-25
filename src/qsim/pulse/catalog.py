@@ -90,10 +90,11 @@ def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any
     gate_dur = float(hw.get("gate_duration_ns", 20.0))
     measure_dur = float(hw.get("measure_duration_ns", 200.0))
     edge_ns = float(hw.get("rect_edge_ns", 2.0))
+    schedule_value = hw.get("schedule", hw.get("schedule_policy", "serial"))
     return {
         "xy_freq_Hz": float(hw.get("xy_freq_Hz", 5.0e9)),
         "ro_freq_Hz": float(hw.get("ro_freq_Hz", 6.5e9)),
-        "schedule_policy": str(hw.get("schedule_policy", "serial")).strip().lower() or "serial",
+        "schedule_policy": str(schedule_value).strip().lower() or "serial",
         "gate_duration_ns": gate_dur,
         "measure_duration_ns": measure_dur,
         "rect_edge_ns": edge_ns,

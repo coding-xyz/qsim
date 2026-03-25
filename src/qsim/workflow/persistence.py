@@ -200,12 +200,18 @@ def write_artifacts(*, out: Path, policy: ArtifactWritePolicy, payload: Artifact
             _record_skip(report, "logical_error")
 
     analysis_bundle = dict(analysis.get("analysis", {}) or {})
-    if analysis_bundle.get("observables") is not None:
-        if _should_write(policy, "observables"):
-            write_json(out / "observables.json", analysis_bundle.get("observables", {}))
-            _record_write(report, "observables", "observables.json")
+    if analysis_bundle.get("trace") is not None:
+        if _should_write(policy, "analysis_trace"):
+            write_json(out / "analysis_trace.json", analysis_bundle.get("trace", {}))
+            _record_write(report, "analysis_trace", "analysis_trace.json")
         else:
-            _record_skip(report, "observables")
+            _record_skip(report, "analysis_trace")
+    if analysis_bundle.get("metrics") is not None:
+        if _should_write(policy, "analysis_metrics"):
+            write_json(out / "analysis_metrics.json", analysis_bundle.get("metrics", {}))
+            _record_write(report, "analysis_metrics", "analysis_metrics.json")
+        else:
+            _record_skip(report, "analysis_metrics")
     if analysis_bundle.get("report") is not None:
         if _should_write(policy, "report"):
             write_json(out / "report.json", analysis_bundle.get("report", {}))

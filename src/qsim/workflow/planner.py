@@ -47,7 +47,7 @@ _STAGE_OUTPUTS: dict[str, tuple[str, ...]] = {
         "decoder_report",
         "logical_error",
     ),
-    STAGE_ANALYSIS: ("observables", "report", "sensitivity_report", "error_budget_v2", "sensitivity_heatmap"),
+    STAGE_ANALYSIS: ("analysis_trace", "analysis_metrics", "report", "sensitivity_report", "error_budget_v2", "sensitivity_heatmap"),
     STAGE_DECODER_EVAL: (
         "decoder_eval_report",
         "decoder_eval_table",
@@ -207,6 +207,8 @@ def build_execution_plan(task: WorkflowTask) -> ExecutionPlan:
         stage_set.add(STAGE_ANALYSIS)
     if run_cross_engine_compare:
         stage_set.add(STAGE_CROSS_COMPARE)
+    if task.input.analysis:
+        stage_set.add(STAGE_ANALYSIS)
 
     # Parse + engine are always required for a meaningful run.
     stage_set.add(STAGE_PARSE)

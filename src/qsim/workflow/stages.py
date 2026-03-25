@@ -1,24 +1,24 @@
-﻿"""Core workflow stages (mandatory execution path)."""
+"""Core workflow stages (mandatory execution path)."""
 
 from __future__ import annotations
 
 import time
 
-from qsim.analysis.registry import AnalysisRegistry, AnalysisRunner
+from qsim.analysis.observables import compute_observables
 from qsim.analysis.sensitivity import build_error_budget_v2, build_sensitivity_report
-from qsim.analysis.trace_semantics import annotate_trace_metadata
+from qsim.analysis.trace_semantics import annotate_trace_metadata, state_encoding
 from qsim.backend.compile_pipeline import CompilePipeline
 from qsim.backend.config import load_backend_config
 from qsim.backend.lowering import DefaultLowering
 from qsim.backend.model_build import DefaultModelBuilder
 from qsim.circuit.import_qasm import CircuitAdapter
-from qsim.common.schemas import DecoderInput, LogicalErrorSummary, Observables, SyndromeFrame
+from qsim.common.schemas import DecoderInput, LogicalErrorSummary, Observables, Report, SyndromeFrame
 from qsim.pulse.sequence import PulseCompiler
 from qsim.qec.decoder import build_decoder_report, get_decoder, summarize_logical_error
 from qsim.qec.prior import build_prior_and_report
 from qsim.workflow.engines import select_engine
 from qsim.workflow.output import write_pulse_npz_with_fallback
-from qsim.workflow.contracts import normalize_device_payload
+from qsim.workflow.contracts import filter_composite_device_for_step, normalize_device_payload, select_primary_study_step
 
 
 def parse_compile_lower_model(
@@ -37,6 +37,8 @@ def parse_compile_lower_model(
     solver_mode: str | None,
     param_bindings: dict[str, float] | None,
     persist_artifacts: bool,
+    analysis: dict | None = None,
+    study: list[dict] | None = None,
 ):
     """Parse input and build simulation model artifacts."""
     stage_timings: dict[str, float] = {}
@@ -54,12 +56,15 @@ def parse_compile_lower_model(
     stage_timings["backend_load"] = t2 - t1
 
     raw_device = dict(device or {})
+    primary_step = select_primary_study_step(study, fallback_solver_mode=solver_mode)
+    raw_device = filter_composite_device_for_step(raw_device, primary_step)
     model_device = normalize_device_payload(raw_device)
     pulse_cfg = dict(pulse or {})
     lowering_device = dict(model_device)
     lowering_device.update(pulse_cfg)
     if schedule_policy is not None:
         lowering_device["schedule_policy"] = str(schedule_policy).strip().lower()
+        lowering_device["schedule"] = str(schedule_policy).strip().lower()
     if reset_feedback_policy is not None:
         lowering_device["reset_feedback_policy"] = str(reset_feedback_policy).strip().lower()
 
@@ -86,6 +91,9 @@ def parse_compile_lower_model(
         pulse_samples=pulse_samples,
         frame=frame,
         solver_run=solver_run,
+        analysis=analysis,
+        study=study,
+        primary_step=primary_step,
     )
     if solver_mode:
         model_spec.solver = str(solver_mode).strip().lower()
@@ -99,6 +107,9 @@ def parse_compile_lower_model(
         "model_device": model_device,
         "pulse_cfg": pulse_cfg,
         "frame_cfg": dict(frame or {}),
+        "analysis_cfg": dict(analysis or {}),
+        "study": list(study or []),
+        "primary_step": primary_step,
         "normalized": normalized,
         "compile_report": compile_report,
         "pulse_ir": pulse_ir,
@@ -191,38 +202,307 @@ def run_decode_stage(
     }
 
 
-def run_analysis_stage(*, trace, model_spec, cfg, logical_error):
+def _resolve_analysis_trace(trace, analysis_cfg: dict | None) -> dict:
+    trace_cfg = dict((analysis_cfg or {}).get("trace", {}) or {})
+    save_times = str(trace_cfg.get("save_times", "all")).strip().lower()
+    include_times = save_times != "none"
+    save_final_state = bool(trace_cfg.get("save_final_state", True))
+    save_jump_events = bool(trace_cfg.get("save_jump_events", False))
+    save_measurement_records = bool(trace_cfg.get("save_measurement_records", False))
+    requested_kind = str(trace_cfg.get("states", "")).strip().lower()
+    quantum_state_trace = dict((trace.metadata or {}).get("quantum_state_trace", {}) or {})
+    actual_kind = requested_kind
+    states_payload = [list(row) for row in trace.states]
+    if requested_kind in {"wave_function", "density_matrix"} and quantum_state_trace:
+        actual_kind = str(quantum_state_trace.get("actual_kind", requested_kind))
+        states_payload = list(quantum_state_trace.get("snapshots", []) or [])
+    payload = {
+        "state_representation": {
+            "requested": trace_cfg.get("states", ""),
+            "actual": actual_kind,
+            "encoding": "complex_pairs" if quantum_state_trace else state_encoding(trace),
+        },
+        "times": list(trace.times) if include_times else [],
+        "states": states_payload,
+    }
+    if save_final_state:
+        if quantum_state_trace and states_payload:
+            payload["final_state"] = states_payload[-1]
+        else:
+            payload["final_state"] = list(trace.states[-1]) if trace.states else []
+    if save_jump_events:
+        payload["jump_events"] = list((trace.metadata or {}).get("jump_events", []) or [])
+    if save_measurement_records:
+        payload["measurement_records"] = list((trace.metadata or {}).get("measurement_records", []) or [])
+    if quantum_state_trace.get("note"):
+        payload["note"] = str(quantum_state_trace.get("note"))
+    return payload
+
+
+def _complex_from_pair(value) -> complex:
+    if isinstance(value, (list, tuple)) and len(value) >= 2:
+        return complex(float(value[0]), float(value[1]))
+    return complex(float(value), 0.0)
+
+
+def _basis_labels(dimension: int, num_qubits: int, levels: int) -> list[str]:
+    if dimension <= 0:
+        return []
+    if num_qubits > 0 and levels > 1:
+        expected = levels**num_qubits
+        if expected == dimension:
+            labels: list[str] = []
+            for idx in range(dimension):
+                digits: list[str] = []
+                rem = idx
+                for _ in range(num_qubits):
+                    digits.append(str(rem % levels))
+                    rem //= levels
+                labels.append("".join(reversed(digits)))
+            return labels
+    return [str(i) for i in range(dimension)]
+
+
+def _label_excitation_value(label: str, *, num_qubits: int) -> float:
+    digits = [int(ch) for ch in str(label) if ch.isdigit()]
+    if not digits:
+        return 0.0
+    if num_qubits > 0 and len(digits) >= num_qubits:
+        return float(sum(digits[:num_qubits])) / float(num_qubits)
+    return float(sum(digits)) / float(len(digits))
+
+
+def _population_series_from_quantum_state(trace, model_spec) -> dict[str, list[float]]:
+    qstate = dict((trace.metadata or {}).get("quantum_state_trace", {}) or {})
+    snapshots = list(qstate.get("snapshots", []) or [])
+    if not snapshots:
+        return {}
+    actual_kind = str(qstate.get("actual_kind", "")).strip().lower()
+    payload = dict((model_spec.payload or {}))
+    num_qubits = int(payload.get("num_qubits", 0) or 0)
+    levels = 2
+    if str(payload.get("model_type", "")).strip().lower() in {"transmon_nlevel", "cqed_jc"}:
+        levels = int(payload.get("transmon_levels", 2) or 2)
+    series: dict[str, list[float]] = {}
+    labels: list[str] = []
+
+    for snapshot in snapshots:
+        populations: list[float]
+        if actual_kind == "density_matrix":
+            populations = []
+            for i, row in enumerate(snapshot):
+                if i >= len(row):
+                    populations.append(0.0)
+                else:
+                    populations.append(max(0.0, float(_complex_from_pair(row[i]).real)))
+        elif actual_kind == "wave_function":
+            populations = [abs(_complex_from_pair(v)) ** 2 for v in snapshot]
+        else:
+            return {}
+
+        if not labels:
+            labels = _basis_labels(len(populations), num_qubits, max(2, levels))
+            series = {label: [] for label in labels}
+        for idx, label in enumerate(labels):
+            value = float(populations[idx]) if idx < len(populations) else 0.0
+            series[label].append(value)
+    return series
+
+
+def _population_series_from_trace_rows(trace, model_spec) -> dict[str, list[float]]:
+    if not trace.states:
+        return {}
+    payload = dict(model_spec.payload or {})
+    num_qubits = int(payload.get("num_qubits", 0) or 0)
+    levels = 2
+    if str(payload.get("model_type", "")).strip().lower() in {"transmon_nlevel", "cqed_jc"}:
+        levels = int(payload.get("transmon_levels", 2) or 2)
+
+    row_len = len(trace.states[0]) if trace.states and trace.states[0] else 0
+    if row_len <= 0:
+        return {}
+    labels = _basis_labels(row_len if row_len > 1 else 2, num_qubits, max(2, levels))
+    if row_len == 1:
+        series = {labels[0]: [], labels[1]: []}
+        for row in trace.states:
+            p1 = float(row[0]) if row else 0.0
+            series[labels[0]].append(float(max(0.0, 1.0 - p1)))
+            series[labels[1]].append(p1)
+        return series
+
+    series = {label: [] for label in labels[:row_len]}
+    for row in trace.states:
+        for idx, label in enumerate(labels[:row_len]):
+            value = float(row[idx]) if idx < len(row) else 0.0
+            series[label].append(value)
+    return series
+
+
+def _population_series(trace, model_spec) -> dict[str, list[float]]:
+    return _population_series_from_quantum_state(trace, model_spec) or _population_series_from_trace_rows(trace, model_spec)
+
+
+def _mean_excited_series_from_population(series: dict[str, list[float]], model_spec) -> list[float]:
+    if not series:
+        return []
+    payload = dict(model_spec.payload or {})
+    num_qubits = int(payload.get("num_qubits", 0) or 0)
+    labels = list(series.keys())
+    length = max(len(values) for values in series.values())
+    values: list[float] = []
+    for idx in range(length):
+        total = 0.0
+        for label in labels:
+            sample = series[label][idx] if idx < len(series[label]) else 0.0
+            total += _label_excitation_value(label, num_qubits=num_qubits) * float(sample)
+        values.append(float(total))
+    return values
+
+
+def _variance_series_from_population(series: dict[str, list[float]], model_spec) -> list[float]:
+    if not series:
+        return []
+    payload = dict(model_spec.payload or {})
+    num_qubits = int(payload.get("num_qubits", 0) or 0)
+    labels = list(series.keys())
+    label_values = {label: _label_excitation_value(label, num_qubits=num_qubits) for label in labels}
+    means = _mean_excited_series_from_population(series, model_spec)
+    length = len(means)
+    values: list[float] = []
+    for idx in range(length):
+        mean = means[idx]
+        total = 0.0
+        for label in labels:
+            sample = series[label][idx] if idx < len(series[label]) else 0.0
+            delta = label_values[label] - mean
+            total += float(sample) * float(delta * delta)
+        values.append(float(total))
+    return values
+
+
+def _metric_terminal_value(value):
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, dict):
+        if isinstance(value.get("values"), list) and value.get("values"):
+            tail = value["values"][-1]
+            if isinstance(tail, (int, float)):
+                return float(tail)
+        if isinstance(value.get("series"), dict):
+            return None
+    return None
+
+
+def _resolve_metric_payload(trace, model_spec, analysis_cfg: dict | None) -> tuple[dict, Observables, Report]:
+    requested_metrics = list((analysis_cfg or {}).get("metrics", []) or [])
+    observables = compute_observables(trace)
+    observable_values = dict(observables.values or {})
+    metrics_out: dict[str, object] = {}
+
+    if not requested_metrics:
+        metrics_out = dict(observable_values)
+    else:
+        for item in requested_metrics:
+            if isinstance(item, str):
+                name = str(item).strip()
+                metric_cfg = {}
+            elif isinstance(item, dict):
+                name = str(item.get("name", "")).strip()
+                metric_cfg = dict(item)
+            else:
+                continue
+            if not name:
+                continue
+            key = name.lower()
+            if key == "population":
+                basis_series = _population_series(trace, model_spec)
+                metrics_out[name] = {
+                    "times": list(trace.times),
+                    "series": basis_series,
+                }
+                for label, values in basis_series.items():
+                    if values:
+                        observable_values[str(label)] = float(values[-1])
+                if "0" in basis_series and basis_series["0"]:
+                    observable_values["final_p0"] = float(basis_series["0"][-1])
+                if "1" in basis_series and basis_series["1"]:
+                    observable_values["final_p1"] = float(basis_series["1"][-1])
+            elif key == "variance":
+                basis_series = _population_series(trace, model_spec)
+                variance_series = _variance_series_from_population(basis_series, model_spec)
+                metrics_out[name] = {
+                    "times": list(trace.times),
+                    "values": variance_series,
+                }
+                if variance_series:
+                    observable_values["variance"] = float(variance_series[-1])
+            elif key == "mean_excited":
+                basis_series = _population_series(trace, model_spec)
+                mean_series = _mean_excited_series_from_population(basis_series, model_spec)
+                metrics_out[name] = {
+                    "times": list(trace.times),
+                    "values": mean_series,
+                }
+                if mean_series:
+                    observable_values["mean_excited"] = float(mean_series[-1])
+            else:
+                if key in observable_values:
+                    metrics_out[name] = float(observable_values[key])
+                elif name in observable_values:
+                    metrics_out[name] = float(observable_values[name])
+
+    error_budget = {}
+    for key, value in metrics_out.items():
+        terminal = _metric_terminal_value(value)
+        if terminal is not None:
+            error_budget[key] = float(terminal)
+    report = Report(
+        summary={
+            "metrics": list(metrics_out.keys()),
+            "metric_mode": "time_series",
+            "metric_terminal_values": error_budget,
+        },
+        error_budget=error_budget,
+    )
+    return metrics_out, Observables(values=observable_values), report
+
+
+def run_analysis_stage(*, trace, model_spec, cfg, logical_error, analysis_cfg: dict | None):
     """Run observables/report analysis and build sensitivity budgets."""
     stage_timings: dict[str, float] = {}
     t0 = time.perf_counter()
-    registry = AnalysisRegistry()
-    analysis = AnalysisRunner(registry).run(trace, model_spec, pipeline=cfg.analysis_pipeline)
+    trace_payload = _resolve_analysis_trace(trace, analysis_cfg)
+    metrics_payload, observables_obj, report_obj = _resolve_metric_payload(trace, model_spec, analysis_cfg)
+    analysis = {
+        "trace": trace_payload,
+        "metrics": metrics_payload,
+        "report": report_obj.__dict__,
+    }
     t1 = time.perf_counter()
     stage_timings["analysis_run"] = t1 - t0
 
-    obs_payload = analysis.get("observables", {}) if isinstance(analysis, dict) else {}
-    observables_obj = Observables(
-        schema_version=str(obs_payload.get("schema_version", "1.0")),
-        values=dict(obs_payload.get("values", {})),
-    )
-    logical_error_obj = LogicalErrorSummary(
-        schema_version=str(logical_error.schema_version),
-        logical_x=float(logical_error.logical_x),
-        logical_z=float(logical_error.logical_z),
-        shots=int(logical_error.shots),
-        metadata=dict(logical_error.metadata),
-    )
-    sensitivity_report = build_sensitivity_report(
-        observables_obj,
-        logical_error_obj,
-        seed=cfg.seed,
-        sweep=cfg.sweep,
-    )
-    error_budget_v2 = build_error_budget_v2(
-        observables_obj,
-        logical_error_obj,
-        sensitivity_report=sensitivity_report,
-    )
+    logical_error_obj = None
+    sensitivity_report = None
+    error_budget_v2 = None
+    if logical_error is not None:
+        logical_error_obj = LogicalErrorSummary(
+            schema_version=str(logical_error.schema_version),
+            logical_x=float(logical_error.logical_x),
+            logical_z=float(logical_error.logical_z),
+            shots=int(logical_error.shots),
+            metadata=dict(logical_error.metadata),
+        )
+        sensitivity_report = build_sensitivity_report(
+            observables_obj,
+            logical_error_obj,
+            seed=cfg.seed,
+            sweep=cfg.sweep,
+        )
+        error_budget_v2 = build_error_budget_v2(
+            observables_obj,
+            logical_error_obj,
+            sensitivity_report=sensitivity_report,
+        )
     t2 = time.perf_counter()
     stage_timings["sensitivity_run"] = t2 - t1
     return {

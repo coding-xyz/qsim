@@ -1,0 +1,30 @@
+schema_version: "3.0"
+solver:
+  engine: qoptics
+  study:
+    - name: control_dynamics
+      active_components: [q0]
+      active_connections: []
+      solver_mode: me
+      time:
+        dt_s: 1.0e-9
+        t_end_s: 50.0e-6
+        t_padding_s: 0.0
+      frame:
+        mode: rotating
+        reference: carrier
+        rwa: true
+      options: {}
+  analysis:
+    trace:
+      states: density_matrix
+      save_times: all
+      save_final_state: true
+      save_jump_events: false
+      save_measurement_records: false
+    metrics:
+      - population
+      - mean_excited
+      - variance
+  schedule:
+    policy: serial
