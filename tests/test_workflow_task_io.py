@@ -206,6 +206,54 @@ def test_device_config_loads_with_template(tmp_path: Path):
     assert isinstance(cfg.noise, dict)
 
 
+def test_device_config_rejects_component_representation_basis_and_role(tmp_path: Path):
+    p = tmp_path / "device.yaml"
+    p.write_text(
+        json.dumps(
+            {
+                "device": {
+                    "components": [
+                        {
+                            "id": "q0",
+                            "type": "transmon",
+                            "role": "qubit",
+                            "representation": "quantum",
+                            "basis": {"kind": "nlevel", "levels": 3},
+                        }
+                    ]
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="no longer supported"):
+        load_device_config_file(p)
+
+
+def test_v3_solver_rejects_legacy_study_parameters(tmp_path: Path):
+    p = tmp_path / "solver.yaml"
+    p.write_text(
+        json.dumps(
+            {
+                "schema_version": "3.0",
+                "solver": {
+                    "engine": "qutip",
+                    "study": [
+                        {
+                            "name": "bad",
+                            "solver_mode": "me",
+                            "parameters": {"prep_label": "|0>", "prep_sequence": []},
+                        }
+                    ],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="study\\[\\]\\.parameters is no longer supported"):
+        load_solver_config_file(p)
+
+
 def test_pulse_config_loads_with_template(tmp_path: Path):
     p = tmp_path / "pulse.yaml"
     p.write_text("template: single_qubit_default\npulse:\n  gate_duration_ns: 24.0\n", encoding="utf-8")

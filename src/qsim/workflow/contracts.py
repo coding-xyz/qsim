@@ -259,6 +259,72 @@ def select_primary_study_step(study: list[dict] | None, *, fallback_solver_mode:
     return entries[0]
 
 
+def extract_study_prep(step: dict | None) -> dict[str, object]:
+    """Extract state-preparation metadata from a study step."""
+    selected = dict(step or {})
+    prep_state = dict(selected.get("prep_state", {}) or {})
+    return {
+        "prep_label": str(prep_state.get("label", "") or "").strip(),
+        "prep_sequence": list(prep_state.get("sequence", []) or []),
+    }
+
+
+def _normalize_component_representation(value: object) -> str:
+    token = str(value or "").strip().lower()
+    aliases = {"q": "quantum", "quantum": "quantum", "c": "classical", "classical": "classical"}
+    return aliases.get(token, token)
+
+
+def _normalize_component_basis(value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        return {}
+    basis = dict(value)
+    if "kind" in basis:
+        basis["kind"] = str(basis.get("kind", "") or "").strip().lower()
+    return basis
+
+
+def apply_composite_device_step_overrides(device: dict | None, step: dict | None) -> dict[str, object]:
+    """Apply study-step component overrides such as per-component representations/bases."""
+    raw = dict(device or {})
+    if "components" not in raw:
+        return raw
+    selected = dict(step or {})
+    raw_representations = selected.get("representations", {})
+    raw_bases = selected.get("bases", {})
+    if not isinstance(raw_representations, dict):
+        raw_representations = {}
+    if not isinstance(raw_bases, dict):
+        raw_bases = {}
+    representation_overrides = {
+        str(comp_id).strip(): _normalize_component_representation(value)
+        for comp_id, value in raw_representations.items()
+        if str(comp_id).strip() and str(value or "").strip()
+    }
+    basis_overrides = {
+        str(comp_id).strip(): _normalize_component_basis(value)
+        for comp_id, value in raw_bases.items()
+        if str(comp_id).strip() and isinstance(value, dict)
+    }
+    if not representation_overrides and not basis_overrides:
+        return raw
+    components: list[dict[str, object]] = []
+    for comp in list(raw.get("components", []) or []):
+        if not isinstance(comp, dict):
+            continue
+        updated = dict(comp)
+        comp_id = str(updated.get("id", "")).strip()
+        if comp_id in representation_overrides:
+            updated["representation"] = representation_overrides[comp_id]
+        if comp_id in basis_overrides:
+            updated["basis"] = basis_overrides[comp_id]
+        components.append(updated)
+    return {
+        **raw,
+        "components": components,
+    }
+
+
 def filter_composite_device_for_step(device: dict | None, step: dict | None) -> dict[str, object]:
     """Filter composite device payload by active components/connections of one study step."""
     raw = dict(device or {})
@@ -388,11 +454,10 @@ def _normalize_composite_device_payload(raw: dict[str, object]) -> dict[str, obj
                 cavity_nmax = int(basis.get("nmax", 0) or 0)
 
     normalized: dict[str, object] = {
+        **{k: v for k, v in raw.items() if k not in {"components", "connections"}},
         "components": components,
         "connections": connections,
     }
-    if isinstance(raw.get("parameters"), dict):
-        normalized["parameters"] = dict(raw.get("parameters", {}) or {})
     if qubits:
         normalized["qubits"] = qubits
     if max_transmon_levels > 2:
@@ -484,11 +549,12 @@ def compose_workflow_task(
     backend_source: str | None = None,
 ) -> WorkflowTask:
     """Compose 3-way configs into one canonical runtime task contract."""
-    runtime_level = infer_runtime_level(device_cfg.device)
-    runtime_device = normalize_device_payload(device_cfg.device)
+    run_cfg, frame_cfg, _primary_step = merge_solver_runtime_from_study(solver_cfg)
+    runtime_source_device = apply_composite_device_step_overrides(device_cfg.device, _primary_step)
+    runtime_level = infer_runtime_level(runtime_source_device)
+    runtime_device = normalize_device_payload(runtime_source_device)
     if "simulation_level" not in runtime_device:
         runtime_device["simulation_level"] = runtime_level
-    run_cfg, frame_cfg, _primary_step = merge_solver_runtime_from_study(solver_cfg)
 
     return WorkflowTask(
         input=WorkflowInput(
@@ -496,7 +562,7 @@ def compose_workflow_task(
             backend_path=backend_source,
             backend_config=solver_cfg.to_backend_config(noise=device_cfg.noise, runtime_level=runtime_level),
             device=runtime_device or None,
-            device_model=dict(device_cfg.device or {}) or None,
+            device_model=dict(runtime_source_device or {}) or None,
             pulse=dict(device_cfg.pulse or {}) or None,
             frame=asdict(frame_cfg),
             analysis=dict(solver_cfg.analysis or {}) or None,
@@ -531,7 +597,9 @@ __all__ = [
     "WorkflowSolverConfig",
     "WorkflowTask",
     "WorkflowTaskConfig",
+    "apply_composite_device_step_overrides",
     "compose_workflow_task",
+    "extract_study_prep",
     "filter_composite_device_for_step",
     "infer_runtime_level",
     "merge_solver_runtime_from_study",

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import hashlib
+import json
 import time
 
 import h5py
@@ -13,18 +14,43 @@ from qsim.pulse.sequence import PulseCompiler
 from qsim.pulse.visualize import plot_pulses, plot_report, plot_trace
 
 
+def _jsonable(value):
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(item) for item in value]
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    if hasattr(value, "tolist"):
+        try:
+            return _jsonable(value.tolist())
+        except Exception:
+            pass
+    if hasattr(value, "item"):
+        try:
+            return _jsonable(value.item())
+        except Exception:
+            pass
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
+
+
 def write_trace_h5(trace, out_path: Path) -> Path:
-    """Persist a ``Trace`` object into a minimal HDF5 file."""
+    """Persist a ``Trace`` object into an HDF5 file with structured metadata."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with h5py.File(out_path, "w") as h5:
         h5.create_dataset("times", data=trace.times)
         h5.create_dataset("states", data=trace.states)
         h5.attrs["engine"] = trace.engine
+        h5.attrs["trace_schema_version"] = getattr(trace, "schema_version", "1.0")
         metadata = dict(getattr(trace, "metadata", {}) or {})
         for key in ("state_encoding", "num_qubits", "model_dimension"):
             value = metadata.get(key, None)
             if value is not None:
                 h5.attrs[key] = value
+        metadata_json = json.dumps(_jsonable(metadata), ensure_ascii=False)
+        h5.create_dataset("metadata_json", data=metadata_json, dtype=h5py.string_dtype(encoding="utf-8"))
     return out_path
 
 

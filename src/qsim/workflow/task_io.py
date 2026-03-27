@@ -184,6 +184,8 @@ def _map_v3_pulse_payload(raw_pulse: dict[str, Any]) -> dict[str, Any]:
         mapped["readout_edge_ns"] = float(measure_wf["edge_ns"])
     if "integration_window_ns" in acquisition:
         mapped["measure_duration_ns"] = float(acquisition["integration_window_ns"])
+    if acquisition:
+        mapped["acquisition"] = acquisition
     schedule_cfg = dict(raw_pulse.get("schedule", {}) or {})
     if schedule_cfg.get("policy"):
         mapped["schedule_policy"] = str(schedule_cfg.get("policy"))
@@ -343,6 +345,57 @@ def _validate_solver_payload(payload: dict[str, Any]) -> str:
     return engine
 
 
+def _validate_v3_solver_study(study: list[dict[str, Any]] | None) -> None:
+    allowed_step_keys = {
+        "name",
+        "description",
+        "active_components",
+        "active_connections",
+        "representations",
+        "bases",
+        "solver_mode",
+        "time",
+        "frame",
+        "options",
+        "prep_state",
+        "schedule",
+    }
+    for idx, step in enumerate(list(study or [])):
+        if not isinstance(step, dict):
+            raise ValueError(f"solver.study[{idx}] must be a mapping.")
+        if "parameters" in step:
+            raise ValueError("solver.study[].parameters is no longer supported; use prep_state, representations, and bases.")
+        unknown = sorted(set(step) - allowed_step_keys)
+        if unknown:
+            raise ValueError(f"Unsupported keys in solver.study[{idx}]: {unknown}")
+        if "representations" in step and not isinstance(step.get("representations"), dict):
+            raise ValueError(f"solver.study[{idx}].representations must be a mapping.")
+        if "bases" in step and not isinstance(step.get("bases"), dict):
+            raise ValueError(f"solver.study[{idx}].bases must be a mapping.")
+        if "prep_state" in step:
+            prep_state = step.get("prep_state")
+            if not isinstance(prep_state, dict):
+                raise ValueError(f"solver.study[{idx}].prep_state must be a mapping.")
+            prep_unknown = sorted(set(prep_state) - {"label", "sequence"})
+            if prep_unknown:
+                raise ValueError(f"Unsupported keys in solver.study[{idx}].prep_state: {prep_unknown}")
+
+
+def _validate_composite_device_schema(raw_device: dict[str, Any]) -> None:
+    components = list(raw_device.get("components", []) or [])
+    for idx, comp in enumerate(components):
+        if not isinstance(comp, dict):
+            raise ValueError(f"device.components[{idx}] must be a mapping.")
+        if "role" in comp:
+            raise ValueError("device.components[].role is no longer supported; use device.components[].description instead.")
+        moved_keys = [key for key in ("representation", "basis") if key in comp]
+        if moved_keys:
+            raise ValueError(
+                "device.components[] no longer accepts "
+                f"{moved_keys}; move them into solver.study[].representations / solver.study[].bases."
+            )
+
+
 def _validate_device_payload(payload: dict[str, Any]) -> None:
     _reject_unknown("device top-level", set(payload), _DEVICE_TOP_KEYS)
     raw_device = payload.get("device", {}) or {}
@@ -351,6 +404,8 @@ def _validate_device_payload(payload: dict[str, Any]) -> None:
         raise ValueError("Device config `device` must be a mapping.")
     if not isinstance(raw_noise, dict):
         raise ValueError("Device config `noise` must be a mapping.")
+    if "components" in raw_device:
+        _validate_composite_device_schema(raw_device)
 
 
 def _validate_pulse_payload(payload: dict[str, Any]) -> None:
@@ -432,12 +487,14 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
         if engine not in {"qutip", "qoptics", "qtoolbox"}:
             raise ValueError(f"Unsupported solver.engine: {engine!r}. Supported engines: qutip, qoptics, qtoolbox.")
         raw_study = [dict(step) for step in list(solver.get("study", []) or []) if isinstance(step, dict)] or None
+        _validate_v3_solver_study(raw_study)
         raw_analysis = dict(solver.get("analysis", {}) or {}) or None
         raw_schedule = dict(solver.get("schedule", {}) or {})
         raw_run = {
             "engine": engine,
             "seed": int(solver.get("seed", 12345)),
             "schedule_policy": raw_schedule.get("policy"),
+            "mcwf_ntraj": int(solver.get("mcwf_ntraj", 128) or 128),
         }
         solver_cfg = WorkflowSolverConfig(
             backend=SolverBackendConfig(level="qubit", analysis_pipeline="structured", truncation={}),

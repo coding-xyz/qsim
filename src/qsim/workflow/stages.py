@@ -3,22 +3,70 @@
 from __future__ import annotations
 
 import time
+from copy import deepcopy
 
 from qsim.analysis.observables import compute_observables
+from qsim.analysis.readout_chain import build_readout_analysis
 from qsim.analysis.sensitivity import build_error_budget_v2, build_sensitivity_report
 from qsim.analysis.trace_semantics import annotate_trace_metadata, state_encoding
 from qsim.backend.compile_pipeline import CompilePipeline
 from qsim.backend.config import load_backend_config
 from qsim.backend.lowering import DefaultLowering
 from qsim.backend.model_build import DefaultModelBuilder
+from qsim.circuit.export_qasm import to_qasm
 from qsim.circuit.import_qasm import CircuitAdapter
-from qsim.common.schemas import DecoderInput, LogicalErrorSummary, Observables, Report, SyndromeFrame
+from qsim.common.schemas import CircuitGate, DecoderInput, LogicalErrorSummary, Observables, Report, SyndromeFrame
 from qsim.pulse.sequence import PulseCompiler
 from qsim.qec.decoder import build_decoder_report, get_decoder, summarize_logical_error
 from qsim.qec.prior import build_prior_and_report
 from qsim.workflow.engines import select_engine
 from qsim.workflow.output import write_pulse_npz_with_fallback
-from qsim.workflow.contracts import filter_composite_device_for_step, normalize_device_payload, select_primary_study_step
+from qsim.workflow.contracts import (
+    apply_composite_device_step_overrides,
+    extract_study_prep,
+    filter_composite_device_for_step,
+    normalize_device_payload,
+    select_primary_study_step,
+)
+
+
+def _normalize_study_prep(step: dict | None) -> dict[str, object]:
+    return extract_study_prep(step)
+
+
+def _prep_gate_from_spec(spec, *, num_qubits: int) -> CircuitGate:
+    if isinstance(spec, str):
+        if num_qubits != 1:
+            raise ValueError("String prep_sequence entries require a single-qubit circuit or explicit qubit targets.")
+        return CircuitGate(name=str(spec).strip().lower(), qubits=[0], params=[], clbits=[])
+    if isinstance(spec, dict):
+        name = str(spec.get("name", "")).strip().lower()
+        if not name:
+            raise ValueError(f"Invalid prep_sequence entry: {spec!r}")
+        qubits = [int(q) for q in list(spec.get("qubits", []) or [])]
+        if not qubits:
+            if num_qubits != 1:
+                raise ValueError("prep_sequence gate dicts must declare qubits for multi-qubit circuits.")
+            qubits = [0]
+        return CircuitGate(
+            name=name,
+            qubits=qubits,
+            params=[float(x) for x in list(spec.get("params", []) or [])],
+            clbits=[int(c) for c in list(spec.get("clbits", []) or [])],
+        )
+    raise ValueError(f"Unsupported prep_sequence entry: {spec!r}")
+
+
+def _apply_study_prep_sequence_to_qasm(qasm_text: str, prep_sequence) -> str:
+    sequence = list(prep_sequence or [])
+    if not sequence:
+        return qasm_text
+    circuit = CircuitAdapter.from_qasm(qasm_text)
+    prep_gates = [_prep_gate_from_spec(item, num_qubits=circuit.num_qubits) for item in sequence]
+    measure_gates = [deepcopy(gate) for gate in list(circuit.gates or []) if str(gate.name).strip().lower() == "measure"]
+    circuit.gates = prep_gates + measure_gates
+    circuit.source_qasm = to_qasm(circuit)
+    return circuit.source_qasm
 
 
 def parse_compile_lower_model(
@@ -42,8 +90,13 @@ def parse_compile_lower_model(
 ):
     """Parse input and build simulation model artifacts."""
     stage_timings: dict[str, float] = {}
+    primary_step = select_primary_study_step(study, fallback_solver_mode=solver_mode)
+    prep_state = _normalize_study_prep(primary_step)
+    effective_qasm_text = qasm_text
+    if prep_state.get("prep_sequence") is not None:
+        effective_qasm_text = _apply_study_prep_sequence_to_qasm(qasm_text, prep_state.get("prep_sequence"))
     t0 = time.perf_counter()
-    circuit = CircuitAdapter.from_qasm(qasm_text, param_bindings=param_bindings)
+    circuit = CircuitAdapter.from_qasm(effective_qasm_text, param_bindings=param_bindings)
     t1 = time.perf_counter()
     stage_timings["qasm_parse"] = t1 - t0
     if backend_config is not None:
@@ -56,8 +109,8 @@ def parse_compile_lower_model(
     stage_timings["backend_load"] = t2 - t1
 
     raw_device = dict(device or {})
-    primary_step = select_primary_study_step(study, fallback_solver_mode=solver_mode)
     raw_device = filter_composite_device_for_step(raw_device, primary_step)
+    raw_device = apply_composite_device_step_overrides(raw_device, primary_step)
     model_device = normalize_device_payload(raw_device)
     pulse_cfg = dict(pulse or {})
     lowering_device = dict(model_device)
@@ -110,6 +163,8 @@ def parse_compile_lower_model(
         "analysis_cfg": dict(analysis or {}),
         "study": list(study or []),
         "primary_step": primary_step,
+        "prep_state": prep_state,
+        "effective_qasm_text": effective_qasm_text,
         "normalized": normalized,
         "compile_report": compile_report,
         "pulse_ir": pulse_ir,
@@ -236,6 +291,11 @@ def _resolve_analysis_trace(trace, analysis_cfg: dict | None) -> dict:
         payload["measurement_records"] = list((trace.metadata or {}).get("measurement_records", []) or [])
     if quantum_state_trace.get("note"):
         payload["note"] = str(quantum_state_trace.get("note"))
+    elif requested_kind in {"wave_function", "density_matrix"} and not quantum_state_trace:
+        payload["note"] = (
+            f"requested {requested_kind} but no quantum_state_trace was stored; "
+            "states contains reduced observables rather than full subsystem states"
+        )
     return payload
 
 
@@ -467,17 +527,29 @@ def _resolve_metric_payload(trace, model_spec, analysis_cfg: dict | None) -> tup
     return metrics_out, Observables(values=observable_values), report
 
 
-def run_analysis_stage(*, trace, model_spec, cfg, logical_error, analysis_cfg: dict | None):
+def run_analysis_stage(*, trace, model_spec, pulse_ir, pulse_cfg: dict | None, cfg, logical_error, analysis_cfg: dict | None):
     """Run observables/report analysis and build sensitivity budgets."""
     stage_timings: dict[str, float] = {}
     t0 = time.perf_counter()
     trace_payload = _resolve_analysis_trace(trace, analysis_cfg)
     metrics_payload, observables_obj, report_obj = _resolve_metric_payload(trace, model_spec, analysis_cfg)
+    readout_payload = build_readout_analysis(
+        trace=trace,
+        model_spec=model_spec,
+        pulse_ir=pulse_ir,
+        pulse_cfg=pulse_cfg,
+        analysis_cfg=analysis_cfg,
+        seed=int(getattr(cfg, "seed", 12345)),
+    )
     analysis = {
         "trace": trace_payload,
         "metrics": metrics_payload,
         "report": report_obj.__dict__,
     }
+    if readout_payload.get("readout") is not None:
+        analysis["readout"] = readout_payload["readout"]
+    if readout_payload.get("iq") is not None:
+        analysis["iq"] = readout_payload["iq"]
     t1 = time.perf_counter()
     stage_timings["analysis_run"] = t1 - t0
 

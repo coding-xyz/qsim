@@ -212,6 +212,18 @@ def write_artifacts(*, out: Path, policy: ArtifactWritePolicy, payload: Artifact
             _record_write(report, "analysis_metrics", "analysis_metrics.json")
         else:
             _record_skip(report, "analysis_metrics")
+    if analysis_bundle.get("readout") is not None:
+        if _should_write(policy, "analysis_readout"):
+            write_json(out / "analysis_readout.json", analysis_bundle.get("readout", {}))
+            _record_write(report, "analysis_readout", "analysis_readout.json")
+        else:
+            _record_skip(report, "analysis_readout")
+    if analysis_bundle.get("iq") is not None:
+        if _should_write(policy, "analysis_iq"):
+            write_json(out / "analysis_iq.json", analysis_bundle.get("iq", {}))
+            _record_write(report, "analysis_iq", "analysis_iq.json")
+        else:
+            _record_skip(report, "analysis_iq")
     if analysis_bundle.get("report") is not None:
         if _should_write(policy, "report"):
             write_json(out / "report.json", analysis_bundle.get("report", {}))

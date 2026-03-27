@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, is_dataclass
+from copy import deepcopy
+from dataclasses import asdict, is_dataclass, replace
 from pathlib import Path
+import math
 import time
 
 from qsim.common.schemas import Carrier, ChannelSpec, PulseIR, PulseSpec, Trace, utc_now_iso, write_json
@@ -14,6 +16,7 @@ from qsim.workflow.contracts import (
     WorkflowTask,
     WorkflowTaskConfig,
     compose_workflow_task,
+    extract_study_prep,
 )
 from qsim.workflow.output import build_settings_report, resolve_writable_out_dir
 from qsim.workflow.persistence import (
@@ -38,6 +41,118 @@ from qsim.workflow.task_io import (
 
 def _tick(timings: dict[str, float], stage: str, started_at: float) -> None:
     timings[stage] = time.perf_counter() - started_at
+
+
+def _study_entries(task: WorkflowTask) -> list[dict]:
+    return [dict(step) for step in list(task.input.study or []) if isinstance(step, dict)]
+
+
+def _sanitize_study_name(name: str, idx: int) -> str:
+    raw = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in str(name).strip())
+    raw = raw.strip("._") or f"study_{idx + 1}"
+    return raw
+
+
+def _prepare_task_for_study(task: WorkflowTask, study: dict, *, out_dir: Path) -> WorkflowTask:
+    prep_state = extract_study_prep(study)
+    prep_sequence = list(prep_state.get("prep_sequence", []) or [])
+    prep_label = str(prep_state.get("prep_label", "") or "").strip()
+
+    analysis = deepcopy(task.input.analysis or {})
+    pulse = deepcopy(task.input.pulse or {})
+    if prep_label:
+        iq_cfg = dict(analysis.get("iq_discrimination", {}) or {})
+        iq_cfg["calibration_states"] = [{"label": prep_label, "preparation": deepcopy(prep_sequence)}]
+        analysis["iq_discrimination"] = iq_cfg
+
+        acquisition = dict(pulse.get("acquisition", {}) or {})
+        acquisition_iq = dict(acquisition.get("iq_discrimination", {}) or {})
+        acquisition_iq["labels"] = [prep_label]
+        acquisition["iq_discrimination"] = acquisition_iq
+        pulse["acquisition"] = acquisition
+
+    case_input = replace(
+        task.input,
+        analysis=analysis,
+        pulse=pulse,
+        study=[deepcopy(study)],
+    )
+    case_output = replace(task.output, out_dir=str(out_dir))
+    return replace(task, input=case_input, output=case_output)
+
+
+def _nearest_centroid(point: complex, centroids: dict[str, complex]) -> str:
+    best_label = ""
+    best_dist = float("inf")
+    for label, center in centroids.items():
+        dist = abs(point - center)
+        if dist < best_dist:
+            best_label = label
+            best_dist = dist
+    return best_label
+
+
+def _build_multi_study_iq_comparison(case_results: dict[str, dict]) -> dict[str, object] | None:
+    centroids: dict[str, complex] = {}
+    clouds: dict[str, list[complex]] = {}
+    study_map: dict[str, str] = {}
+    for study_name, result in case_results.items():
+        iq = dict(result.get("results", {}).get("iq", {}) or {})
+        raw_centroids = dict(iq.get("centroids", {}) or {})
+        raw_clouds = dict(iq.get("synthetic_clouds", {}) or {})
+        for label, pair in raw_centroids.items():
+            if not isinstance(pair, (list, tuple)) or len(pair) < 2:
+                continue
+            centroids[str(label)] = complex(float(pair[0]), float(pair[1]))
+            study_map[str(label)] = study_name
+        for label, samples in raw_clouds.items():
+            points: list[complex] = []
+            for pair in list(samples or []):
+                if not isinstance(pair, (list, tuple)) or len(pair) < 2:
+                    continue
+                points.append(complex(float(pair[0]), float(pair[1])))
+            if points:
+                clouds[str(label)] = points
+    labels = [label for label in centroids.keys() if label in clouds]
+    if not labels:
+        return None
+
+    confusion = [[0 for _ in labels] for _ in labels]
+    all_pairwise: list[float] = []
+    for i, label in enumerate(labels):
+        for point in clouds.get(label, []):
+            pred = _nearest_centroid(point, {lab: centroids[lab] for lab in labels})
+            if pred in labels:
+                confusion[i][labels.index(pred)] += 1
+    for i, a in enumerate(labels):
+        for b in labels[i + 1 :]:
+            all_pairwise.append(abs(centroids[a] - centroids[b]))
+    total = sum(sum(row) for row in confusion)
+    fidelity = float(sum(confusion[i][i] for i in range(len(labels))) / max(1, total))
+    noise_sigma = 0.0
+    for label in labels:
+        center = centroids[label]
+        points = clouds.get(label, [])
+        if not points:
+            continue
+        rms = math.sqrt(sum(abs(point - center) ** 2 for point in points) / max(1, len(points)))
+        noise_sigma = max(noise_sigma, rms)
+    cluster_separation = float(min(all_pairwise) / max(noise_sigma, 1.0e-12)) if all_pairwise else 0.0
+    snr = float((sum(all_pairwise) / len(all_pairwise)) / max(2.0 * noise_sigma, 1.0e-12)) if all_pairwise else 0.0
+    return {
+        "schema_version": "1.0",
+        "labels": labels,
+        "centroids": {label: [float(centroids[label].real), float(centroids[label].imag)] for label in labels},
+        "synthetic_clouds": {
+            label: [[float(point.real), float(point.imag)] for point in clouds.get(label, [])]
+            for label in labels
+        },
+        "confusion_matrix": {"labels": labels, "values": confusion},
+        "assignment_fidelity": fidelity,
+        "cluster_separation": cluster_separation,
+        "snr": snr,
+        "study_map": study_map,
+    }
 
 
 def _public_value(value):
@@ -161,6 +276,8 @@ def _run_core_stages(*, task: WorkflowTask, out: Path, timings: dict[str, float]
         analyzed = run_analysis_stage(
             trace=trace,
             model_spec=parsed["model_spec"],
+            pulse_ir=parsed["pulse_ir"],
+            pulse_cfg=task.input.pulse,
             cfg=parsed["cfg"],
             logical_error=decoded["logical_error"],
             analysis_cfg=task.input.analysis,
@@ -397,7 +514,7 @@ def _persist_and_finalize(
         out=out,
         cfg_seed=parsed["cfg"].seed,
         backend_path=(task.input.backend_path or "<inline:solver.backend>"),
-        qasm_text=task.input.qasm_text,
+        qasm_text=str(parsed.get("effective_qasm_text", task.input.qasm_text)),
         dependencies=gather_dependencies(trace=trace, selected_engine_name=task.run.engine),
         outputs=outputs_map,
     )
@@ -441,6 +558,8 @@ def _build_result_payload(
     model_payload = dict(model_spec.payload or {})
     results_trace = dict(analyzed.get("analysis", {}).get("trace", {}) or {})
     results_metrics = dict(analyzed.get("analysis", {}).get("metrics", {}) or {})
+    results_readout = dict(analyzed.get("analysis", {}).get("readout", {}) or {})
+    results_iq = dict(analyzed.get("analysis", {}).get("iq", {}) or {})
     results_report = dict(analyzed.get("analysis", {}).get("report", {}) or {})
 
     qec_payload = {
@@ -469,7 +588,7 @@ def _build_result_payload(
         "inputs": {
             "task": {
                 "targets": list(plan.targets),
-                "qasm_text": task.input.qasm_text,
+                "qasm_text": str(parsed.get("effective_qasm_text", task.input.qasm_text)),
                 "param_bindings": dict(task.input.param_bindings or {}),
             },
             "solver": {
@@ -502,6 +621,8 @@ def _build_result_payload(
         "results": {
             "trace": _public_value(results_trace),
             "metrics": _public_value(results_metrics),
+            "readout": _public_value(results_readout),
+            "iq": _public_value(results_iq),
             "report": _public_value(results_report),
             "qec": _public_value(qec_payload),
             "sensitivity": _public_value(analyzed.get("sensitivity_report")),
@@ -512,6 +633,7 @@ def _build_result_payload(
             "engine_used": trace.engine,
             "solver_mode": str(task.run.solver_mode or model_spec.solver),
             "seed": int(parsed["cfg"].seed),
+            "out_dir": str(out),
             "timings": {str(k): float(v) for k, v in timings.items()},
             "execution_plan": {
                 "template": plan.template,
@@ -527,6 +649,87 @@ def _build_result_payload(
             "files": dict(finalized["outputs_map"]),
         },
     }
+
+
+def _run_single_task(
+    *,
+    task: WorkflowTask,
+    out: Path,
+) -> dict:
+    plan = build_execution_plan(task)
+    run_started_at = time.perf_counter()
+    timings: dict[str, float] = {}
+
+    core_ctx = _run_core_stages(task=task, out=out, timings=timings, plan=plan)
+    optional_ctx = _run_optional_branches(task=task, out=out, core_ctx=core_ctx, timings=timings, plan=plan)
+    finalized = _persist_and_finalize(
+        task=task,
+        out=out,
+        core_ctx=core_ctx,
+        optional_ctx=optional_ctx,
+        timings=timings,
+        run_started_at=run_started_at,
+        plan=plan,
+    )
+    return _build_result_payload(
+        task=task,
+        out=out,
+        core_ctx=core_ctx,
+        optional_ctx=optional_ctx,
+        finalized=finalized,
+        timings=timings,
+        plan=plan,
+    )
+
+
+def _build_multi_study_payload(*, task: WorkflowTask, out: Path, case_results: dict[str, dict]) -> dict:
+    iq_comparison = _build_multi_study_iq_comparison(case_results)
+    study_dirs = {
+        name: str(Path(result.get("artifacts", {}).get("out_dir", "")))
+        for name, result in case_results.items()
+    }
+    payload = {
+        "meta": {
+            "schema_version": "3.0",
+            "run_id": out.name,
+            "created_at": utc_now_iso(),
+            "multi_study": True,
+        },
+        "inputs": {
+            "task": {
+                "qasm_text": task.input.qasm_text,
+                "param_bindings": dict(task.input.param_bindings or {}),
+            },
+            "solver": {
+                "engine": task.run.engine,
+                "study": list(task.input.study or []),
+                "analysis": dict(task.input.analysis or {}),
+                "frame": dict(task.input.frame or {}),
+            },
+            "device": _public_value(task.input.device_model or task.input.device or {}),
+            "pulse": _public_value(task.input.pulse or {}),
+            "noise": _public_value(task.input.noise or {}),
+        },
+        "runtime": {
+            "multi_study": True,
+            "engine_requested": task.run.engine,
+            "out_dir": str(out),
+            "study_names": list(case_results.keys()),
+        },
+        "artifacts": {
+            "out_dir": str(out),
+            "study_dirs": study_dirs,
+        },
+        "studies": case_results,
+    }
+    if task.output.persist_artifacts:
+        write_json(out / "study_index.json", payload["artifacts"])
+        if iq_comparison is not None:
+            write_json(out / "study_comparison_iq.json", iq_comparison)
+            payload["artifacts"]["study_comparison_iq"] = str(out / "study_comparison_iq.json")
+    if iq_comparison is not None:
+        payload["comparison"] = {"iq": iq_comparison}
+    return payload
 
 
 def _resolve_runtime_task(
@@ -617,32 +820,17 @@ def run_task(
         device_config=device_config,
         pulse_config=pulse_config,
     )
-
-    plan = build_execution_plan(task)
-    run_started_at = time.perf_counter()
-    timings: dict[str, float] = {}
     out = resolve_writable_out_dir(Path(task.output.out_dir))
+    studies = _study_entries(task)
+    if len(studies) <= 1:
+        return _run_single_task(task=task, out=out)
 
-    core_ctx = _run_core_stages(task=task, out=out, timings=timings, plan=plan)
-    optional_ctx = _run_optional_branches(task=task, out=out, core_ctx=core_ctx, timings=timings, plan=plan)
-    finalized = _persist_and_finalize(
-        task=task,
-        out=out,
-        core_ctx=core_ctx,
-        optional_ctx=optional_ctx,
-        timings=timings,
-        run_started_at=run_started_at,
-        plan=plan,
-    )
-    return _build_result_payload(
-        task=task,
-        out=out,
-        core_ctx=core_ctx,
-        optional_ctx=optional_ctx,
-        finalized=finalized,
-        timings=timings,
-        plan=plan,
-    )
+    case_results: dict[str, dict] = {}
+    for idx, study in enumerate(studies):
+        case_name = _sanitize_study_name(str(study.get("name", "")), idx)
+        case_task = _prepare_task_for_study(task, study, out_dir=out / case_name)
+        case_results[case_name] = _run_single_task(task=case_task, out=out / case_name)
+    return _build_multi_study_payload(task=task, out=out, case_results=case_results)
 
 
 def run_task_files(

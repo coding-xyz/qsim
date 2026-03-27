@@ -248,6 +248,55 @@ def test_workflow_solver_mode_mcwf_persisted_in_outputs():
             shutil.rmtree(actual_out, ignore_errors=True)
 
 
+def test_workflow_runs_multiple_studies_with_top_level_prep_state():
+    qasm_text = """
+OPENQASM 3;
+qubit[1] q;
+bit[1] c;
+measure q[0] -> c[0];
+"""
+    out_dir = Path("runs") / f"pytest_dyn_multi_{uuid.uuid4().hex[:8]}"
+    actual_out = out_dir
+    try:
+        result = run_task(
+            WorkflowTask(
+                input=WorkflowInput(
+                    qasm_text=qasm_text,
+                    backend_path="examples/backend.yaml",
+                    study=[
+                        {"name": "prep_0", "solver_mode": "me", "prep_state": {"label": "|0>", "sequence": []}},
+                        {"name": "prep_1", "solver_mode": "me", "prep_state": {"label": "|1>", "sequence": ["x"]}},
+                    ],
+                ),
+                run=WorkflowRunOptions(decoder="mock"),
+                output=WorkflowOutputOptions(
+                    out_dir=str(out_dir),
+                    persist_artifacts=False,
+                    export_dxf=False,
+                    export_plots=False,
+                ),
+            )
+        )
+        actual_out = Path(result["runtime"]["out_dir"])
+        assert result["runtime"]["multi_study"] is True
+        assert set(result["studies"]) == {"prep_0", "prep_1"}
+
+        case0 = result["studies"]["prep_0"]
+        case1 = result["studies"]["prep_1"]
+        assert "x q[0];" not in case0["inputs"]["task"]["qasm_text"]
+        assert "x q[0];" in case1["inputs"]["task"]["qasm_text"]
+        assert case0["artifacts"]["out_dir"].endswith("prep_0")
+        assert case1["artifacts"]["out_dir"].endswith("prep_1")
+
+        final0 = float(case0["results"]["trace"]["final_state"][0])
+        final1 = float(case1["results"]["trace"]["final_state"][0])
+        assert final1 > final0
+    finally:
+        shutil.rmtree(out_dir, ignore_errors=True)
+        if actual_out != out_dir:
+            shutil.rmtree(actual_out, ignore_errors=True)
+
+
 def test_collect_runtime_dependencies_extracts_julia_versions():
     trace = Trace(
         engine="julia-quantumtoolbox",

@@ -3,6 +3,7 @@ import math
 
 from qsim.backend.model_build import DefaultModelBuilder
 from qsim.common.schemas import ExecutableModel
+from qsim.workflow.contracts import apply_composite_device_step_overrides, normalize_device_payload
 
 
 def test_model_builder_generates_qubit_network_payload():
@@ -128,3 +129,107 @@ def test_model_builder_uses_solver_timing_controls():
     )
     assert overridden.dt == pytest.approx(2.5e-10)
     assert overridden.t_end == pytest.approx(4.0e-9)
+
+
+def test_model_builder_collects_readout_controls():
+    executable = ExecutableModel(solver="me", metadata={"num_qubits": 1})
+    pulse_samples = {
+        "RO_0": {
+            "t": [0.0, 1.0e-9, 2.0e-9],
+            "y": [0.0, 0.8, 0.0],
+            "carrier_freq_Hz": [6.45e9],
+            "carrier_phase_rad": [0.0],
+        }
+    }
+    hw = {
+        "components": [
+            {
+                "id": "q0",
+                "type": "transmon",
+                "representation": "quantum",
+                "basis": {"kind": "nlevel", "levels": 3},
+                "parameters": {"freq_Hz": 5.0e9, "anharmonicity_Hz": -2.0e8},
+            },
+            {
+                "id": "r0",
+                "type": "resonator",
+                "representation": "quantum",
+                "basis": {"kind": "fock", "nmax": 4},
+                "parameters": {"freq_Hz": 6.45e9},
+            },
+        ],
+        "connections": [{"id": "c0", "type": "jc", "a": "q0", "b": "r0", "parameters": {"g_Hz": 1.0e7}}],
+        "simulation_level": "cqed",
+    }
+
+    spec = DefaultModelBuilder().build(executable, hw=hw, noise={}, pulse_samples=pulse_samples)
+
+    assert spec.payload["model_type"] == "cqed_jc"
+    assert len(spec.payload["readout_controls"]) == 1
+    assert spec.payload["readout_controls"][0]["channel"] == "RO_0"
+    assert spec.payload["readout_controls"][0]["carrier_freq_Hz"] == pytest.approx(6.45e9)
+
+
+def test_model_builder_selects_cqed_dispersive_from_selected_step_structure():
+    executable = ExecutableModel(solver="mcwf", metadata={"num_qubits": 1})
+    pulse_samples = {
+        "RO_0": {
+            "t": [0.0, 1.0e-9, 2.0e-9],
+            "y": [0.0, 0.6, 0.0],
+            "carrier_freq_Hz": [6.45e9],
+            "carrier_phase_rad": [0.0],
+        }
+    }
+    hw = {
+        "components": [
+            {
+                "id": "q0",
+                "type": "transmon",
+                "parameters": {"freq_Hz": 5.0e9, "anharmonicity_Hz": -2.0e8},
+            },
+            {
+                "id": "r0",
+                "type": "resonator",
+                "parameters": {"freq_Hz": 6.45e9, "chi_Hz": -1.0e6},
+            },
+            {
+                "id": "ro0",
+                "type": "readout_line",
+                "parameters": {"bandwidth_Hz": 8.0e6},
+            },
+        ],
+        "connections": [
+            {"id": "jc", "type": "jc", "a": "q0", "b": "r0", "parameters": {"g_Hz": 1.0e7}},
+            {"id": "disp", "type": "dispersive", "a": "q0", "b": "r0", "parameters": {"g_Hz": 1.0e7, "chi_Hz": -1.0e6}},
+            {"id": "feed", "type": "readout_feedline", "a": "r0", "b": "ro0", "parameters": {"kappa_ext_Hz": 7.0e6}},
+        ],
+        "simulation_level": "cqed",
+    }
+    primary_step = {
+        "name": "qqc_disp",
+        "active_components": ["q0", "r0", "ro0"],
+        "active_connections": ["disp", "feed"],
+        "representations": {
+            "q0": "quantum",
+            "r0": "quantum",
+            "ro0": "classical",
+        },
+        "bases": {
+            "q0": {"kind": "nlevel", "levels": 3},
+            "r0": {"kind": "fock", "nmax": 4},
+        },
+    }
+    hw = normalize_device_payload(apply_composite_device_step_overrides(hw, primary_step))
+
+    spec = DefaultModelBuilder().build(
+        executable,
+        hw=hw,
+        noise={},
+        pulse_samples=pulse_samples,
+        study=[primary_step],
+        primary_step=primary_step,
+    )
+
+    assert spec.payload["model_type"] == "cqed_dispersive"
+    assert spec.payload["model_structure"]["qubit_cavity_coupling"] == "dispersive"
+    assert spec.payload["model_structure"]["cavity_feedline_coupling"] == "input_output"

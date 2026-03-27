@@ -1441,7 +1441,18 @@ def load_trace_h5(path: str | Path) -> Trace:
         times = h5["times"][:].tolist()
         states = h5["states"][:].tolist()
         engine = h5.attrs.get("engine", "unknown")
-    return Trace(engine=engine, times=times, states=states)
+        schema_version = str(h5.attrs.get("trace_schema_version", "1.0"))
+        metadata = {}
+        if "metadata_json" in h5:
+            raw = h5["metadata_json"][()]
+            if isinstance(raw, bytes):
+                raw = raw.decode("utf-8")
+            if raw:
+                metadata = dict(json.loads(str(raw)))
+        for key in ("state_encoding", "num_qubits", "model_dimension"):
+            if key in h5.attrs and key not in metadata:
+                metadata[key] = h5.attrs[key].item() if hasattr(h5.attrs[key], "item") else h5.attrs[key]
+    return Trace(schema_version=schema_version, engine=engine, times=times, states=states, metadata=metadata)
 
 
 def dump_json(path: str | Path, payload: dict):

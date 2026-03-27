@@ -29,6 +29,7 @@ LOWERING_HARDWARE_KEYS = PULSE_KEYS | {
 }
 
 MODEL_HARDWARE_KEYS = LOWERING_HARDWARE_KEYS | {
+    "acquisition",
     "qubits",
     "simulation_level",
     "dimension",

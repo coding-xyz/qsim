@@ -47,7 +47,16 @@ _STAGE_OUTPUTS: dict[str, tuple[str, ...]] = {
         "decoder_report",
         "logical_error",
     ),
-    STAGE_ANALYSIS: ("analysis_trace", "analysis_metrics", "report", "sensitivity_report", "error_budget_v2", "sensitivity_heatmap"),
+    STAGE_ANALYSIS: (
+        "analysis_trace",
+        "analysis_metrics",
+        "analysis_readout",
+        "analysis_iq",
+        "report",
+        "sensitivity_report",
+        "error_budget_v2",
+        "sensitivity_heatmap",
+    ),
     STAGE_DECODER_EVAL: (
         "decoder_eval_report",
         "decoder_eval_table",

@@ -1,8 +1,11 @@
 05_qiskit_surface_code.ipynb.ipynb
 runs/
+examples/
 *__pycache__*
 .julia*
-.pytest_tmp/
 .vscode/
 .VSCodeCounter/
 .pre-commit-config.yaml
+*runs*
+*.pytest*
+*tmp*

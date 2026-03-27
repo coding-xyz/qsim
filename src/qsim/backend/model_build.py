@@ -101,7 +101,7 @@ class DefaultModelBuilder:
             {
                 "id": str(comp.get("id", "")),
                 "representation": str(comp.get("representation", "")),
-                "role": str(comp.get("role", "")),
+                "description": str(comp.get("description", "")),
                 "parameters": dict(comp.get("parameters", {}) or {}),
             }
             for comp in components
@@ -167,6 +167,144 @@ class DefaultModelBuilder:
                 "active_connections": list(selected.get("active_connections", []) or []),
             },
         }
+
+    def _normalize_structure_token(value: Any, aliases: dict[str, str], *, default: str = "") -> str:
+        raw = str(value or "").strip().lower()
+        if not raw:
+            return default
+        return aliases.get(raw, raw)
+
+    @classmethod
+    def _selected_structure_scope(
+        cls, hw: dict[str, Any], primary_step: dict[str, Any] | None
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        selected = dict(primary_step or {})
+        components = [dict(comp) for comp in list(hw.get("components", []) or []) if isinstance(comp, dict)]
+        connections = [dict(conn) for conn in list(hw.get("connections", []) or []) if isinstance(conn, dict)]
+        active_components = {str(item).strip() for item in list(selected.get("active_components", []) or []) if str(item).strip()}
+        active_connections = {
+            str(item).strip() for item in list(selected.get("active_connections", []) or []) if str(item).strip()
+        }
+        if active_connections:
+            connections = [conn for conn in connections if str(conn.get("id", "")).strip() in active_connections]
+            implied_components: set[str] = set()
+            for conn in connections:
+                implied_components.update(
+                    {
+                        endpoint
+                        for endpoint in (
+                            str(conn.get("a", "")).strip(),
+                            str(conn.get("b", "")).strip(),
+                            str(conn.get("via", "")).strip(),
+                        )
+                        if endpoint
+                    }
+                )
+            active_components |= implied_components
+        if active_components:
+            components = [comp for comp in components if str(comp.get("id", "")).strip() in active_components]
+            kept_component_ids = {str(comp.get("id", "")).strip() for comp in components}
+            connections = [
+                conn
+                for conn in connections
+                if {
+                    endpoint
+                    for endpoint in (
+                        str(conn.get("a", "")).strip(),
+                        str(conn.get("b", "")).strip(),
+                        str(conn.get("via", "")).strip(),
+                    )
+                    if endpoint
+                }.issubset(kept_component_ids)
+            ]
+        representation_overrides = dict(selected.get("representations", {}) or {})
+        basis_overrides = dict(selected.get("bases", {}) or {})
+        if representation_overrides:
+            for comp in components:
+                comp_id = str(comp.get("id", "")).strip()
+                if comp_id in representation_overrides:
+                    comp["representation"] = cls._normalize_structure_token(
+                        representation_overrides.get(comp_id, ""),
+                        {"q": "quantum", "quantum": "quantum", "c": "classical", "classical": "classical"},
+                        default=str(comp.get("representation", "") or ""),
+                    )
+        if basis_overrides:
+            for comp in components:
+                comp_id = str(comp.get("id", "")).strip()
+                if comp_id in basis_overrides and isinstance(basis_overrides[comp_id], dict):
+                    comp["basis"] = dict(basis_overrides[comp_id])
+        return components, connections
+
+    @classmethod
+    def _resolve_structured_model_selector(
+        cls,
+        hw: dict[str, Any],
+        primary_step: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        components, connections = cls._selected_structure_scope(hw, primary_step)
+
+        def _component_rep(comp_type: str) -> str:
+            for comp in components:
+                if str(comp.get("type", "")).strip().lower() == comp_type:
+                    return cls._normalize_structure_token(
+                        comp.get("representation", ""),
+                        {"q": "quantum", "quantum": "quantum", "c": "classical", "classical": "classical"},
+                    )
+            return ""
+
+        qc_couplings: set[str] = set()
+        cf_couplings: set[str] = set()
+        for conn in connections:
+            conn_type = str(conn.get("type", "")).strip().lower()
+            if conn_type in {"dispersive", "jc"}:
+                qc_couplings.add("dispersive" if conn_type == "dispersive" else "jc")
+            if conn_type == "readout_feedline":
+                cf_couplings.add("input_output")
+
+        qc_coupling = next(iter(qc_couplings)) if len(qc_couplings) == 1 else ""
+        cf_coupling = next(iter(cf_couplings)) if len(cf_couplings) == 1 else ""
+
+        return {
+            "qubit_representation": _component_rep("transmon") or "quantum",
+            "cavity_representation": _component_rep("resonator"),
+            "feedline_representation": _component_rep("readout_line"),
+            "qubit_cavity_coupling": qc_coupling,
+            "cavity_feedline_coupling": cf_coupling,
+        }
+
+    @classmethod
+    def _resolve_model_type(
+        cls,
+        *,
+        req_level: str,
+        hw: dict[str, Any],
+        primary_step: dict[str, Any] | None = None,
+    ) -> tuple[str, dict[str, str]]:
+        structure = cls._resolve_structured_model_selector(hw, primary_step)
+        structured_keys = {
+            "qubit_representation",
+            "cavity_representation",
+            "feedline_representation",
+            "qubit_cavity_coupling",
+            "cavity_feedline_coupling",
+        }
+        has_structured_signature = all(structure.get(key) for key in structured_keys)
+
+        model_type = "qubit_network"
+        if req_level == "nlevel":
+            model_type = "transmon_nlevel"
+        elif req_level == "cqed":
+            model_type = "cqed_jc"
+            if has_structured_signature:
+                if (
+                    structure.get("qubit_representation") == "quantum"
+                    and structure.get("cavity_representation") == "quantum"
+                    and structure.get("feedline_representation") == "classical"
+                    and structure.get("qubit_cavity_coupling") == "dispersive"
+                    and structure.get("cavity_feedline_coupling") == "input_output"
+                ):
+                    model_type = "cqed_dispersive"
+        return model_type, structure
 
     def build(
         self,
@@ -236,6 +374,7 @@ class DefaultModelBuilder:
             dim = int(hw.get("dimension", (cavity_nmax + 1) * (transmon_levels**num_qubits)))
 
         controls: list[dict[str, Any]] = []
+        readout_controls: list[dict[str, Any]] = []
         pulse_carrier_reference_freqs_Hz = [0.0 for _ in range(num_qubits)]
         for ch_name, ch_payload in pulse_samples.items():
             times = self._to_float_list(ch_payload.get("t", []))
@@ -257,7 +396,19 @@ class DefaultModelBuilder:
                 target = int(mz.group(1))
                 axis = "z"
             elif mro:
-                # Readout channels are not part of Hamiltonian control terms.
+                readout_controls.append(
+                    {
+                        "channel": ch_name,
+                        "kind": "readout",
+                        "target": int(mro.group(1)),
+                        "times": times,
+                        "values": values,
+                        "scale": float(hw.get("control_scale", 1.0)),
+                        "carrier_freq_Hz": carrier_freq_Hz,
+                        "carrier_omega_rad_s": self._TWO_PI * carrier_freq_Hz,
+                        "carrier_phase_rad": carrier_phase_rad,
+                    }
+                )
                 continue
 
             if axis is None or target is None or target >= num_qubits:
@@ -438,11 +589,11 @@ class DefaultModelBuilder:
         else:
             noise_model = "markovian_lindblad"
 
-        model_type = "qubit_network"
-        if req_level == "nlevel":
-            model_type = "transmon_nlevel"
-        elif req_level == "cqed":
-            model_type = "cqed_jc"
+        model_type, model_structure = self._resolve_model_type(
+            req_level=req_level,
+            hw=hw,
+            primary_step=study_meta["primary_step"],
+        )
 
         anharmonicity_Hz = self._expand_value(
             hw.get("anharmonicity_Hz", self._qubit_field(raw_qubits, "anharmonicity_Hz", -0.2) if raw_qubits else -0.2),
@@ -487,6 +638,7 @@ class DefaultModelBuilder:
                 "g_cavity_rad_s": [self._TWO_PI * float(x) for x in g_cavity_Hz],
                 "couplings": couplings,
                 "controls": controls,
+                "readout_controls": readout_controls,
                 "collapse_operators": collapse_ops,
                 "noise_summary": {
                     "selected_model": noise_model,
@@ -508,9 +660,10 @@ class DefaultModelBuilder:
                 "study": study_meta["study"],
                 "primary_step": study_meta["primary_step"],
                 "study_summary": study_meta["study_summary"],
+                "model_structure": model_structure,
                 "model_assumptions": {
                     "qubit_representation": "two_level_pauli (qubit) or truncated_oscillator (nlevel/cqed)",
-                    "subsystem_model": "qubit_network | transmon_nlevel | cqed_jc",
+                    "subsystem_model": "qubit_network | transmon_nlevel | cqed_jc | cqed_dispersive",
                     "truncation_cfg_from_backend": executable.metadata.get("truncation", {}),
                     "study_selection": study_meta["study_summary"],
                 },
