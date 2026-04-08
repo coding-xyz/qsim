@@ -10,7 +10,7 @@
 
 ```yaml
 schema_version: "3.0"
-target: trace
+target: trajectory
 input:
   qasm_text: |
     OPENQASM 3;
@@ -60,3 +60,5 @@ tags: [task1]
 加载器当前会识别顶层 `task:`，但它只覆盖一个受限子集，不适合作为复杂任务的主入口。因此当前最稳妥的建议仍然是：
 
 > `task` 文件继续使用扁平写法。
+
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env julia
+﻿#!/usr/bin/env julia
 
 using Random
 using LinearAlgebra
@@ -185,12 +185,32 @@ function _qt_expect_rows(expect_obj, n_times::Int, n_qubits::Int)
     return rows
 end
 
+function _qt_quantum_saveat(times::Vector{Float64}, trajectory_cfg, requested_state_kind::String)
+    requested = lowercase(String(requested_state_kind))
+    if !(requested in ("wave_function", "density_matrix"))
+        return nothing
+    end
+    save_times = lowercase(String(get(trajectory_cfg, "save_times", "all")))
+    save_final_state = Bool(get(trajectory_cfg, "save_final_state", true))
+    if save_times != "none"
+        return times
+    end
+    if save_final_state
+        return [times[end]]
+    end
+    return nothing
+end
+
 function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String, payload, run_options)
     ctx = _qubit_context(payload, times)
     n_qubits = Int(ctx["num_qubits"])
-    analysis_cfg = get(payload, "analysis", Dict{String, Any}())
-    trace_cfg = get(analysis_cfg, "trace", Dict{String, Any}())
-    requested_state_kind = lowercase(String(get(trace_cfg, "states", "")))
+    analyser_cfg = get(payload, "analyser", Dict{String, Any}())
+    trajectory_cfg = get(analyser_cfg, "trajectory", Dict{String, Any}())
+    requested_state_kind = lowercase(String(get(trajectory_cfg, "quantum", "")))
+    if isempty(requested_state_kind)
+        requested_state_kind = solver_mode == "mcwf" ? "wave_function" : "density_matrix"
+    end
+    state_saveat = _qt_quantum_saveat(times, trajectory_cfg, requested_state_kind)
     ops = _qt_build_ops(ctx)
     H0 = _build_static_hamiltonian!(ops["zero_op"], payload, ctx, ops)
     coeffs, dyn_ops, selected_noise = _collect_dynamic_terms(payload, ctx, ops, run_options)
@@ -205,43 +225,70 @@ function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String,
     dtmax = _integration_dtmax(payload, times)
 
     solver_impl = ""
-    quantum_state_trace = nothing
+    quantum_state_trajectory = nothing
     state_series = Any[]
     if solver_mode == "se"
-        sol = QuantumToolbox.sesolve(H, psi0, times; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
+        if state_saveat === nothing
+            sol = QuantumToolbox.sesolve(H, psi0, times; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
+        else
+            sol = QuantumToolbox.sesolve(H, psi0, times; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax, saveat=state_saveat)
+        end
         states = _qt_expect_rows(sol.expect, length(times), n_qubits)
         state_series = hasproperty(sol, :states) ? getproperty(sol, :states) : Any[]
-        quantum_state_trace = _serialize_quantum_state_trace(state_series, requested_state_kind)
+        quantum_state_trajectory = _serialize_quantum_state_trajectory(state_series, requested_state_kind)
         solver_impl = "quantumtoolbox.sesolve"
     elseif solver_mode == "mcwf"
         ntraj = max(1, _safe_int(get(run_options, "ntraj", 128), 128))
         rng = Random.MersenneTwister(_safe_int(get(run_options, "seed", 12345), 12345))
         if isempty(c_ops)
-            sol = QuantumToolbox.sesolve(H, psi0, times; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
+            if state_saveat === nothing
+                sol = QuantumToolbox.sesolve(H, psi0, times; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
+            else
+                sol = QuantumToolbox.sesolve(H, psi0, times; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax, saveat=state_saveat)
+            end
             solver_impl = "quantumtoolbox.sesolve"
         else
-            sol = QuantumToolbox.mcsolve(
-                H,
-                psi0,
-                times,
-                c_ops;
-                e_ops=e_ops,
-                ntraj=ntraj,
-                progress_bar=Val(false),
-                rng=rng,
-                dtmax=dtmax,
-            )
+            if state_saveat === nothing
+                sol = QuantumToolbox.mcsolve(
+                    H,
+                    psi0,
+                    times,
+                    c_ops;
+                    e_ops=e_ops,
+                    ntraj=ntraj,
+                    progress_bar=Val(false),
+                    rng=rng,
+                    dtmax=dtmax,
+                )
+            else
+                sol = QuantumToolbox.mcsolve(
+                    H,
+                    psi0,
+                    times,
+                    c_ops;
+                    e_ops=e_ops,
+                    ntraj=ntraj,
+                    progress_bar=Val(false),
+                    rng=rng,
+                    dtmax=dtmax,
+                    saveat=state_saveat,
+                )
+            end
             solver_impl = "quantumtoolbox.mcsolve"
         end
         states = _qt_expect_rows(sol.expect, length(times), n_qubits)
         state_series = hasproperty(sol, :states) ? getproperty(sol, :states) : Any[]
-        quantum_state_trace = _serialize_quantum_state_trace(state_series, requested_state_kind)
+        quantum_state_trajectory = _serialize_quantum_state_trajectory(state_series, requested_state_kind)
         collapse_counts["ntraj"] = ntraj
     else
-        sol = QuantumToolbox.mesolve(H, psi0, times, c_ops; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
+        if state_saveat === nothing
+            sol = QuantumToolbox.mesolve(H, psi0, times, c_ops; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax)
+        else
+            sol = QuantumToolbox.mesolve(H, psi0, times, c_ops; e_ops=e_ops, progress_bar=Val(false), dtmax=dtmax, saveat=state_saveat)
+        end
         states = _qt_expect_rows(sol.expect, length(times), n_qubits)
         state_series = hasproperty(sol, :states) ? getproperty(sol, :states) : Any[]
-        quantum_state_trace = _serialize_quantum_state_trace(state_series, requested_state_kind)
+        quantum_state_trajectory = _serialize_quantum_state_trajectory(state_series, requested_state_kind)
         solver_impl = "quantumtoolbox.mesolve"
     end
 
@@ -257,8 +304,8 @@ function _run_quantumtoolbox_native(times::Vector{Float64}, solver_mode::String,
         "dtmax" => dtmax,
         "collapse_counts" => collapse_counts,
     )
-    if quantum_state_trace !== nothing
-        meta["quantum_state_trace"] = quantum_state_trace
+    if quantum_state_trajectory !== nothing
+        meta["quantum_state_trajectory"] = quantum_state_trajectory
     end
     return states, meta
 end
@@ -291,7 +338,6 @@ function main()
         "states" => states,
         "metadata" => Dict(
             "solver" => solver_mode,
-            "state_encoding" => "per_qubit_excited_probability",
             "model_type" => get(payload, "model_type", "qubit_network"),
             "num_qubits" => _safe_int(get(payload, "num_qubits", 1), 1),
             "julia_version" => string(VERSION),
@@ -308,3 +354,5 @@ function main()
 end
 
 main()
+
+

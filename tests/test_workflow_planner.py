@@ -1,14 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import pytest
 
-from qsim.workflow import (
-    WorkflowInput,
-    WorkflowOutputOptions,
-    WorkflowRunOptions,
-    WorkflowTask,
-    build_execution_plan,
-)
+from qsim.workflow import WorkflowInput, WorkflowOutputOptions, WorkflowRunOptions, WorkflowTask, build_execution_plan
 
 
 def _base_task() -> WorkflowTask:
@@ -16,6 +10,7 @@ def _base_task() -> WorkflowTask:
         input=WorkflowInput(
             qasm_text="OPENQASM 3; qubit[1] q; bit[1] c; measure q[0] -> c[0];",
             backend_path="examples/backend.yaml",
+            analyser={"trajectory": {"save_times": "all"}},
         ),
         run=WorkflowRunOptions(decoder="mwpm"),
         output=WorkflowOutputOptions(out_dir="runs/planner_test"),
@@ -33,16 +28,16 @@ def test_default_plan_uses_full_template_qec_path():
     assert plan.run_cross_engine_compare is False
 
 
-def test_simulate_template_skips_decode_and_analysis():
+def test_simulate_template_skips_decode_but_keeps_analyser_stage_if_configured():
     task = _base_task()
     task.template = "simulate"
     plan = build_execution_plan(task)
-    assert plan.targets == ["trace"]
+    assert plan.targets == ["trajectory"]
     assert plan.run_decode is False
-    assert plan.run_analysis is False
+    assert plan.run_analysis is True
 
 
-def test_trace_target_allows_missing_decoder():
+def test_trajectory_target_allows_missing_decoder():
     task = _base_task()
     task.template = "simulate"
     task.run.decoder = None

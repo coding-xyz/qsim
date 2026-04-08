@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from qsim.analysis.trace_semantics import annotate_trace_metadata, pointwise_compare_compatibility, state_encoding
+from qsim.analysis.trajectory_semantics import pointwise_compare_compatibility, state_encoding, state_rows
 from qsim.engines.qoptics_engine import QOpticsEngine
 from qsim.engines.qutip_engine import QuTiPEngine
 from qsim.engines.qtoolbox_engine import QToolboxEngine
@@ -32,23 +32,24 @@ def canonical_engine_name(name: str) -> str:
     raise ValueError(f"Unknown engine: {name!r}. Supported engines: qutip, qoptics, qtoolbox.")
 
 
-def trace_summary(trace) -> dict:
-    """Build compact summary for trace payload."""
-    last = trace.states[-1] if trace.states else []
+def trajectory_summary(trajectory) -> dict:
+    """Build compact summary for a trajectory payload."""
+    rows = state_rows(trajectory)
+    last = rows[-1] if rows else []
     final_mean = float(sum(last) / len(last)) if last else 0.0
     return {
-        "engine": trace.engine,
-        "samples": len(trace.times),
+        "engine": trajectory.engine,
+        "samples": len(trajectory.times),
         "state_dim": len(last),
         "final_state": [float(v) for v in last],
         "final_mean": final_mean,
-        "state_encoding": state_encoding(trace),
-        "metadata": dict(getattr(trace, "metadata", {}) or {}),
+        "state_encoding": state_encoding(trajectory),
+        "metadata": dict(getattr(trajectory, "metadata", {}) or {}),
     }
 
 
-def trace_pair_metrics(ref, other) -> dict:
-    """Compute pointwise trace deltas when comparable."""
+def trajectory_pair_metrics(ref, other) -> dict:
+    """Compute pointwise trajectory deltas when comparable."""
     comparable, reason = pointwise_compare_compatibility(ref, other)
     if not comparable:
         return {
@@ -59,17 +60,19 @@ def trace_pair_metrics(ref, other) -> dict:
     n = min(len(ref.times), len(other.times))
     if n <= 0:
         return {"comparable": True, "samples_compared": 0, "mse": 0.0, "mae": 0.0}
+    ref_rows = state_rows(ref)
+    other_rows = state_rows(other)
     d = 0
-    if ref.states and other.states:
-        d = min(len(ref.states[0]), len(other.states[0]))
+    if ref_rows and other_rows:
+        d = min(len(ref_rows[0]), len(other_rows[0]))
     if d <= 0:
         return {"comparable": True, "samples_compared": n, "mse": 0.0, "mae": 0.0}
     sq_sum = 0.0
     abs_sum = 0.0
     count = 0
     for i in range(n):
-        ra = ref.states[i]
-        rb = other.states[i]
+        ra = ref_rows[i]
+        rb = other_rows[i]
         for j in range(d):
             dv = float(ra[j]) - float(rb[j])
             sq_sum += dv * dv
@@ -109,7 +112,7 @@ def run_cross_engine_compare(
         return {"schema_version": "1.0", "status": "empty", "runs": [], "pairwise": []}
 
     runs: list[dict] = []
-    traces = []
+    trajectories = []
     for name in selected:
         engine = select_engine(name)
         run_opts = {
@@ -123,29 +126,23 @@ def run_cross_engine_compare(
             run_opts["julia_bin"] = str(julia_bin)
         if julia_depot_path:
             run_opts["julia_depot_path"] = str(julia_depot_path)
-        trace = engine.run(
+        trajectory = engine.run(
             model_spec,
             run_options=run_opts,
         )
-        annotate_trace_metadata(
-            trace,
-            num_qubits=int(model_spec.payload.get("num_qubits", 0) or 0) or None,
-            dimension=int(getattr(model_spec, "dimension", 0) or 0) or None,
-            engine_name=name,
-        )
-        traces.append((name, trace))
-        item = trace_summary(trace)
+        trajectories.append((name, trajectory))
+        item = trajectory_summary(trajectory)
         item["requested_engine"] = name
         runs.append(item)
 
-    baseline_name, baseline_trace = traces[0]
+    baseline_name, baseline_trajectory = trajectories[0]
     pairwise = []
-    for name, trace in traces[1:]:
+    for name, trajectory in trajectories[1:]:
         pairwise.append(
             {
                 "ref_engine": baseline_name,
                 "other_engine": name,
-                **trace_pair_metrics(baseline_trace, trace),
+                **trajectory_pair_metrics(baseline_trajectory, trajectory),
             }
         )
 
@@ -159,13 +156,13 @@ def run_cross_engine_compare(
     }
 
 
-def collect_runtime_dependencies(trace, selected_engine_name: str) -> dict[str, str]:
-    """Extract runtime dependency details from engine trace metadata."""
+def collect_runtime_dependencies(trajectory, selected_engine_name: str) -> dict[str, str]:
+    """Extract runtime dependency details from engine trajectory metadata."""
     deps: dict[str, str] = {}
-    meta = dict(getattr(trace, "metadata", {}) or {})
+    meta = dict(getattr(trajectory, "metadata", {}) or {})
     selected = str(selected_engine_name).lower()
-    trace_name = str(trace.engine).lower()
-    if selected in {"qoptics", "qtoolbox"} or trace_name in {"qoptics", "qtoolbox"}:
+    trajectory_name = str(trajectory.engine).lower()
+    if selected in {"qoptics", "qtoolbox"} or trajectory_name in {"qoptics", "qtoolbox"}:
         julia_ver = str(meta.get("julia_version", "")).strip()
         backend = str(meta.get("julia_backend", "")).strip()
         backend_ver = str(meta.get("julia_backend_version", "")).strip()
@@ -181,6 +178,7 @@ __all__ = [
     "collect_runtime_dependencies",
     "run_cross_engine_compare",
     "select_engine",
-    "trace_pair_metrics",
-    "trace_summary",
+    "trajectory_pair_metrics",
+    "trajectory_summary",
 ]
+

@@ -454,22 +454,22 @@ function _serialize_quantum_state(state)
     if ndims(dense) == 1
         return Dict(
             "kind" => "wave_function",
-            "data" => [_complex_pair(v) for v in dense],
+            "data" => [Dict("__qsim_complex__" => [real(v), imag(v)]) for v in dense],
         )
     elseif ndims(dense) == 2 && (size(dense, 1) == 1 || size(dense, 2) == 1)
         vec = vec(dense)
         return Dict(
             "kind" => "wave_function",
-            "data" => [_complex_pair(v) for v in vec],
+            "data" => [Dict("__qsim_complex__" => [real(v), imag(v)]) for v in vec],
         )
     end
     return Dict(
         "kind" => "density_matrix",
-        "data" => [[_complex_pair(v) for v in row] for row in eachrow(dense)],
+        "data" => [[Dict("__qsim_complex__" => [real(v), imag(v)]) for v in row] for row in eachrow(dense)],
     )
 end
 
-function _serialize_quantum_state_trace(states, requested_kind::String)
+function _serialize_quantum_state_trajectory(states, requested_kind::String)
     if isempty(states)
         return nothing
     end
@@ -479,7 +479,7 @@ function _serialize_quantum_state_trace(states, requested_kind::String)
     return Dict(
         "requested_kind" => isempty(requested_kind) ? actual_kind : requested_kind,
         "actual_kind" => actual_kind,
-        "encoding" => "complex_pairs",
+        "encoding" => "complex",
         "snapshots" => [item["data"] for item in serialized],
         "note" => note,
     )

@@ -1,4 +1,4 @@
-"""Pulse, trace, and report visualization helpers."""
+﻿"""Pulse, Trajectory, and report visualization helpers."""
 
 from __future__ import annotations
 
@@ -13,8 +13,9 @@ from matplotlib.collections import LineCollection
 
 from qsim.backend.config import load_backend_config
 from qsim.backend.lowering import DefaultLowering
+from qsim.analysis.trajectory_semantics import state_rows
 from qsim.circuit.import_qasm import CircuitAdapter
-from qsim.common.schemas import BackendConfig, ChannelSpec, Observables, PulseIR, Trace
+from qsim.common.schemas import BackendConfig, ChannelSpec, Observables, PulseIR, Trajectory, json_restore
 from qsim.pulse.catalog import (
     DEFAULT_BREAK_KEEP_HEAD_NS,
     DEFAULT_BREAK_KEEP_TAIL_NS,
@@ -1390,15 +1391,30 @@ def plot_pulses(
     return fig
 
 
-def plot_trace(trace: Trace):
-    """Plot trace state trajectories versus simulation time."""
+def plot_trajectory(trajectory: Trajectory):
+    """Plot trajectory state trajectories versus simulation time."""
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    if trace.states:
-        for i in range(len(trace.states[0])):
-            ax.plot(trace.times, [s[i] for s in trace.states], label=f"state[{i}]")
-    ax.set_title(f"Trace ({trace.engine})")
+    classical = dict(getattr(trajectory, "classical", {}) or {})
+    plotted = False
+    for key, payload in classical.items():
+        if not isinstance(payload, dict):
+            continue
+        values = [list(row) for row in list(payload.get("values", []) or [])]
+        if not values:
+            continue
+        labels = list(payload.get("series_labels", []) or [])
+        quantity = str(payload.get("quantity", key))
+        for i in range(len(values[0])):
+            label = labels[i] if i < len(labels) and labels[i] else f"s{i}"
+            ax.plot(trajectory.times[: len(values)], [row[i] for row in values], label=f"{quantity}:{label}")
+        plotted = True
+    fallback_rows = state_rows(trajectory)
+    if not plotted and fallback_rows:
+        for i in range(len(fallback_rows[0])):
+            ax.plot(trajectory.times[: len(fallback_rows)], [row[i] for row in fallback_rows], label=f"state[{i}]")
+    ax.set_title(f"Trajectory ({trajectory.engine})")
     ax.set_xlabel("t")
     ax.legend()
     fig.tight_layout()
@@ -1433,26 +1449,62 @@ def save_observables_plot(observables: Observables, out_path: str | Path):
     plt.close(fig)
 
 
-def load_trace_h5(path: str | Path) -> Trace:
-    """Load ``Trace`` from HDF5 file written by workflow artifacts."""
+def load_trajectory_h5(path: str | Path) -> Trajectory:
+    """Load ``Trajectory`` from HDF5 file written by workflow artifacts."""
     import h5py
 
     with h5py.File(path, "r") as h5:
         times = h5["times"][:].tolist()
-        states = h5["states"][:].tolist()
         engine = h5.attrs.get("engine", "unknown")
-        schema_version = str(h5.attrs.get("trace_schema_version", "1.0"))
+        schema_version = str(h5.attrs.get("trajectory_schema_version", "1.0"))
         metadata = {}
+        wave_function = None
+        density_matrix = None
+        classical = {}
+        measurements = {}
         if "metadata_json" in h5:
             raw = h5["metadata_json"][()]
             if isinstance(raw, bytes):
                 raw = raw.decode("utf-8")
             if raw:
-                metadata = dict(json.loads(str(raw)))
-        for key in ("state_encoding", "num_qubits", "model_dimension"):
+                metadata = dict(json_restore(json.loads(str(raw))))
+        if "wave_function_json" in h5:
+            raw = h5["wave_function_json"][()]
+            if isinstance(raw, bytes):
+                raw = raw.decode("utf-8")
+            if raw:
+                wave_function = dict(json_restore(json.loads(str(raw)))) or None
+        if "density_matrix_json" in h5:
+            raw = h5["density_matrix_json"][()]
+            if isinstance(raw, bytes):
+                raw = raw.decode("utf-8")
+            if raw:
+                density_matrix = dict(json_restore(json.loads(str(raw)))) or None
+        if "classical_json" in h5:
+            raw = h5["classical_json"][()]
+            if isinstance(raw, bytes):
+                raw = raw.decode("utf-8")
+            if raw:
+                classical = dict(json_restore(json.loads(str(raw))))
+        if "measurements_json" in h5:
+            raw = h5["measurements_json"][()]
+            if isinstance(raw, bytes):
+                raw = raw.decode("utf-8")
+            if raw:
+                measurements = dict(json_restore(json.loads(str(raw))))
+        for key in ("num_qubits", "model_dimension"):
             if key in h5.attrs and key not in metadata:
                 metadata[key] = h5.attrs[key].item() if hasattr(h5.attrs[key], "item") else h5.attrs[key]
-    return Trace(schema_version=schema_version, engine=engine, times=times, states=states, metadata=metadata)
+    return Trajectory(
+        schema_version=schema_version,
+        engine=engine,
+        times=times,
+        wave_function=wave_function,
+        density_matrix=density_matrix,
+        classical=classical,
+        measurements=measurements,
+        metadata=metadata,
+    )
 
 
 def dump_json(path: str | Path, payload: dict):
@@ -1543,3 +1595,4 @@ def export_json_table(
         wb.save(out)
         return out
     raise ValueError("Unsupported output extension. Use .csv or .xlsx")
+

@@ -1,9 +1,10 @@
 # [DYN-P0] 打通量子-经典耦合读出链：input-output / IQ 判别 / task2 SPAM 有效跑通
 
 ## 0. 状态
-- 状态：In Progress
+- 状态：Failed
 - 负责人：待指派
-- 更新时间：2026-03-25
+- 更新时间：2026-03-30
+- 备注：被 `ISSUE_UI_P0_MODEL_OBJECT_API_AND_SOLVER_ANALYSER_SPLIT.md` 覆盖，当前不再单独推进。
 
 ## 1. 背景与目标
 - 背景：

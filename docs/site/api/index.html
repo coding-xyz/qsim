@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api" class="md-skip">
+        <a href="#api-reference" class="md-skip">
           跳转至
         </a>
       
@@ -389,6 +389,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../wiki/analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../wiki/visualization.html" class="md-nav__link">
         
   
@@ -512,10 +539,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" checked>
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -533,8 +560,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -611,10 +638,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#how-to-read-this-section" class="md-nav__link">
     <span class="md-ellipsis">
       
-        如何阅读
+        How To Read This Section
       
     </span>
   </a>
@@ -622,10 +649,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#groups" class="md-nav__link">
     <span class="md-ellipsis">
       
-        模块分组
+        Groups
       
     </span>
   </a>
@@ -955,10 +982,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#how-to-read-this-section" class="md-nav__link">
     <span class="md-ellipsis">
       
-        如何阅读
+        How To Read This Section
       
     </span>
   </a>
@@ -966,10 +993,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#groups" class="md-nav__link">
     <span class="md-ellipsis">
       
-        模块分组
+        Groups
       
     </span>
   </a>
@@ -993,26 +1020,26 @@
 
 
 
-<h1 id="api">API 参考<a class="headerlink" href="#api" title="Permanent link">&para;</a></h1>
-<p>本目录由 <code>src/qsim</code> 中的源码 docstring 自动生成，并按模块分组组织。</p>
-<h2 id="_1">如何阅读<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
+<p>This section is generated from public docstrings under <code>src/qsim</code>.</p>
+<h2 id="how-to-read-this-section">How To Read This Section<a class="headerlink" href="#how-to-read-this-section" title="Permanent link">&para;</a></h2>
 <ul>
-<li>如果你只想知道常用调用入口，请先看每个分组页面顶部的“常用入口”。</li>
-<li>如果你想查具体函数、类或数据结构，请继续阅读该分组下的自动生成模块条目。</li>
-<li><code>docs/wiki</code> 中的说明书页面负责讲“怎么用”，本目录负责讲“接口是什么”。</li>
+<li>Start with the entrypoints if you only need the common public APIs.</li>
+<li>Continue into the generated module sections when you need class, function, or schema details.</li>
+<li>Use <code>docs/src/wiki</code> for task-oriented guides and this section for API-oriented reference.</li>
 </ul>
-<h2 id="_2">模块分组<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h2 id="groups">Groups<a class="headerlink" href="#groups" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="analysis.html">analysis</a>：观测量、敏感度、误差预算和分析注册器。</li>
-<li><a href="backend.html">backend</a>：编译、lowering、模型构建与 backend 配置。</li>
-<li><a href="circuit.html">circuit</a>：OpenQASM 导入、导出与电路标准化。</li>
-<li><a href="common.html">common</a>：通用 schema、单位字段和底层数据结构。</li>
-<li><a href="engines.html">engines</a>：QuTiP、Julia 相关引擎与 QEC 分析引擎接口。</li>
-<li><a href="pulse.html">pulse</a>：门到脉冲映射、PulseIR 生成与可视化工具。</li>
-<li><a href="qec.html">qec</a>：prior、decoder、decoder eval 与逻辑误差汇总。</li>
-<li><a href="session.html">session</a>：结果 revision、artifact store 与 session manifest。</li>
-<li><a href="ui.html">ui</a>：CLI、notebook 辅助函数和结果摘要接口。</li>
-<li><a href="workflow.html">workflow</a>：配置加载、执行计划、主 pipeline 与结果提交。</li>
+<li><a href="analysis.html">analysis</a>: Analysis passes, observables, and post-processing helpers.</li>
+<li><a href="backend.html">backend</a>: Compilation, lowering, model building, and backend config helpers.</li>
+<li><a href="circuit.html">circuit</a>: OpenQASM import, export, and circuit normalization.</li>
+<li><a href="common.html">common</a>: Common schemas and shared data structures.</li>
+<li><a href="engines.html">engines</a>: Simulation engines and engine adapters.</li>
+<li><a href="pulse.html">pulse</a>: Pulse compilation, PulseIR helpers, and visualization tools.</li>
+<li><a href="qec.html">qec</a>: QEC priors, decoders, decoder eval, and summary utilities.</li>
+<li><a href="session.html">session</a>: Sessions, manifests, and artifact-oriented persistence helpers.</li>
+<li><a href="ui.html">ui</a>: CLI, notebook helpers, and lightweight result summaries.</li>
+<li><a href="workflow.html">workflow</a>: Config loading, execution planning, model API, and workflow stages.</li>
 </ul>
 
 

@@ -1,4 +1,4 @@
-"""QuTiP-based dynamics engine implementation."""
+﻿"""QuTiP-based dynamics engine implementation."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import numpy as np
 
-from qsim.common.schemas import ModelSpec, Trace
+from qsim.common.schemas import ModelSpec, Trajectory
 from qsim.engines.base import Engine
 
 
@@ -293,7 +293,7 @@ class QuTiPEngine(Engine):
         return complex(a_in) - cls._readout_coupling_prefactor(kappa_ext_hz) * complex(cavity_field)
 
     @classmethod
-    def _build_quantum_state_trace(
+    def _build_quantum_state_trajectory(
         cls,
         *,
         snapshots: list[Any],
@@ -308,7 +308,7 @@ class QuTiPEngine(Engine):
         return {
             "requested_kind": requested_kind or actual_kind,
             "actual_kind": actual_kind,
-            "encoding": "complex_pairs",
+            "encoding": "complex",
             "snapshots": [item.get("data", []) for item in snapshots if isinstance(item, dict)],
             "note": note,
         }
@@ -570,13 +570,13 @@ class QuTiPEngine(Engine):
                 "shots": shot_payloads,
             },
         }
-        quantum_state_trace = cls._build_quantum_state_trace(
+        quantum_state_trajectory = cls._build_quantum_state_trajectory(
             snapshots=first_snapshots,
             requested_kind=requested_state_kind,
             actual_kind="wave_function",
         )
-        if quantum_state_trace is not None:
-            metadata["quantum_state_trace"] = quantum_state_trace
+        if quantum_state_trajectory is not None:
+            metadata["quantum_state_trajectory"] = quantum_state_trajectory
         return {
             "times": tlist.astype(float).tolist(),
             "states": states,
@@ -656,9 +656,9 @@ class QuTiPEngine(Engine):
         }
 
     @staticmethod
-    def _complex_pairs_vector(values) -> list[list[float]]:
+    def _complex_vector(values) -> list[complex]:
         arr = np.asarray(values, dtype=complex).reshape(-1)
-        return [[float(v.real), float(v.imag)] for v in arr]
+        return [complex(float(v.real), float(v.imag)) for v in arr]
 
     @classmethod
     def _serialize_complex_series(cls, values) -> list[list[float]]:
@@ -669,14 +669,14 @@ class QuTiPEngine(Engine):
     def _serialize_qobj_state(cls, qobj) -> dict[str, object]:
         data = np.asarray(qobj.full(), dtype=complex)
         if data.ndim == 2 and 1 in data.shape:
-            return {"kind": "wave_function", "data": cls._complex_pairs_vector(data.reshape(-1))}
+            return {"kind": "wave_function", "data": cls._complex_vector(data.reshape(-1))}
         return {
             "kind": "density_matrix",
-            "data": [[cls._complex_pairs_vector(row) for row in data]][0],
+            "data": [[cls._complex_vector(row) for row in data]][0],
         }
 
     @classmethod
-    def _extract_quantum_state_trace(cls, result, solver: str, requested_kind: str) -> dict[str, object] | None:
+    def _extract_quantum_state_trajectory(cls, result, solver: str, requested_kind: str) -> dict[str, object] | None:
         if requested_kind not in {"wave_function", "density_matrix"}:
             return None
         raw_states = list(getattr(result, "states", []) or [])
@@ -696,10 +696,20 @@ class QuTiPEngine(Engine):
         return {
             "requested_kind": requested_kind or actual_kind,
             "actual_kind": actual_kind,
-            "encoding": "complex_pairs",
+            "encoding": "complex",
             "snapshots": [item.get("data", []) for item in serialized],
             "note": note,
         }
+
+    @staticmethod
+    def _quantum_payloads(qstate: dict[str, object] | None) -> tuple[dict[str, object] | None, dict[str, object] | None]:
+        payload = dict(qstate or {})
+        actual_kind = str(payload.get("actual_kind", "")).strip().lower()
+        if actual_kind == "wave_function":
+            return payload, None
+        if actual_kind == "density_matrix":
+            return None, payload
+        return None, None
 
     def _build_qubit_ops(self, qt, n_qubits: int):
         dims = [2 for _ in range(n_qubits)]
@@ -745,7 +755,7 @@ class QuTiPEngine(Engine):
         readout_ops = [self._tensor_op(qt, dims, i + 1, p1_local) for i in range(n_qubits)]
         return a_c, adag_c, n_c, a_q, adag_q, n_q, x_q, y_q, psi0, readout_ops
 
-    def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trace:
+    def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trajectory:
         """Solve model dynamics based on ``model_spec.solver``.
 
         Supported solvers:
@@ -1004,11 +1014,13 @@ class QuTiPEngine(Engine):
                     )
                 H.append([z_ops[target], lambda t, _a=None, s=series, x=tlist: float(np.interp(float(t), x, s))])
 
-        analysis_cfg = dict(payload.get("analysis", {}) or {})
-        trace_cfg = dict(analysis_cfg.get("trace", {}) or {})
-        requested_state_kind = str(trace_cfg.get("states", "")).strip().lower()
-        save_times = str(trace_cfg.get("save_times", "all")).strip().lower()
-        save_final_state = bool(trace_cfg.get("save_final_state", True))
+        analyser_cfg = dict(payload.get("analyser", {}) or {})
+        trajectory_cfg = dict(analyser_cfg.get("trajectory", {}) or {})
+        requested_state_kind = str(trajectory_cfg.get("quantum", "")).strip().lower()
+        if requested_state_kind not in {"wave_function", "density_matrix"}:
+            requested_state_kind = "wave_function" if solver == "mcwf" else "density_matrix"
+        save_times = str(trajectory_cfg.get("save_times", "all")).strip().lower()
+        save_final_state = bool(trajectory_cfg.get("save_final_state", True))
         keep_runs_results = solver == "mcwf"
         store_states = requested_state_kind in {"wave_function", "density_matrix"} and (save_times != "none" or save_final_state)
         options = self._solver_options_with_state_storage(
@@ -1070,10 +1082,17 @@ class QuTiPEngine(Engine):
                 "hybrid_update_mode": hybrid_update_mode,
             }
             metadata.update(dict(hybrid.get("metadata", {}) or {}))
-            return Trace(
+            wave_function = None
+            density_matrix = None
+            qstate = dict(hybrid.get("quantum_state_trajectory", {}) or {})
+            if not qstate:
+                qstate = dict(metadata.pop("quantum_state_trajectory", {}) or {})
+            wave_function, density_matrix = self._quantum_payloads(qstate)
+            return Trajectory(
                 engine="qutip",
                 times=list(hybrid.get("times", tlist.astype(float).tolist()) or []),
-                states=[list(row) for row in list(hybrid.get("states", []) or [])],
+                wave_function=wave_function,
+                density_matrix=density_matrix,
                 metadata=metadata,
             )
 
@@ -1088,13 +1107,8 @@ class QuTiPEngine(Engine):
         except Exception as exc:
             raise RuntimeError(f"QuTiP execution failed: {exc}") from exc
 
-        expect = [self._series_to_float(self._average_expect_series(v)) for v in result.expect[: len(e_ops)]]
-        states = []
-        for k in range(len(tlist)):
-            row = [float(np.clip(expect[i][k], 0.0, 1.0)) for i in range(len(expect))]
-            states.append(row)
-
-        quantum_state_trace = self._extract_quantum_state_trace(result, solver, requested_state_kind)
+        quantum_state_trajectory = self._extract_quantum_state_trajectory(result, solver, requested_state_kind)
+        wave_function, density_matrix = self._quantum_payloads(quantum_state_trajectory)
         metadata = {
             "solver": solver,
             "model_type": model_type,
@@ -1106,8 +1120,6 @@ class QuTiPEngine(Engine):
             "frame_mode": frame_mode,
             "rwa": rwa,
         }
-        if quantum_state_trace is not None:
-            metadata["quantum_state_trace"] = quantum_state_trace
         if self._is_cqed_model(model_type) and "cavity_a" in readout_expect_ix:
             cavity_a_series = self._series_to_complex(self._average_expect_series(result.expect[readout_expect_ix["cavity_a"]]))
             cavity_n_series = self._series_to_float(self._average_expect_series(result.expect[readout_expect_ix["cavity_n"]])).tolist()
@@ -1159,9 +1171,11 @@ class QuTiPEngine(Engine):
                 "shots": list(classical_line.get("shots", []) or []),
             }
 
-        return Trace(
+        return Trajectory(
             engine="qutip",
             times=tlist.astype(float).tolist(),
-            states=states,
+            wave_function=wave_function,
+            density_matrix=density_matrix,
             metadata=metadata,
         )
+

@@ -563,6 +563,33 @@
   
   
     <li class="md-nav__item">
+      <a href="analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="visualization.html" class="md-nav__link">
         
   
@@ -684,10 +711,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -705,8 +732,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1206,22 +1233,21 @@
 <h2 id="_2">整体流程<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>一次典型运行通常包含以下阶段：</p>
 <ol>
-<li>读取 <code>task / solver / device / pulse</code> 四类配置</li>
+<li>读取 <code>task / solver / device / pulse / analyser</code> 五类配置</li>
 <li>解析 OpenQASM 电路并做标准化</li>
 <li>根据设备与脉冲参数完成 lowering 和模型构建</li>
-<li>调用求解器运行仿真</li>
-<li>根据目标执行分析与结果汇总</li>
+<li>调用求解器运行仿真并生成 raw <code>trajectory</code></li>
+<li>调用 analyser 基于 <code>trajectory</code> 生成派生分析结果</li>
 <li>把中间产物和最终结果写入输出目录</li>
 </ol>
 <p>常用入口有：</p>
 <ul>
-<li>CLI：<code>qsim run-task</code></li>
-<li>Python：<code>qsim.workflow.run_task_files</code></li>
-<li>Python：<code>qsim.workflow.run_task</code></li>
+<li>CLI：<code>qsim run-model</code></li>
+<li>Python：<code>qsim.workflow.create_model</code></li>
 </ul>
 <h2 id="_3">代码模块分工<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <h3 id="srcqsimworkflow"><code>src/qsim/workflow/</code><a class="headerlink" href="#srcqsimworkflow" title="Permanent link">&para;</a></h3>
-<p>负责把四类配置组织成一次可执行任务，包括：</p>
+<p>负责把五类配置组织成一次可执行任务，包括：</p>
 <ul>
 <li>配置读取与模板合并</li>
 <li>target 驱动的执行计划</li>
@@ -1235,7 +1261,7 @@
 <h3 id="srcqsimpulse"><code>src/qsim/pulse/</code><a class="headerlink" href="#srcqsimpulse" title="Permanent link">&para;</a></h3>
 <p>负责脉冲 catalog、序列生成、采样与可视化。</p>
 <h3 id="srcqsimengines"><code>src/qsim/engines/</code><a class="headerlink" href="#srcqsimengines" title="Permanent link">&para;</a></h3>
-<p>负责数值求解和分析引擎接入。</p>
+<p>负责数值求解引擎接入。</p>
 <h3 id="srcqsimqec"><code>src/qsim/qec/</code><a class="headerlink" href="#srcqsimqec" title="Permanent link">&para;</a></h3>
 <p>负责 logical error、decoder eval、scaling 和 Pauli+ 相关分析流程。</p>
 <h3 id="srcqsimanalysis"><code>src/qsim/analysis/</code><a class="headerlink" href="#srcqsimanalysis" title="Permanent link">&para;</a></h3>
@@ -1246,7 +1272,8 @@
 <li><code>task</code>：继续使用扁平写法</li>
 <li><code>device</code>：使用组件化设备结构</li>
 <li><code>pulse</code>：使用结构化脉冲描述</li>
-<li><code>solver</code>：使用结构化求解器写法</li>
+<li><code>solver</code>：只负责数值求解</li>
+<li><code>analyser</code>：只负责派生分析</li>
 </ul>
 <p>如果你只记一条规则，建议记住这句：</p>
 <blockquote>
@@ -1255,7 +1282,7 @@
 <h2 id="_5">常用目标<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>当前常用 <code>target</code> 包括：</p>
 <ul>
-<li><code>trace</code></li>
+<li><code>trajectory</code></li>
 <li><code>logical_error</code></li>
 <li><code>sensitivity_report</code></li>
 <li><code>decoder_eval_report</code></li>

@@ -1,4 +1,4 @@
-"""Helpers for summarizing workflow results in notebooks and lightweight UIs."""
+﻿"""Helpers for summarizing workflow results in notebooks and lightweight UIs."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ import json
 
 import numpy as np
 import pandas as pd
+from qsim.analysis.trajectory_semantics import state_channel_name, state_encoding, state_rows
+from qsim.workflow.model import Model
 
 
 def _integrate_abs(y: np.ndarray, t: np.ndarray) -> float:
@@ -47,7 +49,7 @@ def collect_pulse_metrics(out_dir: str | Path) -> dict[str, float]:
 
 
 def summarize_workflow_result(
-    result: dict,
+    model: Model,
     *,
     task_tag: str,
     task_title: str,
@@ -57,18 +59,30 @@ def summarize_workflow_result(
     noise: dict | None = None,
     note: str = "",
 ) -> dict:
-    """Build one flat summary row from a ``run_task`` result payload."""
-    runtime = dict(result.get("runtime", {}) or {})
-    artifacts = dict(result.get("artifacts", {}) or {})
-    model = dict(result.get("model", {}) or {})
-    results = dict(result.get("results", {}) or {})
-    trace_payload = dict(results.get("trace", {}) or {})
-    if not trace_payload:
-        raise KeyError("result missing results.trace")
-    metrics = dict(results.get("metrics", {}) or {})
-    state_repr = dict(trace_payload.get("state_representation", {}) or {})
-    final_state_raw = trace_payload.get("final_state")
-    times = list(trace_payload.get("times", []) or [])
+    """Build one flat summary row from a completed ``Model``."""
+    if not getattr(model.results, "trajectories", None):
+        raise ValueError("summarize_workflow_result expects a model that has already produced results.")
+    solver_id = sorted(model.results.trajectories.keys())[0]
+    bundle = model.results.solver_runs[solver_id]
+    trajectory = bundle.trajectory
+    assert trajectory is not None
+    analysis = next(iter(bundle.analyses.values()), None)
+    metrics = dict((analysis.metrics if analysis is not None else {}) or {})
+    runtime = dict(bundle.runtime_metadata or {})
+    model_payload = dict(getattr(bundle.model_spec, "payload", {}) or {})
+
+    inferred_state_encoding = state_encoding(trajectory)
+    density_matrix = dict(getattr(trajectory, "density_matrix", {}) or {})
+    wave_function = dict(getattr(trajectory, "wave_function", {}) or {})
+    if density_matrix:
+        state_kind = "density_matrix"
+    elif wave_function:
+        state_kind = "wave_function"
+    else:
+        state_kind = state_channel_name(trajectory)
+    rows = state_rows(trajectory)
+    final_state_raw = list(rows[-1]) if rows else []
+    times = list(trajectory.times or [])
     details = dict(runtime.get("details", {}) or {})
     device = dict(device or {})
     noise = dict(noise or {})
@@ -87,7 +101,7 @@ def summarize_workflow_result(
             final_state_max = float(max(numeric_state))
 
     population_metric = dict(metrics.get("population", {}) or {})
-    population_series = dict(population_metric.get("series", {}) or {})
+    population_series = dict(population_metric.get("values", {}) or {})
     final_p0 = np.nan
     final_p1 = np.nan
     if isinstance(population_series.get("0"), list) and population_series["0"]:
@@ -105,10 +119,10 @@ def summarize_workflow_result(
         "task_title": task_title,
         "case": case_tag,
         "engine": engine,
-        "trace_engine": str(runtime.get("engine_used", "")),
-        "state_encoding": str(state_repr.get("encoding", "unknown")),
-        "state_kind": str(state_repr.get("actual", "")),
-        "num_qubits": int(model.get("num_qubits", 0) or 0),
+        "trajectory_engine": str(trajectory.engine),
+        "state_encoding": inferred_state_encoding,
+        "state_kind": state_kind,
+        "num_qubits": int(model_payload.get("num_qubits", 0) or 0),
         "state_len": int(state_len),
         "final_state_json": final_state_json,
         "final_state_sum": final_state_sum,
@@ -125,7 +139,7 @@ def summarize_workflow_result(
         "note": str(note),
         "device_json": json.dumps(device, ensure_ascii=False, sort_keys=True),
         "noise_json": json.dumps(noise, ensure_ascii=False, sort_keys=True),
-        "out_dir": str(artifacts.get("out_dir", "")),
+        "out_dir": str(model.out_dir or ""),
     }
     row.update(collect_pulse_metrics(row["out_dir"]))
     return row
@@ -147,3 +161,4 @@ def attach_compare_status(df: pd.DataFrame) -> pd.DataFrame:
     df["compare_status"] = [statuses[(t, c)] for t, c in zip(df["task"], df["case"])]
     df["compare_reason"] = [reasons[(t, c)] for t, c in zip(df["task"], df["case"])]
     return df
+

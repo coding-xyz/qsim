@@ -10,6 +10,7 @@ import yaml
 
 from qsim.backend.config import validate_backend_config
 from qsim.workflow.contracts import (
+    DefaultAnalyserConfig,
     SolverBackendConfig,
     TaskInputConfig,
     WorkflowDeviceConfig,
@@ -26,7 +27,15 @@ from qsim.workflow.contracts import (
 
 
 _TASK_TOP_KEYS = {"schema_version", "target", "input", "features", "output", "tags", "template", "targets", "task"}
-_TASK_INPUT_KEYS = {"qasm_text", "qasm_path", "solver_config", "device_config", "pulse_config", "param_bindings"}
+_TASK_INPUT_KEYS = {
+    "qasm_text",
+    "qasm_path",
+    "solver_config",
+    "device_config",
+    "pulse_config",
+    "analyser_config",
+    "param_bindings",
+}
 _TASK_OUTPUT_KEYS = {
     "out_dir",
     "persist_artifacts",
@@ -51,7 +60,7 @@ _TASK_FEATURE_KEYS = {
 }
 
 _TARGET_FEATURE_KEYS: dict[str, set[str]] = {
-    "trace": set(),
+    "trajectory": set(),
     "logical_error": set(),
     "sensitivity_report": set(),
     "decoder_eval_report": {
@@ -68,7 +77,7 @@ _TARGET_FEATURE_KEYS: dict[str, set[str]] = {
     "cross_engine_compare": set(),
 }
 
-_SOLVER_TOP_KEYS = {"schema_version", "template", "backend", "run", "frame", "solver"}
+_SOLVER_TOP_KEYS = {"schema_version", "template", "backend", "run", "frame", "study", "solver"}
 _SOLVER_BACKEND_KEYS = {"level", "analysis_pipeline", "analysis", "truncation"}
 _SOLVER_FRAME_KEYS = {"mode", "reference", "rwa", "qubit_reference_freqs_Hz"}
 _SOLVER_RUN_COMMON_KEYS = {
@@ -94,6 +103,17 @@ _SOLVER_RUN_JULIA_KEYS = {"julia_bin", "julia_depot_path", "julia_timeout_s"}
 
 _DEVICE_TOP_KEYS = {"schema_version", "template", "device", "noise"}
 _PULSE_TOP_KEYS = {"schema_version", "template", "pulse"}
+_ANALYSER_TOP_KEYS = {
+    "schema_version",
+    "template",
+    "solver_id",
+    "trajectory",
+    "metrics",
+    "readout_model",
+    "iq_discrimination",
+    "noise_analysis",
+    "report",
+}
 
 
 def _is_v3_task_payload(payload: dict[str, Any]) -> bool:
@@ -119,12 +139,13 @@ def _map_v3_task_payload(payload: dict[str, Any]) -> dict[str, Any]:
         qasm_text = sequence.get("qasm_text")
     mapped: dict[str, Any] = {
         "schema_version": str(payload.get("schema_version", "3.0")),
-        "target": "trace",
+        "target": "trajectory",
         "input": {
             "qasm_text": qasm_text,
             "solver_config": task_input.get("solver_config"),
             "device_config": task_input.get("device_config"),
             "pulse_config": task_input.get("pulse_config"),
+            "analyser_config": task_input.get("analyser_config"),
             "param_bindings": dict(task_input.get("param_bindings", {}) or {}) or None,
         },
         "output": {
@@ -201,6 +222,13 @@ def _resolve_path(base_dir: Path, value: str | None) -> str | None:
     return str(p)
 
 
+def _optional_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value)
+    return text if text else None
+
+
 def _load_mapping(path: str | Path) -> tuple[Path, dict[str, Any]]:
     p = Path(path).resolve()
     text = p.read_text(encoding="utf-8")
@@ -264,6 +292,7 @@ def _validate_task_payload(
     *,
     require_solver_config: bool = True,
     require_device_config: bool = True,
+    require_analyser_config: bool = True,
 ) -> list[str]:
     _reject_unknown("task top-level", set(payload), _TASK_TOP_KEYS)
 
@@ -285,6 +314,8 @@ def _validate_task_payload(
         raise ValueError("Task config requires input.solver_config.")
     if require_device_config and not raw_input.get("device_config"):
         raise ValueError("Task config requires input.device_config.")
+    if require_analyser_config and not raw_input.get("analyser_config"):
+        raise ValueError("Task config requires input.analyser_config.")
 
     raw_output = payload.get("output", {}) or {}
     if not isinstance(raw_output, dict):
@@ -420,6 +451,7 @@ def load_task_config_file(
     *,
     require_solver_config: bool = True,
     require_device_config: bool = True,
+    require_analyser_config: bool = True,
 ) -> WorkflowTaskConfig:
     """Load a task config file into ``WorkflowTaskConfig``.
 
@@ -446,6 +478,7 @@ def load_task_config_file(
         payload,
         require_solver_config=require_solver_config,
         require_device_config=require_device_config,
+        require_analyser_config=require_analyser_config,
     )
     raw_input = dict(payload.get("input", {}) or {})
 
@@ -459,9 +492,10 @@ def load_task_config_file(
         target=targets,
         input=TaskInputConfig(
             qasm_text=str(qasm_text),
-            solver_config_path=_resolve_path(base_dir, str(raw_input.get("solver_config"))),
-            device_config_path=_resolve_path(base_dir, str(raw_input.get("device_config"))),
-            pulse_config_path=_resolve_path(base_dir, str(raw_input.get("pulse_config"))),
+            solver_config_path=_resolve_path(base_dir, _optional_text(raw_input.get("solver_config"))),
+            device_config_path=_resolve_path(base_dir, _optional_text(raw_input.get("device_config"))),
+            pulse_config_path=_resolve_path(base_dir, _optional_text(raw_input.get("pulse_config"))),
+            analyser_config_path=_resolve_path(base_dir, _optional_text(raw_input.get("analyser_config"))),
             param_bindings=dict(raw_input.get("param_bindings", {}) or {}) or None,
         ),
         features=WorkflowFeatureFlags(**dict(payload.get("features", {}) or {})),
@@ -488,7 +522,6 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
             raise ValueError(f"Unsupported solver.engine: {engine!r}. Supported engines: qutip, qoptics, qtoolbox.")
         raw_study = [dict(step) for step in list(solver.get("study", []) or []) if isinstance(step, dict)] or None
         _validate_v3_solver_study(raw_study)
-        raw_analysis = dict(solver.get("analysis", {}) or {}) or None
         raw_schedule = dict(solver.get("schedule", {}) or {})
         raw_run = {
             "engine": engine,
@@ -500,7 +533,6 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
             backend=SolverBackendConfig(level="qubit", analysis_pipeline="structured", truncation={}),
             run=WorkflowRunOptions(**raw_run),
             frame=WorkflowFrameOptions(),
-            analysis=raw_analysis,
             study=raw_study,
         )
         if raw_run.get("julia_bin"):
@@ -530,6 +562,7 @@ def load_solver_config_file(path: str | Path) -> WorkflowSolverConfig:
         backend=SolverBackendConfig(**raw_backend),
         run=WorkflowRunOptions(**raw_run),
         frame=WorkflowFrameOptions(**raw_frame),
+        study=[dict(step) for step in list(payload.get("study", []) or []) if isinstance(step, dict)] or None,
     )
     validate_backend_config(solver_cfg.to_backend_config())
     return solver_cfg
@@ -570,6 +603,21 @@ def load_pulse_config_file(path: str | Path) -> dict[str, Any]:
     return raw_pulse
 
 
+def load_analyser_config_file(path: str | Path) -> DefaultAnalyserConfig:
+    """Load an analyser config file into ``DefaultAnalyserConfig``."""
+    _cfg_path, payload = _load_mapping(path)
+    _reject_unknown("analyser top-level", set(payload), _ANALYSER_TOP_KEYS)
+    return DefaultAnalyserConfig(
+        solver_id=str(payload.get("solver_id")).strip() or None if payload.get("solver_id") is not None else None,
+        trajectory=dict(payload.get("trajectory", {}) or {}) or None,
+        metrics=list(payload.get("metrics", []) or []) or None,
+        readout_model=dict(payload.get("readout_model", {}) or {}) or None,
+        iq_discrimination=dict(payload.get("iq_discrimination", {}) or {}) or None,
+        noise_analysis=dict(payload.get("noise_analysis", {}) or {}) or None,
+        report=dict(payload.get("report", {}) or {}) or None,
+    )
+
+
 def load_task_file(path: str | Path) -> WorkflowTaskConfig:
     """Compatibility alias: load task-config only."""
     return load_task_config_file(path)
@@ -581,33 +629,45 @@ def load_config_bundle_files(
     solver_config: str | Path | None = None,
     device_config: str | Path | None = None,
     pulse_config: str | Path | None = None,
+    analyser_config: str | Path | None = None,
 ) -> WorkflowTask:
-    """Load and compose a 4-file config bundle into ``WorkflowTask``.
+    """Load and compose a 5-file config bundle into ``WorkflowTask``.
 
-    This is the main file-driven composition helper used by the CLI and by
-    ``run_task_files``.
+    This is the main file-driven composition helper used by the model API.
     """
     task_cfg = load_task_config_file(
         task_config,
         require_solver_config=(solver_config is None),
         require_device_config=(device_config is None),
+        require_analyser_config=(analyser_config is None),
     )
     solver_path = str(solver_config) if solver_config is not None else task_cfg.input.solver_config_path
     device_path = str(device_config) if device_config is not None else task_cfg.input.device_config_path
     pulse_path = str(pulse_config) if pulse_config is not None else task_cfg.input.pulse_config_path
+    analyser_path = str(analyser_config) if analyser_config is not None else task_cfg.input.analyser_config_path
     if not solver_path:
         raise ValueError("Task input must provide solver_config, or pass solver_config override.")
     if not device_path:
         raise ValueError("Task input must provide device_config, or pass device_config override.")
+    if not analyser_path:
+        raise ValueError("Task input must provide analyser_config, or pass analyser_config override.")
     solver_cfg = load_solver_config_file(solver_path)
     device_cfg = load_device_config_file(device_path)
+    analyser_cfg = load_analyser_config_file(analyser_path)
     if pulse_path:
         device_cfg.pulse = {**dict(device_cfg.pulse or {}), **load_pulse_config_file(pulse_path)}
-    return compose_workflow_task(task_cfg, solver_cfg, device_cfg, backend_source=str(Path(solver_path).resolve()))
+    return compose_workflow_task(
+        task_cfg,
+        solver_cfg,
+        device_cfg,
+        analyser_cfg,
+        backend_source=str(Path(solver_path).resolve()),
+    )
 
 
 __all__ = [
     "load_config_bundle_files",
+    "load_analyser_config_file",
     "load_device_config_file",
     "load_pulse_config_file",
     "load_solver_config_file",

@@ -1,4 +1,4 @@
-"""Generate grouped API reference pages from ``src/qsim`` docstrings."""
+﻿"""Generate grouped API reference pages from ``src/qsim`` docstrings."""
 
 from __future__ import annotations
 
@@ -12,16 +12,16 @@ ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "src" / "qsim"
 
 GROUP_DESCRIPTIONS = {
-    "analysis": "观测量、敏感度、误差预算和分析注册器。",
-    "backend": "编译、lowering、模型构建与 backend 配置。",
-    "circuit": "OpenQASM 导入、导出与电路标准化。",
-    "common": "通用 schema、单位字段和底层数据结构。",
-    "engines": "QuTiP、Julia 相关引擎与 QEC 分析引擎接口。",
-    "pulse": "门到脉冲映射、PulseIR 生成与可视化工具。",
-    "qec": "prior、decoder、decoder eval 与逻辑误差汇总。",
-    "session": "结果 revision、artifact store 与 session manifest。",
-    "ui": "CLI、notebook 辅助函数和结果摘要接口。",
-    "workflow": "配置加载、执行计划、主 pipeline 与结果提交。",
+    "analysis": "Analysis passes, observables, and post-processing helpers.",
+    "backend": "Compilation, lowering, model building, and backend config helpers.",
+    "circuit": "OpenQASM import, export, and circuit normalization.",
+    "common": "Common schemas and shared data structures.",
+    "engines": "Simulation engines and engine adapters.",
+    "pulse": "Pulse compilation, PulseIR helpers, and visualization tools.",
+    "qec": "QEC priors, decoders, decoder eval, and summary utilities.",
+    "session": "Sessions, manifests, and artifact-oriented persistence helpers.",
+    "ui": "CLI, notebook helpers, and lightweight result summaries.",
+    "workflow": "Config loading, execution planning, model API, and workflow stages.",
 }
 
 GROUP_ENTRYPOINTS = {
@@ -40,12 +40,13 @@ GROUP_ENTRYPOINTS = {
     "session": ["qsim.session.Session"],
     "ui": ["qsim.ui.plot_default"],
     "workflow": [
-        "qsim.workflow.run_task",
-        "qsim.workflow.run_task_files",
+        "qsim.workflow.create_model",
+        "qsim.workflow.load_model",
         "qsim.workflow.load_task_config_file",
         "qsim.workflow.load_solver_config_file",
         "qsim.workflow.load_device_config_file",
         "qsim.workflow.load_pulse_config_file",
+        "qsim.workflow.load_analyser_config_file",
     ],
 }
 
@@ -68,7 +69,7 @@ def _is_public_module(path: Path) -> bool:
     return not any(part.startswith("_") for part in rel_parts)
 
 
-modules = sorted(p for p in SRC.rglob("*.py") if _is_public_module(p))
+modules = sorted(path for path in SRC.rglob("*.py") if _is_public_module(path))
 grouped: dict[str, list[str]] = defaultdict(list)
 for py_path in modules:
     module = _module_name(py_path)
@@ -79,22 +80,22 @@ for py_path in modules:
     grouped[group].append(module)
 
 index_lines = [
-    "# API 参考",
+    "# API Reference",
     "",
-    "本目录由 `src/qsim` 中的源码 docstring 自动生成，并按模块分组组织。",
+    "This section is generated from public docstrings under `src/qsim`.",
     "",
-    "## 如何阅读",
+    "## How To Read This Section",
     "",
-    "- 如果你只想知道常用调用入口，请先看每个分组页面顶部的“常用入口”。",
-    "- 如果你想查具体函数、类或数据结构，请继续阅读该分组下的自动生成模块条目。",
-    "- `docs/wiki` 中的说明书页面负责讲“怎么用”，本目录负责讲“接口是什么”。",
+    "- Start with the entrypoints if you only need the common public APIs.",
+    "- Continue into the generated module sections when you need class, function, or schema details.",
+    "- Use `docs/src/wiki` for task-oriented guides and this section for API-oriented reference.",
     "",
-    "## 模块分组",
+    "## Groups",
     "",
 ]
 for group in sorted(grouped):
-    desc = GROUP_DESCRIPTIONS.get(group, "该分组的详细接口。")
-    index_lines.append(f"- [{group}](./{group}.md)：{desc}")
+    desc = GROUP_DESCRIPTIONS.get(group, "Public APIs for this module group.")
+    index_lines.append(f"- [{group}](./{group}.md): {desc}")
 
 with mkdocs_gen_files.open("api/index.md", "w") as fd:
     fd.write("\n".join(index_lines) + "\n")
@@ -104,9 +105,9 @@ for group in sorted(grouped):
     lines = [
         f"# {group}",
         "",
-        GROUP_DESCRIPTIONS.get(group, f"`src/qsim/{group}` 下的公开接口。"),
+        GROUP_DESCRIPTIONS.get(group, f"Public APIs under `src/qsim/{group}`."),
         "",
-        "## 常用入口",
+        "## Entrypoints",
         "",
     ]
     entries = GROUP_ENTRYPOINTS.get(group, [])
@@ -114,16 +115,16 @@ for group in sorted(grouped):
         for entry in entries:
             lines.append(f"- `{entry}`")
     else:
-        lines.append("- 本分组当前没有额外整理的常用入口，请直接查看下方模块列表。")
+        lines.append("- No curated entrypoints for this group yet. See the module list below.")
 
     lines.extend(
         [
             "",
-            "## 包级导出",
+            "## Package Export",
             "",
             f"::: {package_module}",
             "",
-            "## 模块列表",
+            "## Modules",
             "",
         ]
     )
@@ -135,5 +136,6 @@ for group in sorted(grouped):
         lines.append("")
         lines.append(f"::: {module}")
         lines.append("")
+
     with mkdocs_gen_files.open(f"api/{group}.md", "w") as fd:
         fd.write("\n".join(lines) + "\n")

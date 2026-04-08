@@ -389,6 +389,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../wiki/analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../wiki/visualization.html" class="md-nav__link">
         
   
@@ -512,10 +539,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" checked>
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -533,8 +560,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -667,10 +694,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#entrypoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        常用入口
+        Entrypoints
       
     </span>
   </a>
@@ -678,10 +705,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#package-export" class="md-nav__link">
     <span class="md-ellipsis">
       
-        包级导出
+        Package Export
       
     </span>
   </a>
@@ -784,10 +811,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#modules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        模块列表
+        Modules
       
     </span>
   </a>
@@ -1428,10 +1455,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#entrypoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        常用入口
+        Entrypoints
       
     </span>
   </a>
@@ -1439,10 +1466,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#package-export" class="md-nav__link">
     <span class="md-ellipsis">
       
-        包级导出
+        Package Export
       
     </span>
   </a>
@@ -1545,10 +1572,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#modules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        模块列表
+        Modules
       
     </span>
   </a>
@@ -1940,14 +1967,14 @@
 
 
 <h1 id="backend">backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h1>
-<p>编译、lowering、模型构建与 backend 配置。</p>
-<h2 id="_1">常用入口<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>Compilation, lowering, model building, and backend config helpers.</p>
+<h2 id="entrypoints">Entrypoints<a class="headerlink" href="#entrypoints" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>qsim.backend.CompilePipeline</code></li>
 <li><code>qsim.backend.DefaultLowering</code></li>
 <li><code>qsim.backend.load_backend_config</code></li>
 </ul>
-<h2 id="_2">包级导出<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h2 id="package-export">Package Export<a class="headerlink" href="#package-export" title="Permanent link">&para;</a></h2>
 
 
 <div class="doc doc-object doc-module">
@@ -2184,7 +2211,7 @@ points are <code>CompilePipeline</code>, <code>DefaultLowering</code>, and
 
     </div>
 
-</div><h2 id="_3">模块列表<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+</div><h2 id="modules">Modules<a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
 <h2 id="qsimbackendcompile_pipeline"><code>qsim.backend.compile_pipeline</code><a class="headerlink" href="#qsimbackendcompile_pipeline" title="Permanent link">&para;</a></h2>
 
 
@@ -2760,7 +2787,7 @@ points are <code>CompilePipeline</code>, <code>DefaultLowering</code>, and
 
 
 <h4 id="qsim.backend.model_build.DefaultModelBuilder.build" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">build</span><span class="p">(</span><span class="n">executable</span><span class="p">,</span> <span class="n">hw</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">pulse_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">analysis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">study</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_step</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">build</span><span class="p">(</span><span class="n">executable</span><span class="p">,</span> <span class="n">hw</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">pulse_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver_run</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">analyser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">study</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_step</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#qsim.backend.model_build.DefaultModelBuilder.build" class="headerlink" title="Permanent link">&para;</a></h4>
 

@@ -1,4 +1,4 @@
-"""Output helpers for workflow artifacts and visualization."""
+﻿"""Output helpers for workflow artifacts and visualization."""
 
 from __future__ import annotations
 
@@ -10,47 +10,48 @@ import time
 import h5py
 
 from qsim.circuit.import_qasm import CircuitAdapter
+from qsim.common.schemas import json_safe
 from qsim.pulse.sequence import PulseCompiler
-from qsim.pulse.visualize import plot_pulses, plot_report, plot_trace
+from qsim.pulse.visualize import plot_pulses, plot_report, plot_trajectory
 
 
 def _jsonable(value):
-    if isinstance(value, dict):
-        return {str(k): _jsonable(v) for k, v in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_jsonable(item) for item in value]
     if isinstance(value, bytes):
         return value.decode("utf-8", errors="replace")
-    if hasattr(value, "tolist"):
-        try:
-            return _jsonable(value.tolist())
-        except Exception:
-            pass
-    if hasattr(value, "item"):
-        try:
-            return _jsonable(value.item())
-        except Exception:
-            pass
-    if value is None or isinstance(value, (str, int, float, bool)):
-        return value
-    return str(value)
+    return json_safe(value)
 
 
-def write_trace_h5(trace, out_path: Path) -> Path:
-    """Persist a ``Trace`` object into an HDF5 file with structured metadata."""
+def write_trajectory_h5(trajectory, out_path: Path) -> Path:
+    """Persist a ``Trajectory`` object into an HDF5 file with structured metadata."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with h5py.File(out_path, "w") as h5:
-        h5.create_dataset("times", data=trace.times)
-        h5.create_dataset("states", data=trace.states)
-        h5.attrs["engine"] = trace.engine
-        h5.attrs["trace_schema_version"] = getattr(trace, "schema_version", "1.0")
-        metadata = dict(getattr(trace, "metadata", {}) or {})
-        for key in ("state_encoding", "num_qubits", "model_dimension"):
+        h5.create_dataset("times", data=trajectory.times)
+        h5.attrs["engine"] = trajectory.engine
+        h5.attrs["trajectory_schema_version"] = getattr(trajectory, "schema_version", "1.0")
+        metadata = dict(getattr(trajectory, "metadata", {}) or {})
+        wave_function = dict(getattr(trajectory, "wave_function", {}) or {})
+        density_matrix = dict(getattr(trajectory, "density_matrix", {}) or {})
+        classical = dict(getattr(trajectory, "classical", {}) or {})
+        measurements = dict(getattr(trajectory, "measurements", {}) or {})
+        for key in ("num_qubits", "model_dimension"):
             value = metadata.get(key, None)
             if value is not None:
                 h5.attrs[key] = value
-        metadata_json = json.dumps(_jsonable(metadata), ensure_ascii=False)
-        h5.create_dataset("metadata_json", data=metadata_json, dtype=h5py.string_dtype(encoding="utf-8"))
+        if metadata:
+            metadata_json = json.dumps(_jsonable(metadata), ensure_ascii=False)
+            h5.create_dataset("metadata_json", data=metadata_json, dtype=h5py.string_dtype(encoding="utf-8"))
+        if wave_function:
+            wave_function_json = json.dumps(_jsonable(wave_function), ensure_ascii=False)
+            h5.create_dataset("wave_function_json", data=wave_function_json, dtype=h5py.string_dtype(encoding="utf-8"))
+        if density_matrix:
+            density_matrix_json = json.dumps(_jsonable(density_matrix), ensure_ascii=False)
+            h5.create_dataset("density_matrix_json", data=density_matrix_json, dtype=h5py.string_dtype(encoding="utf-8"))
+        if classical:
+            classical_json = json.dumps(_jsonable(classical), ensure_ascii=False)
+            h5.create_dataset("classical_json", data=classical_json, dtype=h5py.string_dtype(encoding="utf-8"))
+        if measurements:
+            measurements_json = json.dumps(_jsonable(measurements), ensure_ascii=False)
+            h5.create_dataset("measurements_json", data=measurements_json, dtype=h5py.string_dtype(encoding="utf-8"))
     return out_path
 
 
@@ -106,14 +107,14 @@ def export_circuit_diagram(circuit, out: Path) -> str:
 
 def export_result_figures(
     pulse_ir,
-    trace,
+    trajectory,
     analysis: dict,
     out: Path,
     *,
     export_dxf: bool,
     selected_outputs: set[str] | None = None,
 ) -> dict[str, str]:
-    """Export pulse/trace/report figures and return produced filename map."""
+    """Export pulse/trajectory/report figures and return produced filename map."""
     outputs: dict[str, str] = {}
     allow = selected_outputs
     need_pulse = allow is None or "pulse_timing" in allow
@@ -140,11 +141,11 @@ def export_result_figures(
         except Exception:
             pass
 
-    if allow is None or "trace_plot" in allow:
+    if allow is None or "trajectory_plot" in allow:
         try:
-            fig = plot_trace(trace)
-            fig.savefig(out / "trace.png", dpi=180)
-            outputs["trace_plot"] = "trace.png"
+            fig = plot_trajectory(trajectory)
+            fig.savefig(out / "trajectory.png", dpi=180)
+            outputs["trajectory_plot"] = "trajectory.png"
             try:
                 import matplotlib.pyplot as plt
 
@@ -177,12 +178,12 @@ def build_settings_report(
     device: dict | None,
     pulse: dict | None,
     frame: dict | None,
-    analysis: dict | None,
+    analyser: dict | None,
     study: list[dict] | None,
     primary_step: dict | None,
     noise: dict | None,
     model_spec,
-    trace,
+    trajectory,
     selected_engine_name: str,
     solver_mode: str | None,
     solver_run: dict | None,
@@ -206,7 +207,7 @@ def build_settings_report(
         "workflow": {
             "backend_path": backend_repr,
             "engine_requested": selected_engine_name,
-            "engine_used": trace.engine,
+            "engine_used": trajectory.engine,
             "solver": model_spec.solver,
             "solver_mode_requested": (solver_mode or "").lower(),
             "allow_mock_fallback": bool(allow_mock_fallback),
@@ -217,7 +218,7 @@ def build_settings_report(
             "mcwf_ntraj": int(max(1, mcwf_ntraj)),
             "level": cfg.level,
             "backend_noise_mode": cfg.noise,
-            "analysis": getattr(cfg, "analysis", cfg.analysis_pipeline),
+            "analysis_pipeline": getattr(cfg, "analysis", cfg.analysis_pipeline),
             "seed": cfg.seed,
             "param_bindings": dict(param_bindings or {}),
         },
@@ -234,7 +235,7 @@ def build_settings_report(
             "device": device or {},
             "pulse": pulse or {},
             "frame": frame or {},
-            "analysis": analysis or {},
+            "analyser": analyser or {},
             "study": list(study or []),
             "primary_step": dict(primary_step or {}),
             "solver_run": solver_run or {},
@@ -289,5 +290,6 @@ __all__ = [
     "resolve_writable_out_dir",
     "sha256_text",
     "write_pulse_npz_with_fallback",
-    "write_trace_h5",
+    "write_trajectory_h5",
 ]
+

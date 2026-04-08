@@ -1,17 +1,26 @@
-import math
+﻿import math
 
 from qsim.analysis.readout_chain import build_readout_analysis
-from qsim.common.schemas import Carrier, ChannelSpec, ModelSpec, PulseIR, PulseSpec, Trace
+from qsim.common.schemas import Carrier, ChannelSpec, ModelSpec, PulseIR, PulseSpec, Trajectory
 
 
 def test_build_readout_analysis_returns_readout_and_iq_payloads():
     times = [0.0, 1.0e-9, 2.0e-9, 3.0e-9]
-    trace = Trace(
+    trajectory = Trajectory(
         engine="qutip",
         times=times,
-        states=[[0.0], [0.1], [0.2], [0.3]],
-        metadata={
-            "readout_observables": {
+        density_matrix={
+            "actual_kind": "density_matrix",
+            "encoding": "complex",
+            "snapshots": [
+                [[1.0 + 0.0j, 0.0j], [0.0j, 0.0j]],
+                [[0.9 + 0.0j, 0.0j], [0.0j, 0.1 + 0.0j]],
+                [[0.8 + 0.0j, 0.0j], [0.0j, 0.2 + 0.0j]],
+                [[0.7 + 0.0j, 0.0j], [0.0j, 0.3 + 0.0j]],
+            ],
+        },
+        classical={
+            "readout": {
                 "times": times,
                 "cavity_a": [[0.0, 0.0], [0.1, 0.05], [0.15, 0.05], [0.1, 0.0]],
                 "cavity_n": [0.0, 0.01, 0.02, 0.01],
@@ -81,11 +90,11 @@ def test_build_readout_analysis_returns_readout_and_iq_payloads():
     pulse_cfg = {"acquisition": {"integration_window_ns": 3.0, "start_delay_ns": 0.0, "demodulation": {"phase_rad": 0.0}}}
 
     out = build_readout_analysis(
-        trace=trace,
+        trajectory=trajectory,
         model_spec=model_spec,
         pulse_ir=pulse_ir,
         pulse_cfg=pulse_cfg,
-        analysis_cfg=analysis_cfg,
+        analyser_cfg=analysis_cfg,
         seed=123,
     )
 
@@ -98,12 +107,21 @@ def test_build_readout_analysis_returns_readout_and_iq_payloads():
 
 def test_build_readout_analysis_uses_actual_shot_payloads():
     times = [0.0, 1.0e-9, 2.0e-9, 3.0e-9]
-    trace = Trace(
+    trajectory = Trajectory(
         engine="qutip",
         times=times,
-        states=[[0.0], [0.0], [0.0], [0.0]],
-        metadata={
-            "readout_observables": {
+        wave_function={
+            "actual_kind": "wave_function",
+            "encoding": "complex",
+            "snapshots": [
+                [1.0 + 0.0j, 0.0j],
+                [1.0 + 0.0j, 0.0j],
+                [1.0 + 0.0j, 0.0j],
+                [1.0 + 0.0j, 0.0j],
+            ],
+        },
+        classical={
+            "readout": {
                 "times": times,
                 "a_in": [[0.0, 0.0] for _ in times],
                 "cavity_a": [[0.0, 0.0] for _ in times],
@@ -161,14 +179,15 @@ def test_build_readout_analysis_uses_actual_shot_payloads():
     pulse_cfg = {"acquisition": {"integration_window_ns": 3.0, "start_delay_ns": 0.0, "demodulation": {"phase_rad": 0.0}}}
 
     out = build_readout_analysis(
-        trace=trace,
+        trajectory=trajectory,
         model_spec=model_spec,
         pulse_ir=pulse_ir,
         pulse_cfg=pulse_cfg,
-        analysis_cfg=analysis_cfg,
+        analyser_cfg=analysis_cfg,
         seed=123,
     )
 
     assert out["readout"]["num_shots"] == 3
     assert out["iq"]["num_shots"] == 3
     assert len(out["iq"]["synthetic_clouds"]["|1>"]) == 3
+

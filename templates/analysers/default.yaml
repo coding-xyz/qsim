@@ -1,0 +1,11 @@
+schema_version: "1.0"
+trajectory:
+  quantum: density_matrix
+  save_times: all
+  save_final_state: true
+  save_jump_events: false
+  save_measurement_records: false
+metrics:
+  - population
+  - mean_excited
+  - variance

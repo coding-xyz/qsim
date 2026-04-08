@@ -17,7 +17,7 @@ solver:
       options: {}
   analysis:
     trace:
-      states: density_matrix
+      quantum: density_matrix
       save_times: all
       save_final_state: true
       save_jump_events: false

@@ -1,4 +1,4 @@
-# 文件 IO
+﻿# 文件 IO
 
 `qsim` 会把一次运行的重要输入、中间产物和最终结果写到 `task.output.out_dir`。
 
@@ -12,7 +12,7 @@
 - `compile_report.json`
 - `pulse_ir.json`
 - `model_spec.json`
-- `trace.h5`
+- `trajectory.h5`
 - `settings_report.json`
 - `run_manifest.json`
 
@@ -43,3 +43,5 @@
 - 做长期实验归档时优先用 `artifact_mode: all`
 - 做快速迭代时优先用 `artifact_mode: targeted`
 - 如果你需要跨多次运行做结果追踪，建议同时保留 `run_manifest.json`
+
+

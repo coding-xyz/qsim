@@ -1,5 +1,5 @@
-schema_version: "3.0"
-target: trace
+﻿schema_version: "3.0"
+target: trajectory
 input:
   qasm_text: |
     OPENQASM 3;
@@ -11,6 +11,7 @@ input:
   solver_config: ../../../templates/solvers/qutip.yaml
   device_config: ../../../templates/devices/single_qubit.yaml
   pulse_config: ../../../templates/pulses/single_qubit.yaml
+  analyser_config: ../../../templates/analysers/default.yaml
 output:
   out_dir: ../runs/task2_readout_io
   persist_artifacts: true
@@ -19,3 +20,5 @@ output:
   export_dxf: false
 features: {}
 tags: [task2, readout-io]
+
+

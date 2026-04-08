@@ -1,10 +1,10 @@
-"""Abstract base definitions for simulation engines."""
+﻿"""Abstract base definitions for simulation engines."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from qsim.common.schemas import ModelSpec, Trace
+from qsim.common.schemas import ModelSpec, Trajectory
 
 
 class Engine(ABC):
@@ -13,6 +13,7 @@ class Engine(ABC):
     name = "base"
 
     @abstractmethod
-    def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trace:
-        """Run simulation and return normalized ``Trace``."""
+    def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trajectory:
+        """Run simulation and return normalized ``Trajectory``."""
         raise NotImplementedError
+

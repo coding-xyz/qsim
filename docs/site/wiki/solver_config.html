@@ -14,7 +14,7 @@
         <link rel="prev" href="pulse_config.html">
       
       
-        <link rel="next" href="visualization.html">
+        <link rel="next" href="analyser_config.html">
       
       
         
@@ -477,21 +477,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analysis" class="md-nav__link">
+  <a href="#solver" class="md-nav__link">
     <span class="md-ellipsis">
       
-        analysis
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#schedule" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        schedule
+        不再属于 solver 的内容
       
     </span>
   </a>
@@ -513,6 +502,33 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -645,10 +661,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -666,8 +682,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1074,21 +1090,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analysis" class="md-nav__link">
+  <a href="#solver" class="md-nav__link">
     <span class="md-ellipsis">
       
-        analysis
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#schedule" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        schedule
+        不再属于 solver 的内容
       
     </span>
   </a>
@@ -1124,7 +1129,7 @@
 
 
 <h1 id="_1">求解器配置<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p><code>solver</code> 文件决定数值引擎、时间步长、参考系和分析输出。当前文档只说明推荐使用的结构化 <code>solver</code> 写法。</p>
+<p><code>solver</code> 文件只决定数值引擎、时间步长、参考系和数值运行参数。所有派生分析都已经迁移到独立的 <code>analyser</code> 配置。</p>
 <h2 id="_2">当前模板<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>仓库中的主模板包括：</p>
 <ul>
@@ -1135,44 +1140,41 @@
 <p>它们都采用同一套结构化组织方式。</p>
 <h2 id="_3">最小示例<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.0&quot;</span>
-<span class="nt">solver</span><span class="p">:</span>
+<span class="nt">backend</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">full</span>
+<span class="nt">run</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">engine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qutip</span>
-<span class="w">  </span><span class="nt">study</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">control_dynamics</span>
-<span class="w">      </span><span class="nt">active_components</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">q0</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">active_connections</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
-<span class="w">      </span><span class="nt">solver_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">me</span>
-<span class="w">      </span><span class="nt">time</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">dt_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
-<span class="w">        </span><span class="nt">t_end_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0e-6</span>
-<span class="w">        </span><span class="nt">t_padding_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
-<span class="w">      </span><span class="nt">frame</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating</span>
-<span class="w">        </span><span class="nt">reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">carrier</span>
-<span class="w">        </span><span class="nt">rwa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">      </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
-<span class="w">  </span><span class="nt">analysis</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">trace</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">states</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">density_matrix</span>
-<span class="w">      </span><span class="nt">save_times</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span>
-<span class="w">      </span><span class="nt">save_final_state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">      </span><span class="nt">save_jump_events</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<span class="w">      </span><span class="nt">save_measurement_records</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<span class="w">    </span><span class="nt">metrics</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">population</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mean_excited</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">variance</span>
-<span class="w">  </span><span class="nt">schedule</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">serial</span>
+<span class="w">  </span><span class="nt">solver_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">me</span>
+<span class="w">  </span><span class="nt">dt_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
+<span class="w">  </span><span class="nt">t_end_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0e-6</span>
+<span class="w">  </span><span class="nt">t_padding_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="nt">frame</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating</span>
+<span class="w">  </span><span class="nt">reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">carrier</span>
+<span class="w">  </span><span class="nt">rwa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">study</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">control_dynamics</span>
+<span class="w">    </span><span class="nt">active_components</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">q0</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">active_connections</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<span class="w">    </span><span class="nt">solver_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">me</span>
+<span class="w">    </span><span class="nt">time</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">dt_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
+<span class="w">      </span><span class="nt">t_end_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0e-6</span>
+<span class="w">      </span><span class="nt">t_padding_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">    </span><span class="nt">frame</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating</span>
+<span class="w">      </span><span class="nt">reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">carrier</span>
+<span class="w">      </span><span class="nt">rwa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
 </code></pre></div>
 <h2 id="_4">顶层结构<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>当前推荐维护以下键：</p>
 <ul>
 <li><code>schema_version</code></li>
-<li><code>solver.engine</code></li>
-<li><code>solver.study</code></li>
-<li><code>solver.analysis</code></li>
-<li><code>solver.schedule</code></li>
+<li><code>backend</code></li>
+<li><code>run</code></li>
+<li><code>frame</code></li>
+<li><code>study</code></li>
 </ul>
 <h2 id="engine">engine<a class="headerlink" href="#engine" title="Permanent link">&para;</a></h2>
 <p><code>engine</code> 决定使用哪一个求解后端。当前模板中常见的是：</p>
@@ -1196,25 +1198,24 @@
 <li><code>frame.rwa</code></li>
 <li><code>options</code></li>
 </ul>
-<h2 id="analysis">analysis<a class="headerlink" href="#analysis" title="Permanent link">&para;</a></h2>
-<p><code>analysis</code> 决定输出哪些结果。当前模板常见的是：</p>
+<h2 id="solver">不再属于 solver 的内容<a class="headerlink" href="#solver" title="Permanent link">&para;</a></h2>
+<p>以下内容不再写在 <code>solver.yaml</code> 中，而是统一写到 <code>analyser.yaml</code>：</p>
 <ul>
-<li><code>trace.states</code></li>
-<li><code>trace.save_times</code></li>
-<li><code>trace.save_final_state</code></li>
-<li><code>trace.save_jump_events</code></li>
-<li><code>trace.save_measurement_records</code></li>
+<li><code>trajectory.states</code></li>
+<li><code>trajectory.save_times</code></li>
+<li><code>trajectory.save_final_state</code></li>
+<li><code>trajectory.save_jump_events</code></li>
+<li><code>trajectory.save_measurement_records</code></li>
 <li><code>metrics</code></li>
+<li><code>readout_model</code></li>
+<li><code>iq_discrimination</code></li>
+<li><code>report</code></li>
 </ul>
-<h2 id="schedule">schedule<a class="headerlink" href="#schedule" title="Permanent link">&para;</a></h2>
-<p><code>schedule.policy</code> 控制 study 的执行策略。当前模板通常使用：</p>
-<ul>
-<li><code>serial</code></li>
-</ul>
+<p><code>solver</code> 的职责是生成 raw <code>trajectory</code>，<code>analyser</code> 的职责是从 <code>trajectory</code> 生成 population、IQ、report 等所有派生结果。</p>
 <h2 id="_5">实用建议<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <ul>
 <li>从 <code>templates/solvers/qutip.yaml</code> 起步最稳妥</li>
-<li>先只改 <code>engine</code>、<code>dt_s</code>、<code>t_end_s</code> 和 <code>analysis</code></li>
+<li>先只改 <code>engine</code>、<code>dt_s</code>、<code>t_end_s</code></li>
 <li>换引擎时尽量保持 <code>study</code> 结构不变，方便横向对比</li>
 </ul>
 

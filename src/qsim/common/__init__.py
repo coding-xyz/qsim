@@ -13,7 +13,7 @@ from qsim.common.schemas import (
     PulseSpec,
     Report,
     RunManifest,
-    Trace,
+    Trajectory,
 )
 
 __all__ = [
@@ -29,5 +29,5 @@ __all__ = [
     "PulseSpec",
     "Report",
     "RunManifest",
-    "Trace",
+    "Trajectory",
 ]

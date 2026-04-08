@@ -10,6 +10,7 @@ import hashlib
 import json
 
 SCHEMA_VERSION = "1.0"
+COMPLEX_JSON_TAG = "__qsim_complex__"
 
 
 def utc_now_iso() -> str:
@@ -36,11 +37,71 @@ def to_json_dict(obj: Any) -> dict[str, Any]:
     return asdict(obj)
 
 
+def json_safe(value: Any) -> Any:
+    """Convert nested values into a JSON-safe representation."""
+    if isinstance(value, dict):
+        return {str(k): json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_safe(item) for item in value]
+    if isinstance(value, complex):
+        return {COMPLEX_JSON_TAG: [float(value.real), float(value.imag)]}
+    if hasattr(value, "tolist"):
+        try:
+            return json_safe(value.tolist())
+        except Exception:
+            pass
+    if hasattr(value, "item"):
+        try:
+            return json_safe(value.item())
+        except Exception:
+            pass
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
+
+
+def json_restore(value: Any) -> Any:
+    """Restore nested values previously converted by ``json_safe``."""
+    if isinstance(value, dict):
+        if set(value.keys()) == {COMPLEX_JSON_TAG}:
+            pair = list(value.get(COMPLEX_JSON_TAG, []) or [])
+            if len(pair) >= 2:
+                return complex(float(pair[0]), float(pair[1]))
+        return {str(k): json_restore(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [json_restore(item) for item in value]
+    return value
+
+
+def make_series_payload(
+    values: list[list[float]] | list[float],
+    *,
+    quantity: str,
+    description: str,
+    series_labels: list[str] | None = None,
+    unit: str = "",
+) -> dict[str, Any]:
+    """Build a named time-series payload for classical trajectory channels."""
+    if values and isinstance(values[0], (int, float)):
+        rows = [[float(v)] for v in list(values)]  # type: ignore[index]
+    else:
+        rows = [[float(v) for v in row] for row in list(values)]  # type: ignore[arg-type]
+    if series_labels is None and rows:
+        series_labels = [f"s{i}" for i in range(len(rows[0]))]
+    return {
+        "quantity": str(quantity),
+        "description": str(description),
+        "unit": str(unit or ""),
+        "series_labels": list(series_labels or []),
+        "values": rows,
+    }
+
+
 def write_json(path: str | Path, payload: dict[str, Any]) -> Path:
     """Write UTF-8 pretty JSON file and return output path."""
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    out.write_text(json.dumps(json_safe(payload), ensure_ascii=False, indent=2), encoding="utf-8")
     return out
 
 
@@ -171,19 +232,51 @@ class ModelSpec:
 
 
 @dataclass
-class Trace:
-    """Normalized simulation output trace."""
+class Trajectory:
+    """Normalized simulation output trajectory."""
 
     schema_version: str = SCHEMA_VERSION
     engine: str = "mock"
     times: list[float] = field(default_factory=list)
-    states: list[list[float]] = field(default_factory=list)
+    wave_function: dict[str, Any] | None = None
+    density_matrix: dict[str, Any] | None = None
+    classical: dict[str, Any] = field(default_factory=dict)
+    measurements: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_payload(self) -> dict[str, Any]:
+        """Return a compact payload containing only populated trajectory fields."""
+        payload: dict[str, Any] = {
+            "schema_version": str(self.schema_version),
+            "engine": str(self.engine),
+            "times": list(self.times or []),
+        }
+        if self.wave_function:
+            payload["wave_function"] = dict(self.wave_function)
+        if self.density_matrix:
+            payload["density_matrix"] = dict(self.density_matrix)
+        if self.classical:
+            payload["classical"] = dict(self.classical)
+        if self.measurements:
+            payload["measurements"] = dict(self.measurements)
+        if self.metadata:
+            payload["metadata"] = dict(self.metadata)
+        return payload
+
+    def __getattribute__(self, name: str):
+        if name == "__annotations__":
+            cls_annotations = type(self).__dict__.get("__annotations__", {})
+            payload_keys = set(object.__getattribute__(self, "to_payload")().keys())
+            return {key: value for key, value in cls_annotations.items() if key in payload_keys}
+        return object.__getattribute__(self, name)
+
+    def __repr__(self) -> str:
+        return f"Trajectory({self.to_payload()!r})"
 
 
 @dataclass
 class Observables:
-    """Computed analysis observables from a trace."""
+    """Computed analysis observables from a trajectory."""
 
     schema_version: str = SCHEMA_VERSION
     values: dict[str, float] = field(default_factory=dict)

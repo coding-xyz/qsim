@@ -478,6 +478,33 @@
   
   
     <li class="md-nav__item">
+      <a href="wiki/analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="wiki/visualization.html" class="md-nav__link">
         
   
@@ -599,10 +626,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -620,8 +647,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1036,12 +1063,13 @@
 <h1 id="qsim">qsim<a class="headerlink" href="#qsim" title="Permanent link">&para;</a></h1>
 <p><code>qsim</code> 是一个面向量子电路仿真、脉冲建模和离线分析的 workflow-first 工具。它把一次运行拆成清晰的配置文件、标准化的中间产物和可复现的输出目录，方便做参数对比、结果归档和后续分析。</p>
 <h2 id="_1">当前配置体系<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>仓库当前对外推荐的组织方式是四类配置文件：</p>
+<p>仓库当前对外推荐的组织方式是五类配置文件：</p>
 <ul>
 <li><code>task</code></li>
 <li><code>solver</code></li>
 <li><code>device</code></li>
 <li><code>pulse</code></li>
+<li><code>analyser</code></li>
 </ul>
 <p>当前推荐在配置文件中统一写 <code>schema_version: "3.0"</code>。</p>
 <p>具体说明直接看对应页面：</p>
@@ -1050,23 +1078,26 @@
 <li><a href="wiki/device_config.html">设备配置</a></li>
 <li><a href="wiki/pulse_config.html">脉冲配置</a></li>
 <li><a href="wiki/solver_config.html">求解器配置</a></li>
+<li><a href="wiki/analyser_config.html">分析器配置</a></li>
 </ul>
 <h2 id="_2">快速开始<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>仓库里已经有一套最小可运行示例，可以直接启动：</p>
-<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>--task-config<span class="w"> </span>examples/noise_simulation_tests/required_tasks/task1_single_qubit.yaml
+<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-model<span class="w"> </span>--task-config<span class="w"> </span>examples/noise_simulation_tests/required_tasks/task1_single_qubit.yaml
 </code></pre></div>
-<p>这份任务会引用以下三个示例配置：</p>
+<p>这份任务会引用以下四个示例配置：</p>
 <ul>
 <li><code>templates/solvers/qutip.yaml</code></li>
 <li><code>templates/devices/single_qubit.yaml</code></li>
 <li><code>templates/pulses/single_qubit.yaml</code></li>
+<li><code>templates/analysers/default.yaml</code></li>
 </ul>
-<p>如果你想自己起步，通常只需要复制四份文件并改路径：</p>
+<p>如果你想自己起步，通常只需要复制五份文件并改路径：</p>
 <ul>
 <li><code>examples/noise_simulation_tests/required_tasks/task1_single_qubit.yaml</code></li>
 <li><code>templates/solvers/qutip.yaml</code></li>
 <li><code>templates/devices/single_qubit.yaml</code></li>
 <li><code>templates/pulses/single_qubit.yaml</code></li>
+<li><code>templates/analysers/default.yaml</code></li>
 </ul>
 <h2 id="_3">推荐阅读顺序<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <ol>
@@ -1076,6 +1107,7 @@
 <li><a href="wiki/device_config.html">设备配置</a></li>
 <li><a href="wiki/pulse_config.html">脉冲配置</a></li>
 <li><a href="wiki/solver_config.html">求解器配置</a></li>
+<li><a href="wiki/analyser_config.html">分析器配置</a></li>
 <li><a href="wiki/visualization.html">可视化</a></li>
 <li><a href="wiki/qec_analysis.html">量子纠错</a></li>
 <li><a href="wiki/io_session.html">文件 IO</a></li>

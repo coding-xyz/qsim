@@ -1,4 +1,4 @@
-﻿target: trace
+﻿target: trajectory
 input:
   qasm_text: "OPENQASM 3; qubit[1] q;"
   solver_config: solvers/qutip_default.yaml
@@ -10,3 +10,5 @@ output:
   artifact_mode: targeted
   export_plots: false
   export_dxf: false
+
+

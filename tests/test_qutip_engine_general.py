@@ -1,4 +1,4 @@
-import copy
+﻿import copy
 import math
 
 import numpy as np
@@ -6,6 +6,16 @@ import pytest
 
 from qsim.common.schemas import ModelSpec
 from qsim.engines.qutip_engine import QuTiPEngine
+
+
+def _population_series_from_quantum_payload(trajectory):
+    density_matrix = dict(getattr(trajectory, "density_matrix", {}) or {})
+    wave_function = dict(getattr(trajectory, "wave_function", {}) or {})
+    if density_matrix:
+        return [float(max(0.0, 1.0 - snapshot[0][0].real)) for snapshot in density_matrix.get("snapshots", [])]
+    if wave_function:
+        return [float(max(0.0, 1.0 - abs(snapshot[0]) ** 2)) for snapshot in wave_function.get("snapshots", [])]
+    return []
 
 
 def test_qutip_engine_handles_general_payload():
@@ -38,10 +48,11 @@ def test_qutip_engine_handles_general_payload():
             "collapse_operators": [],
         },
     )
-    trace = QuTiPEngine().run(spec)
-    assert len(trace.times) > 0
-    assert len(trace.states) == len(trace.times)
-    assert len(trace.states[0]) >= 1
+    Trajectory = QuTiPEngine().run(spec)
+    assert len(Trajectory.times) > 0
+    snapshots = list((Trajectory.density_matrix or Trajectory.wave_function or {}).get("snapshots", []) or [])
+    assert snapshots
+    assert len(snapshots) == len(Trajectory.times)
 
 
 def test_qutip_engine_dephasing_prefactor_matches_model_convention():
@@ -67,8 +78,8 @@ def test_qutip_relaxation_does_not_excite_ground_state():
             "collapse_operators": [{"target": 0, "kind": "relaxation", "rate_rad_s": 1.0}],
         },
     )
-    trace = QuTiPEngine().run(spec)
-    excited = [row[0] for row in trace.states]
+    Trajectory = QuTiPEngine().run(spec)
+    excited = _population_series_from_quantum_payload(Trajectory)
     assert max(excited) < 1e-6
 
 
@@ -143,14 +154,14 @@ def test_qutip_engine_cqed_readout_emits_readout_observables():
         },
     )
 
-    trace = QuTiPEngine().run(spec)
+    Trajectory = QuTiPEngine().run(spec)
 
-    readout = dict(trace.metadata.get("readout_observables", {}) or {})
-    assert len(readout.get("times", [])) == len(trace.times)
-    assert len(readout.get("cavity_a", [])) == len(trace.times)
-    assert len(readout.get("cavity_n", [])) == len(trace.times)
-    assert len(readout.get("a_out", [])) == len(trace.times)
-    assert len(readout.get("measured_voltage", [])) == len(trace.times)
+    readout = dict(Trajectory.metadata.get("readout_observables", {}) or {})
+    assert len(readout.get("times", [])) == len(Trajectory.times)
+    assert len(readout.get("cavity_a", [])) == len(Trajectory.times)
+    assert len(readout.get("cavity_n", [])) == len(Trajectory.times)
+    assert len(readout.get("a_out", [])) == len(Trajectory.times)
+    assert len(readout.get("measured_voltage", [])) == len(Trajectory.times)
 
 
 def test_qutip_engine_mcwf_keeps_readout_shots_without_state_storage():
@@ -203,23 +214,23 @@ def test_qutip_engine_mcwf_keeps_readout_shots_without_state_storage():
                 }
             ],
             "collapse_operators": [],
-            "analysis": {"trace": {"states": "", "save_times": "none", "save_final_state": False}},
+            "analyser": {"trajectory": {"quantum": "", "save_times": "none", "save_final_state": False}},
         },
     )
 
-    trace = QuTiPEngine().run(spec, run_options={"ntraj": 4, "seed": 7})
+    Trajectory = QuTiPEngine().run(spec, run_options={"ntraj": 4, "seed": 7})
 
-    assert "quantum_state_trace" not in trace.metadata
-    assert trace.metadata.get("hybrid_update_mode") == "predictor_corrector"
-    readout = dict(trace.metadata.get("readout_observables", {}) or {})
+    assert "quantum_state_trajectory" not in Trajectory.metadata
+    assert Trajectory.metadata.get("hybrid_update_mode") == "predictor_corrector"
+    readout = dict(Trajectory.metadata.get("readout_observables", {}) or {})
     assert readout.get("feedback", {}).get("enabled") is True
     assert "sqrt(kappa_ext_rad_s)" in str(readout.get("equations", {}).get("a_out", ""))
     assert len(readout.get("shots", [])) == 4
-    assert len(readout["shots"][0]["measured_voltage"]) == len(trace.times)
+    assert len(readout["shots"][0]["measured_voltage"]) == len(Trajectory.times)
     a_in = np.asarray(readout.get("a_in", []), dtype=float)
     a_out = np.asarray(readout.get("a_out", []), dtype=float)
     cavity_a = np.asarray(readout.get("cavity_a", []), dtype=float)
-    sampled_drive = QuTiPEngine._sample_readout_drive(np.asarray(trace.times, dtype=float), spec.payload["readout_controls"])
+    sampled_drive = QuTiPEngine._sample_readout_drive(np.asarray(Trajectory.times, dtype=float), spec.payload["readout_controls"])
     sampled_pairs = np.asarray([[float(v.real), float(v.imag)] for v in sampled_drive], dtype=float)
     assert np.max(np.abs(a_in - sampled_pairs)) > 0.0
     coupling = QuTiPEngine._readout_coupling_prefactor(7.0e6)
@@ -273,7 +284,7 @@ def test_qutip_engine_hybrid_readout_mode_can_switch_back_to_staggered():
             }
         ],
         "collapse_operators": [],
-        "analysis": {"trace": {"states": "", "save_times": "none", "save_final_state": False}},
+        "analyser": {"trajectory": {"quantum": "", "save_times": "none", "save_final_state": False}},
     }
     predictor_trace = QuTiPEngine().run(
         ModelSpec(solver="mcwf", dimension=9, t_end=5.0e-9, dt=1.0e-9, payload=copy.deepcopy(payload)),
@@ -345,14 +356,16 @@ def test_qutip_engine_supports_cqed_dispersive_with_classical_feedline():
                 }
             ],
             "collapse_operators": [],
-            "analysis": {"trace": {"states": "", "save_times": "none", "save_final_state": False}},
+            "analyser": {"trajectory": {"quantum": "", "save_times": "none", "save_final_state": False}},
         },
     )
 
-    trace = QuTiPEngine().run(spec, run_options={"ntraj": 4, "seed": 9})
+    Trajectory = QuTiPEngine().run(spec, run_options={"ntraj": 4, "seed": 9})
 
-    assert trace.metadata.get("model_type") == "cqed_dispersive"
-    readout = dict(trace.metadata.get("readout_observables", {}) or {})
+    assert Trajectory.metadata.get("model_type") == "cqed_dispersive"
+    readout = dict(Trajectory.metadata.get("readout_observables", {}) or {})
     assert len(readout.get("shots", [])) == 4
-    assert len(readout.get("a_out", [])) == len(trace.times)
-    assert len(readout.get("measured_voltage", [])) == len(trace.times)
+    assert len(readout.get("a_out", [])) == len(Trajectory.times)
+    assert len(readout.get("measured_voltage", [])) == len(Trajectory.times)
+
+

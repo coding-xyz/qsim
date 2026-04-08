@@ -36,7 +36,7 @@ _STAGE_OUTPUTS: dict[str, tuple[str, ...]] = {
         "executable_model",
         "model_spec",
     ),
-    STAGE_ENGINE: ("trace",),
+    STAGE_ENGINE: ("trajectory",),
     STAGE_DECODE: (
         "syndrome_frame",
         "prior_model",
@@ -48,7 +48,7 @@ _STAGE_OUTPUTS: dict[str, tuple[str, ...]] = {
         "logical_error",
     ),
     STAGE_ANALYSIS: (
-        "analysis_trace",
+        "analysis_trajectory",
         "analysis_metrics",
         "analysis_readout",
         "analysis_iq",
@@ -79,7 +79,7 @@ class TargetRule:
 
 
 TARGET_RULES: dict[str, TargetRule] = {
-    "trace": TargetRule(stages=(STAGE_PARSE, STAGE_ENGINE)),
+    "trajectory": TargetRule(stages=(STAGE_PARSE, STAGE_ENGINE)),
     "logical_error": TargetRule(stages=(STAGE_PARSE, STAGE_ENGINE, STAGE_DECODE), required_fields=("run.decoder",)),
     "sensitivity_report": TargetRule(
         stages=(STAGE_PARSE, STAGE_ENGINE, STAGE_DECODE, STAGE_ANALYSIS),
@@ -105,7 +105,7 @@ TARGET_RULES: dict[str, TargetRule] = {
 
 DEFAULT_TEMPLATE = "full"
 TEMPLATE_TARGETS: dict[str, tuple[str, ...]] = {
-    "simulate": ("trace",),
+    "simulate": ("trajectory",),
     "simulate_qec": ("logical_error", "sensitivity_report"),
     "full": ("logical_error", "sensitivity_report"),
     "full_eval": ("logical_error", "sensitivity_report", "decoder_eval_report", "scaling_report", "cross_engine_compare"),
@@ -216,7 +216,7 @@ def build_execution_plan(task: WorkflowTask) -> ExecutionPlan:
         stage_set.add(STAGE_ANALYSIS)
     if run_cross_engine_compare:
         stage_set.add(STAGE_CROSS_COMPARE)
-    if task.input.analysis:
+    if task.input.analyser:
         stage_set.add(STAGE_ANALYSIS)
 
     # Parse + engine are always required for a meaningful run.

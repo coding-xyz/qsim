@@ -1,8 +1,18 @@
-import pytest
+﻿import pytest
 
 from qsim.common.schemas import ModelSpec
 from qsim.engines.qoptics_engine import QOpticsEngine
 from qsim.engines.qtoolbox_engine import QToolboxEngine
+
+
+def _population_series_from_quantum_payload(trajectory):
+    density_matrix = dict(getattr(trajectory, "density_matrix", {}) or {})
+    wave_function = dict(getattr(trajectory, "wave_function", {}) or {})
+    if density_matrix:
+        return [float(max(0.0, 1.0 - snapshot[0][0].real)) for snapshot in density_matrix.get("snapshots", [])]
+    if wave_function:
+        return [float(max(0.0, 1.0 - abs(snapshot[0]) ** 2)) for snapshot in wave_function.get("snapshots", [])]
+    return []
 
 
 def _run_or_skip(engine, spec: ModelSpec):
@@ -36,10 +46,10 @@ def test_julia_engines_native_or_raise(engine_cls):
     engine = engine_cls()
     spec = _minimal_spec("me")
     try:
-        trace = engine.run(spec, run_options={})
+        Trajectory = engine.run(spec, run_options={})
     except Exception:
         return
-    assert trace.metadata.get("native_solver", False) is True
+    assert Trajectory.metadata.get("native_solver", False) is True
 
 
 @pytest.mark.parametrize("engine_cls", [QOpticsEngine, QToolboxEngine])
@@ -65,9 +75,9 @@ def test_julia_engines_pass_run_options(monkeypatch, engine_cls):
         @staticmethod
         def run(_model_spec, run_options=None):
             captured["opts"] = dict(run_options or {})
-            class _Trace:
+            class _Trajectory:
                 metadata = {"native_solver": True}
-            return _Trace()
+            return _Trajectory()
 
     monkeypatch.setattr(engine, "_runtime", _Runtime())
     engine.run(spec, run_options={"julia_bin": "C:/x/julia.exe", "ntraj": 16})
@@ -80,12 +90,12 @@ def test_julia_engines_native_metadata_fields(engine_cls):
     engine = engine_cls()
     spec = _minimal_spec("me")
     try:
-        trace = engine.run(spec, run_options={})
+        Trajectory = engine.run(spec, run_options={})
     except Exception:
         return
-    assert str(trace.metadata.get("julia_version", "")).strip() != ""
-    assert str(trace.metadata.get("julia_backend", "")).strip() != ""
-    assert str(trace.metadata.get("julia_backend_version", "")).strip() != ""
+    assert str(Trajectory.metadata.get("julia_version", "")).strip() != ""
+    assert str(Trajectory.metadata.get("julia_backend", "")).strip() != ""
+    assert str(Trajectory.metadata.get("julia_backend_version", "")).strip() != ""
 
 
 def test_julia_runtime_runner_resolves_backend_specific_scripts():
@@ -122,10 +132,11 @@ def test_julia_engines_short_pulse_on_long_timeline(engine_cls):
         },
     )
     try:
-        trace = engine.run(spec, run_options={})
+        Trajectory = engine.run(spec, run_options={})
     except Exception:
         return
-    assert max((row[0] for row in trace.states), default=0.0) > 1.0e-3
+    excited = _population_series_from_quantum_payload(Trajectory)
+    assert max(excited, default=0.0) > 1.0e-3
 
 
 @pytest.mark.parametrize("engine_cls", [QOpticsEngine, QToolboxEngine])
@@ -157,9 +168,9 @@ def test_julia_engines_support_transmon_nlevel(engine_cls):
             "collapse_operators": [],
         },
     )
-    trace = _run_or_skip(engine_cls(), spec)
-    vals = [row[0] for row in trace.states if row]
-    assert trace.metadata.get("model_type") == "transmon_nlevel"
+    Trajectory = _run_or_skip(engine_cls(), spec)
+    vals = _population_series_from_quantum_payload(Trajectory)
+    assert Trajectory.metadata.get("model_type") == "transmon_nlevel"
     assert max(vals, default=0.0) > 1.0e-3
 
 
@@ -195,7 +206,19 @@ def test_julia_engines_support_cqed_jc(engine_cls):
             "collapse_operators": [],
         },
     )
-    trace = _run_or_skip(engine_cls(), spec)
-    vals = [row[0] for row in trace.states if row]
-    assert trace.metadata.get("model_type") == "cqed_jc"
+    Trajectory = _run_or_skip(engine_cls(), spec)
+    vals = _population_series_from_quantum_payload(Trajectory)
+    assert Trajectory.metadata.get("model_type") == "cqed_jc"
     assert max(vals, default=0.0) > 1.0e-3
+
+
+def test_qtoolbox_engine_preserves_full_quantum_trajectory_when_expectations_are_requested():
+    spec = _minimal_spec("me")
+    trajectory = _run_or_skip(QToolboxEngine(), spec)
+    qstate = dict(getattr(trajectory, "density_matrix", {}) or getattr(trajectory, "wave_function", {}) or {})
+    snapshots = list(qstate.get("snapshots", []) or [])
+
+    assert len(trajectory.times) > 1
+    assert len(snapshots) == len(trajectory.times)
+
+

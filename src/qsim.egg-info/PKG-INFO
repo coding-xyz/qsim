@@ -1,4 +1,4 @@
-Metadata-Version: 2.4
+﻿Metadata-Version: 2.4
 Name: qsim
 Version: 0.1.0
 Summary: Workflow-driven quantum simulation toolkit
@@ -29,7 +29,7 @@ Requires-Dist: mkdocstrings[python]>=0.28; extra == "docs"
 Provides-Extra: dev
 Requires-Dist: pre-commit>=3.7; extra == "dev"
 
-﻿# qsim
+锘? qsim
 
 qsim is a workflow-first quantum simulation project with reproducible artifacts, QEC pipeline integration, and documentation automation.
 
@@ -53,13 +53,13 @@ qsim is a workflow-first quantum simulation project with reproducible artifacts,
 ## Quick Start (CLI)
 
 ```bash
-qsim run-task --task-config tasks/demo.json
+qsim run-model --task-config tasks/demo.json
 ```
 
 Optional runtime overrides:
 
 ```bash
-qsim run-task --task-config tasks/demo.json \
+qsim run-model --task-config tasks/demo.json \
   --out runs/demo_override \
   --session-dir runs/session \
   --session-auto-commit \
@@ -77,7 +77,7 @@ from qsim.workflow import (
     WorkflowOutputOptions,
     WorkflowRunOptions,
     WorkflowTask,
-    run_task,
+    create_model,
 )
 
 qasm = Path("examples/bell.qasm").read_text(encoding="utf-8")
@@ -110,7 +110,7 @@ task = WorkflowTask(
         export_dxf=False,
     ),
 )
-result = run_task(task)
+result = create_model(task)
 print(result["runtime"]["out_dir"])
 ```
 
@@ -186,3 +186,4 @@ All issue markdown files are organized under:
 - Current QEC support is **offline analysis only**.
 - Real-time decoding (streaming syndrome -> control feedback) is **not online yet**.
 - Current gate-to-pulse mapping catalog can be exported with `python scripts/pulse_gate_map_report.py --format json --out runs/tmp/pulse_gate_map.json`.
+

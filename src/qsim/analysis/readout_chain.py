@@ -1,4 +1,4 @@
-"""Readout-chain postprocessing for cqed task flows."""
+﻿"""Readout-chain postprocessing for cqed task flows."""
 
 from __future__ import annotations
 
@@ -18,6 +18,17 @@ def _complex_pairs(values: np.ndarray) -> list[list[float]]:
 def _complex_from_pairs(values: list[list[float]] | list[float] | None) -> np.ndarray:
     if not values:
         return np.asarray([], dtype=complex)
+    if isinstance(values[0], complex):
+        return np.asarray(values, dtype=complex).reshape(-1)
+    if isinstance(values[0], dict) and "__qsim_complex__" in values[0]:
+        return np.asarray(
+            [
+                complex(float(item["__qsim_complex__"][0]), float(item["__qsim_complex__"][1]))
+                for item in values
+                if isinstance(item, dict) and "__qsim_complex__" in item
+            ],
+            dtype=complex,
+        ).reshape(-1)
     arr = np.asarray(values, dtype=float)
     if arr.ndim == 1:
         return arr.astype(complex)
@@ -154,25 +165,25 @@ def _integrate_window(times: np.ndarray, i_trace: np.ndarray, q_trace: np.ndarra
 
 def build_readout_analysis(
     *,
-    trace,
+    trajectory,
     model_spec,
     pulse_ir,
     pulse_cfg: dict[str, Any] | None,
-    analysis_cfg: dict[str, Any] | None,
+    analyser_cfg: dict[str, Any] | None,
     seed: int,
 ) -> dict[str, dict[str, Any]]:
     """Build readout-chain and IQ-classification analysis payloads."""
-    analysis_cfg = dict(analysis_cfg or {})
+    analyser_cfg = dict(analyser_cfg or {})
     pulse_cfg = dict(pulse_cfg or {})
-    readout_cfg = dict(analysis_cfg.get("readout_model", {}) or {})
-    iq_cfg = dict(analysis_cfg.get("iq_discrimination", {}) or {})
-    noise_cfg = dict(analysis_cfg.get("noise_analysis", {}) or {})
+    readout_cfg = dict(analyser_cfg.get("readout_model", {}) or {})
+    iq_cfg = dict(analyser_cfg.get("iq_discrimination", {}) or {})
+    noise_cfg = dict(analyser_cfg.get("noise_analysis", {}) or {})
     if not readout_cfg and not iq_cfg and not noise_cfg:
         return {}
 
     payload = dict(getattr(model_spec, "payload", {}) or {})
-    obs = dict((getattr(trace, "metadata", {}) or {}).get("readout_observables", {}) or {})
-    times = np.asarray(list(getattr(trace, "times", []) or []), dtype=float)
+    obs = dict((getattr(trajectory, "classical", {}) or {}).get("readout", {}) or {})
+    times = np.asarray(list(getattr(trajectory, "times", []) or []), dtype=float)
     a_in_obs = _complex_from_pairs(list(obs.get("a_in", []) or []))
     cavity_a = _complex_from_pairs(list(obs.get("cavity_a", []) or []))
     a_out_obs = _complex_from_pairs(list(obs.get("a_out", []) or []))
@@ -366,3 +377,4 @@ def build_readout_analysis(
 
 
 __all__ = ["build_readout_analysis"]
+

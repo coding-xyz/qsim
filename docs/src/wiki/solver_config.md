@@ -1,6 +1,6 @@
 ﻿# 求解器配置
 
-`solver` 文件决定数值引擎、时间步长、参考系和分析输出。当前文档只说明推荐使用的结构化 `solver` 写法。
+`solver` 文件只决定数值引擎、时间步长、参考系和数值运行参数。所有派生分析都已经迁移到独立的 `analyser` 配置。
 
 ## 当前模板
 
@@ -16,35 +16,32 @@
 
 ```yaml
 schema_version: "3.0"
-solver:
+backend:
+  level: full
+run:
   engine: qutip
-  study:
-    - name: control_dynamics
-      active_components: [q0]
-      active_connections: []
-      solver_mode: me
-      time:
-        dt_s: 1.0e-9
-        t_end_s: 50.0e-6
-        t_padding_s: 0.0
-      frame:
-        mode: rotating
-        reference: carrier
-        rwa: true
-      options: {}
-  analysis:
-    trace:
-      states: density_matrix
-      save_times: all
-      save_final_state: true
-      save_jump_events: false
-      save_measurement_records: false
-    metrics:
-      - population
-      - mean_excited
-      - variance
-  schedule:
-    policy: serial
+  solver_mode: me
+  dt_s: 1.0e-9
+  t_end_s: 50.0e-6
+  t_padding_s: 0.0
+frame:
+  mode: rotating
+  reference: carrier
+  rwa: true
+study:
+  - name: control_dynamics
+    active_components: [q0]
+    active_connections: []
+    solver_mode: me
+    time:
+      dt_s: 1.0e-9
+      t_end_s: 50.0e-6
+      t_padding_s: 0.0
+    frame:
+      mode: rotating
+      reference: carrier
+      rwa: true
+    options: {}
 ```
 
 ## 顶层结构
@@ -52,10 +49,10 @@ solver:
 当前推荐维护以下键：
 
 - `schema_version`
-- `solver.engine`
-- `solver.study`
-- `solver.analysis`
-- `solver.schedule`
+- `backend`
+- `run`
+- `frame`
+- `study`
 
 ## engine
 
@@ -81,25 +78,26 @@ solver:
 - `frame.rwa`
 - `options`
 
-## analysis
+## 不再属于 solver 的内容
 
-`analysis` 决定输出哪些结果。当前模板常见的是：
+以下内容不再写在 `solver.yaml` 中，而是统一写到 `analyser.yaml`：
 
-- `trace.states`
-- `trace.save_times`
-- `trace.save_final_state`
-- `trace.save_jump_events`
-- `trace.save_measurement_records`
+- `trajectory.states`
+- `trajectory.save_times`
+- `trajectory.save_final_state`
+- `trajectory.save_jump_events`
+- `trajectory.save_measurement_records`
 - `metrics`
+- `readout_model`
+- `iq_discrimination`
+- `report`
 
-## schedule
-
-`schedule.policy` 控制 study 的执行策略。当前模板通常使用：
-
-- `serial`
+`solver` 的职责是生成 raw `trajectory`，`analyser` 的职责是从 `trajectory` 生成 population、IQ、report 等所有派生结果。
 
 ## 实用建议
 
 - 从 `templates/solvers/qutip.yaml` 起步最稳妥
-- 先只改 `engine`、`dt_s`、`t_end_s` 和 `analysis`
+- 先只改 `engine`、`dt_s`、`t_end_s`
 - 换引擎时尽量保持 `study` 结构不变，方便横向对比
+
+

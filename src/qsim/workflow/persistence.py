@@ -1,4 +1,4 @@
-"""Persistence services for workflow artifacts, viz, and manifest."""
+﻿"""Persistence services for workflow artifacts, viz, and manifest."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from qsim.pulse.drawer_adapter import EngineeringDrawer
 from qsim.qec.eval import write_decoder_eval_csv, write_decoder_pareto_png, write_failed_tasks_jsonl
 from qsim.qec.prior import write_prior_samples_npz
 from qsim.workflow.engines import collect_runtime_dependencies
-from qsim.workflow.output import export_circuit_diagram, export_result_figures, sha256_text, write_trace_h5
+from qsim.workflow.output import export_circuit_diagram, export_result_figures, sha256_text, write_trajectory_h5
 
 
 @dataclass(slots=True)
@@ -137,12 +137,12 @@ def write_artifacts(*, out: Path, policy: ArtifactWritePolicy, payload: Artifact
             _record_write(report, "model_spec", "model_spec.json")
         else:
             _record_skip(report, "model_spec")
-    if core.get("trace") is not None:
-        if _should_write(policy, "trace"):
-            write_trace_h5(core["trace"], out / "trace.h5")
-            _record_write(report, "trace", "trace.h5")
+    if core.get("trajectory") is not None:
+        if _should_write(policy, "trajectory"):
+            write_trajectory_h5(core["trajectory"], out / "trajectory.h5")
+            _record_write(report, "trajectory", "trajectory.h5")
         else:
-            _record_skip(report, "trace")
+            _record_skip(report, "trajectory")
     if core.get("pulse_samples_rel"):
         if _should_write(policy, "pulse_samples"):
             _record_write(report, "pulse_samples", str(core["pulse_samples_rel"]))
@@ -200,12 +200,12 @@ def write_artifacts(*, out: Path, policy: ArtifactWritePolicy, payload: Artifact
             _record_skip(report, "logical_error")
 
     analysis_bundle = dict(analysis.get("analysis", {}) or {})
-    if analysis_bundle.get("trace") is not None:
-        if _should_write(policy, "analysis_trace"):
-            write_json(out / "analysis_trace.json", analysis_bundle.get("trace", {}))
-            _record_write(report, "analysis_trace", "analysis_trace.json")
+    if analysis_bundle.get("trajectory") is not None:
+        if _should_write(policy, "analysis_trajectory"):
+            write_json(out / "analysis_trajectory.json", analysis_bundle.get("trajectory", {}))
+            _record_write(report, "analysis_trajectory", "analysis_trajectory.json")
         else:
-            _record_skip(report, "analysis_trace")
+            _record_skip(report, "analysis_trajectory")
     if analysis_bundle.get("metrics") is not None:
         if _should_write(policy, "analysis_metrics"):
             write_json(out / "analysis_metrics.json", analysis_bundle.get("metrics", {}))
@@ -326,7 +326,7 @@ def export_visualizations(
     export_dxf: bool,
     circuit,
     pulse_ir,
-    trace,
+    trajectory,
     analysis: dict,
 ) -> dict[str, str]:
     """Export optional figure artifacts and return produced logical output map."""
@@ -344,7 +344,7 @@ def export_visualizations(
         viz_outputs.update(
             export_result_figures(
                 pulse_ir,
-                trace,
+                trajectory,
                 analysis,
                 out,
                 export_dxf=export_dxf,
@@ -362,7 +362,7 @@ def export_visualizations(
     return viz_outputs
 
 
-def gather_dependencies(*, trace, selected_engine_name: str) -> dict[str, str]:
+def gather_dependencies(*, trajectory, selected_engine_name: str) -> dict[str, str]:
     """Collect package/runtime dependency fingerprints for manifest."""
     deps: dict[str, str] = {}
     for name in ["numpy", "h5py", "PyYAML", "qutip", "qiskit", "ezdxf"]:
@@ -370,7 +370,7 @@ def gather_dependencies(*, trace, selected_engine_name: str) -> dict[str, str]:
             deps[name] = ilm.version(name)
         except ilm.PackageNotFoundError:
             pass
-    deps.update(collect_runtime_dependencies(trace, selected_engine_name))
+    deps.update(collect_runtime_dependencies(trajectory, selected_engine_name))
     return deps
 
 
@@ -406,3 +406,4 @@ __all__ = [
     "gather_dependencies",
     "write_artifacts",
 ]
+

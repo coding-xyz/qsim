@@ -1,4 +1,4 @@
-"""Legacy error-budget report builders for simulation observables."""
+﻿"""Legacy error-budget report builders for simulation observables."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ def build_report(observables: Observables) -> Report:
     decomposition models.
 
     Args:
-        observables: Aggregated observables from a simulation trace.
+        observables: Aggregated observables from a simulation Trajectory.
 
     Returns:
         A ``Report`` with:
@@ -27,3 +27,4 @@ def build_report(observables: Observables) -> Report:
         summary={"status": "ok", "fidelity_proxy": 1.0 - dephasing},
         error_budget={"dephasing": dephasing, "leakage": leakage},
     )
+

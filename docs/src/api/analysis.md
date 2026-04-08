@@ -1,4 +1,4 @@
-# API - analysis
+﻿# API - analysis
 
 ## `qsim.analysis.observables`
 
@@ -28,6 +28,7 @@
 
 ::: qsim.analysis.passes
 
-## `qsim.analysis.trace_semantics`
+## `qsim.analysis.trajectory_semantics`
 
-::: qsim.analysis.trace_semantics
+::: qsim.analysis.trajectory_semantics
+

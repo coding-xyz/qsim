@@ -1,15 +1,7 @@
-"""Workflow public API.
-
-This package contains the main entrypoints used by the documentation and CLI:
-
-- workflow dataclasses such as ``WorkflowTask`` and ``WorkflowRunOptions``
-- config-file loaders for task / solver / device / pulse inputs
-- execution planning helpers
-- ``run_task`` and ``run_task_files`` for launching workflows
-- session commit helpers for persisting selected outputs
-"""
+"""Workflow public API."""
 
 from qsim.workflow.contracts import (
+    DefaultAnalyserConfig,
     SolverBackendConfig,
     TaskInputConfig,
     WorkflowDeviceConfig,
@@ -24,11 +16,12 @@ from qsim.workflow.contracts import (
     compose_workflow_task,
     normalize_device_payload,
 )
+from qsim.workflow.model import AnalysisResult, Model, ModelResults, SolverRunResult, create_model, load_model
 from qsim.workflow.planner import ExecutionPlan, build_execution_plan
-from qsim.workflow.pipeline import run_task, run_task_files
 from qsim.workflow.session_adapter import commit_result_to_session
 from qsim.workflow.task_io import (
     load_config_bundle_files,
+    load_analyser_config_file,
     load_device_config_file,
     load_pulse_config_file,
     load_solver_config_file,
@@ -38,6 +31,7 @@ from qsim.workflow.task_io import (
 
 __all__ = [
     "SolverBackendConfig",
+    "DefaultAnalyserConfig",
     "TaskInputConfig",
     "WorkflowFeatureFlags",
     "WorkflowFrameOptions",
@@ -50,15 +44,20 @@ __all__ = [
     "WorkflowTaskConfig",
     "compose_workflow_task",
     "normalize_device_payload",
+    "AnalysisResult",
+    "Model",
+    "ModelResults",
+    "SolverRunResult",
+    "create_model",
+    "load_model",
     "ExecutionPlan",
     "build_execution_plan",
     "commit_result_to_session",
     "load_config_bundle_files",
+    "load_analyser_config_file",
     "load_device_config_file",
     "load_pulse_config_file",
     "load_solver_config_file",
     "load_task_config_file",
     "load_task_file",
-    "run_task",
-    "run_task_files",
 ]

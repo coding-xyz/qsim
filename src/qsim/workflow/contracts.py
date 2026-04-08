@@ -18,7 +18,7 @@ class WorkflowInput:
     device_model: dict | None = None
     pulse: dict | None = None
     frame: dict | None = None
-    analysis: dict | None = None
+    analyser: dict | None = None
     study: list[dict] | None = None
     schedule_policy: str | None = None
     reset_feedback_policy: str | None = None
@@ -128,6 +128,7 @@ class TaskInputConfig:
     solver_config_path: str | None = None
     device_config_path: str | None = None
     pulse_config_path: str | None = None
+    analyser_config_path: str | None = None
     param_bindings: dict[str, float] | None = None
 
 
@@ -175,7 +176,6 @@ class WorkflowSolverConfig:
     backend: SolverBackendConfig = field(default_factory=SolverBackendConfig)
     run: WorkflowRunOptions = field(default_factory=WorkflowRunOptions)
     frame: WorkflowFrameOptions = field(default_factory=WorkflowFrameOptions)
-    analysis: dict | None = None
     study: list[dict] | None = None
 
     def to_backend_config(self, *, noise: dict | None = None, runtime_level: str | None = None) -> BackendConfig:
@@ -189,6 +189,51 @@ class WorkflowSolverConfig:
             sweep=list(self.run.sweep or []),
             seed=int(self.run.seed if self.run.seed is not None else 1234),
         )
+
+
+@dataclass(slots=True)
+class DefaultAnalyserConfig:
+    """Default analyser config bound to one solver trajectory."""
+
+    solver_id: str | None = None
+    trajectory: dict | None = None
+    metrics: list[dict] | list[str] | None = None
+    readout_model: dict | None = None
+    iq_discrimination: dict | None = None
+    noise_analysis: dict | None = None
+    report: dict | None = None
+    extras: dict | None = None
+
+    def to_payload(self) -> dict[str, object]:
+        """Convert to internal analyser payload consumed by analysis stages."""
+        payload: dict[str, object] = {}
+        if self.solver_id:
+            payload["solver_id"] = str(self.solver_id)
+        if self.trajectory:
+            payload["trajectory"] = dict(self.trajectory)
+        if self.metrics:
+            payload["metrics"] = list(self.metrics)
+        if self.readout_model:
+            payload["readout_model"] = dict(self.readout_model)
+        if self.iq_discrimination:
+            payload["iq_discrimination"] = dict(self.iq_discrimination)
+        if self.noise_analysis:
+            payload["noise_analysis"] = dict(self.noise_analysis)
+        if self.report:
+            payload["report"] = dict(self.report)
+        if self.extras:
+            payload.update(dict(self.extras))
+        return payload
+
+    def __getattribute__(self, name: str):
+        if name == "__annotations__":
+            cls_annotations = type(self).__dict__.get("__annotations__", {})
+            payload_keys = set(object.__getattribute__(self, "to_payload")().keys())
+            return {key: value for key, value in cls_annotations.items() if key in payload_keys}
+        return object.__getattribute__(self, name)
+
+    def __repr__(self) -> str:
+        return f"DefaultAnalyserConfig({self.to_payload()!r})"
 
 
 @dataclass(slots=True)
@@ -545,10 +590,11 @@ def compose_workflow_task(
     task_cfg: WorkflowTaskConfig,
     solver_cfg: WorkflowSolverConfig,
     device_cfg: WorkflowDeviceConfig,
+    analyser_cfg: DefaultAnalyserConfig | None,
     *,
     backend_source: str | None = None,
 ) -> WorkflowTask:
-    """Compose 3-way configs into one canonical runtime task contract."""
+    """Compose task/solver/device/analyser configs into one runtime task contract."""
     run_cfg, frame_cfg, _primary_step = merge_solver_runtime_from_study(solver_cfg)
     runtime_source_device = apply_composite_device_step_overrides(device_cfg.device, _primary_step)
     runtime_level = infer_runtime_level(runtime_source_device)
@@ -565,7 +611,7 @@ def compose_workflow_task(
             device_model=dict(runtime_source_device or {}) or None,
             pulse=dict(device_cfg.pulse or {}) or None,
             frame=asdict(frame_cfg),
-            analysis=dict(solver_cfg.analysis or {}) or None,
+            analyser=analyser_cfg.to_payload() if analyser_cfg is not None else None,
             study=list(solver_cfg.study or []) or None,
             schedule_policy=(
                 str(run_cfg.schedule_policy).strip().lower() if run_cfg.schedule_policy else None
@@ -591,6 +637,7 @@ __all__ = [
     "SolverBackendConfig",
     "WorkflowFeatureFlags",
     "WorkflowDeviceConfig",
+    "DefaultAnalyserConfig",
     "WorkflowInput",
     "WorkflowOutputOptions",
     "WorkflowRunOptions",

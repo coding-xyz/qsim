@@ -28,7 +28,7 @@ class IModelBuilder(Protocol):
         pulse_samples: dict[str, dict[str, Any]] | None = None,
         frame: dict[str, Any] | None = None,
         solver_run: dict[str, Any] | None = None,
-        analysis: dict[str, Any] | None = None,
+        analyser: dict[str, Any] | None = None,
         study: list[dict[str, Any]] | None = None,
         primary_step: dict[str, Any] | None = None,
     ) -> ModelSpec:
@@ -314,7 +314,7 @@ class DefaultModelBuilder:
         pulse_samples: dict[str, dict[str, Any]] | None = None,
         frame: dict[str, Any] | None = None,
         solver_run: dict[str, Any] | None = None,
-        analysis: dict[str, Any] | None = None,
+        analyser: dict[str, Any] | None = None,
         study: list[dict[str, Any]] | None = None,
         primary_step: dict[str, Any] | None = None,
     ) -> ModelSpec:
@@ -652,7 +652,7 @@ class DefaultModelBuilder:
                 "noise_terms": executable.noise_terms,
                 "reset_events": list(executable.metadata.get("reset_events", [])),
                 "noise_cfg": noise,
-                "analysis": dict(analysis or {}),
+                "analyser": dict(analyser or {}),
                 "components": composite_meta["components"],
                 "connections": composite_meta["connections"],
                 "component_summary": composite_meta["component_summary"],

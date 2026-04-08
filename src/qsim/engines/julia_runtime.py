@@ -1,4 +1,4 @@
-"""Subprocess runtime helper for Julia-backed simulation engines."""
+﻿"""Subprocess runtime helper for Julia-backed simulation engines."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import tempfile
 
-from qsim.common.schemas import ModelSpec, Trace
+from qsim.common.schemas import ModelSpec, Trajectory, json_restore
 
 
 class JuliaRuntimeRunner:
@@ -88,7 +88,7 @@ class JuliaRuntimeRunner:
             return f"Dict({', '.join(items)})"
         return json.dumps(str(value), ensure_ascii=False)
 
-    def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trace:
+    def run(self, model_spec: ModelSpec, run_options: dict | None = None) -> Trajectory:
         run_options = dict(run_options or {})
         script = self._resolve_script()
         if not script.exists():
@@ -153,25 +153,38 @@ class JuliaRuntimeRunner:
                 raise RuntimeError(f"Julia runtime failed: {msg}")
             if not out.exists():
                 raise RuntimeError("Julia runtime did not produce a response file")
-            response = json.loads(out.read_text(encoding="utf-8"))
+            response = json_restore(json.loads(out.read_text(encoding="utf-8")))
             if isinstance(response, dict) and str(response.get("status", "ok")).lower() == "error":
                 raise RuntimeError(str(response.get("error", "unknown Julia runtime error")))
 
         times = [float(x) for x in response.get("times", [])]
-        states = [[float(v) for v in row] for row in response.get("states", [])]
         metadata = dict(response.get("metadata", {}))
         metadata["bridge"] = "subprocess_json"
         metadata["engine_package"] = self.engine_package
+        details = dict(metadata.get("details", {}) or {})
+        if "quantum_state_trajectory" in metadata:
+            qstate = dict(metadata.pop("quantum_state_trajectory", {}) or {})
+        else:
+            qstate = dict(details.pop("quantum_state_trajectory", {}) or {})
+        actual_kind = str(qstate.get("actual_kind", "")).strip().lower()
+        wave_function = qstate if actual_kind == "wave_function" else None
+        density_matrix = qstate if actual_kind == "density_matrix" else None
+        if details:
+            metadata["details"] = details
+        elif "details" in metadata:
+            metadata.pop("details", None)
         default_engine = {"quantumoptics": "qoptics", "quantumtoolbox": "qtoolbox"}.get(
             self.engine_package,
             self.engine_package,
         )
-        return Trace(
+        return Trajectory(
             engine=str(response.get("engine", default_engine)),
             times=times,
-            states=states,
+            wave_function=wave_function,
+            density_matrix=density_matrix,
             metadata=metadata,
         )
 
 
 __all__ = ["JuliaRuntimeRunner"]
+

@@ -389,6 +389,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../wiki/analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../wiki/visualization.html" class="md-nav__link">
         
   
@@ -512,10 +539,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" checked>
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -533,8 +560,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -863,10 +890,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#entrypoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        常用入口
+        Entrypoints
       
     </span>
   </a>
@@ -874,10 +901,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#package-export" class="md-nav__link">
     <span class="md-ellipsis">
       
-        包级导出
+        Package Export
       
     </span>
   </a>
@@ -913,10 +940,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#modules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        模块列表
+        Modules
       
     </span>
   </a>
@@ -1144,10 +1171,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#entrypoints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        常用入口
+        Entrypoints
       
     </span>
   </a>
@@ -1155,10 +1182,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#package-export" class="md-nav__link">
     <span class="md-ellipsis">
       
-        包级导出
+        Package Export
       
     </span>
   </a>
@@ -1194,10 +1221,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#modules" class="md-nav__link">
     <span class="md-ellipsis">
       
-        模块列表
+        Modules
       
     </span>
   </a>
@@ -1372,12 +1399,12 @@
 
 
 <h1 id="ui">ui<a class="headerlink" href="#ui" title="Permanent link">&para;</a></h1>
-<p>CLI、notebook 辅助函数和结果摘要接口。</p>
-<h2 id="_1">常用入口<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>CLI, notebook helpers, and lightweight result summaries.</p>
+<h2 id="entrypoints">Entrypoints<a class="headerlink" href="#entrypoints" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>qsim.ui.plot_default</code></li>
 </ul>
-<h2 id="_2">包级导出<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h2 id="package-export">Package Export<a class="headerlink" href="#package-export" title="Permanent link">&para;</a></h2>
 
 
 <div class="doc doc-object doc-module">
@@ -1395,7 +1422,7 @@
         <p>UI helper public API.</p>
 <p>The <code>qsim.ui</code> package contains lightweight helpers intended for notebooks,
 simple scripts, and result inspection. The most common public helper is
-<code>plot_default</code>.</p>
+<code>plot_default(model)</code>.</p>
 
 
 
@@ -1421,16 +1448,83 @@ simple scripts, and result inspection. The most common public helper is
 
 
 <h3 id="qsim.ui.plot_default" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">plot_default</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">plot_default</span><span class="p">(</span><span class="n">model</span><span class="p">)</span></code>
 
 <a href="#qsim.ui.plot_default" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Create default plotting bundle from <code>run_task</code> result.</p>
-<p>Returns a dict containing matplotlib figures with keys:
-<code>pulses</code>, <code>trace</code>, and <code>report</code>.</p>
+        <p>Build the default figure bundle for a completed <code>Model</code>.</p>
+
+
+<p><span class="doc-section-title">参数：</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>类型</th>
+          <th>描述</th>
+          <th>默认</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>model</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="Model
+
+
+  
+      dataclass
+   (qsim.workflow.model.Model)" href="workflow.html#qsim.workflow.model.Model">Model</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A model that has already completed <code>model.run()</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>必需</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">返回：</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>类型</th>
+          <th>描述</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="object">object</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A mapping with optional matplotlib figures under</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="object">object</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>pulses</code>, <code>trajectory</code>, and <code>report</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -1443,7 +1537,7 @@ simple scripts, and result inspection. The most common public helper is
 
     </div>
 
-</div><h2 id="_3">模块列表<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+</div><h2 id="modules">Modules<a class="headerlink" href="#modules" title="Permanent link">&para;</a></h2>
 <h2 id="qsimuicli"><code>qsim.ui.cli</code><a class="headerlink" href="#qsimuicli" title="Permanent link">&para;</a></h2>
 
 
@@ -1459,7 +1553,7 @@ simple scripts, and result inspection. The most common public helper is
 
     <div class="doc doc-contents first">
 
-        <p>Command-line interface for task/solver/device/pulse workflow execution.</p>
+        <p>Command-line interface for model-first workflow execution.</p>
 
 
 
@@ -1492,7 +1586,7 @@ simple scripts, and result inspection. The most common public helper is
 
     <div class="doc doc-contents ">
 
-        <p>Build parser for 3-config workflow execution.</p>
+        <p>Build parser for 5-config model creation and execution.</p>
 
 
     </div>
@@ -1515,7 +1609,7 @@ simple scripts, and result inspection. The most common public helper is
 
 <details class="example" open>
   <summary>Example</summary>
-  <div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>--task-config<span class="w"> </span>tasks/demo.yaml<span class="w"> </span>--solver-config<span class="w"> </span>solvers/qutip.yaml<span class="w"> </span>--device-config<span class="w"> </span>device/default.yaml<span class="w"> </span>--pulse-config<span class="w"> </span>pulses/default.yaml
+  <div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-model<span class="w"> </span>--task-config<span class="w"> </span>tasks/demo.yaml<span class="w"> </span>--solver-config<span class="w"> </span>solvers/qutip.yaml<span class="w"> </span>--device-config<span class="w"> </span>device/default.yaml<span class="w"> </span>--pulse-config<span class="w"> </span>pulses/default.yaml<span class="w"> </span>--analyser-config<span class="w"> </span>analysers/default.yaml
 </code></pre></div>
 </details>
 
@@ -1544,9 +1638,7 @@ simple scripts, and result inspection. The most common public helper is
 
     <div class="doc doc-contents first">
 
-        <p>Notebook helper utilities.</p>
-<p>Workflow execution entrypoint is <code>qsim.workflow.run_task</code>.
-This module keeps plotting helpers only.</p>
+        <p>Notebook helper utilities for the model-first workflow API.</p>
 
 
 
@@ -1572,16 +1664,83 @@ This module keeps plotting helpers only.</p>
 
 
 <h3 id="qsim.ui.notebook.plot_default" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">plot_default</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">plot_default</span><span class="p">(</span><span class="n">model</span><span class="p">)</span></code>
 
 <a href="#qsim.ui.notebook.plot_default" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Create default plotting bundle from <code>run_task</code> result.</p>
-<p>Returns a dict containing matplotlib figures with keys:
-<code>pulses</code>, <code>trace</code>, and <code>report</code>.</p>
+        <p>Build the default figure bundle for a completed <code>Model</code>.</p>
+
+
+<p><span class="doc-section-title">参数：</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>类型</th>
+          <th>描述</th>
+          <th>默认</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>model</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="Model
+
+
+  
+      dataclass
+   (qsim.workflow.model.Model)" href="workflow.html#qsim.workflow.model.Model">Model</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A model that has already completed <code>model.run()</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>必需</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">返回：</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>类型</th>
+          <th>描述</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="object">object</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A mapping with optional matplotlib figures under</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="object">object</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>pulses</code>, <code>trajectory</code>, and <code>report</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
     </div>
@@ -1671,14 +1830,14 @@ This module keeps plotting helpers only.</p>
 
 
 <h3 id="qsim.ui.result_summary.summarize_workflow_result" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">summarize_workflow_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">task_tag</span><span class="p">,</span> <span class="n">task_title</span><span class="p">,</span> <span class="n">case_tag</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">summarize_workflow_result</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">task_tag</span><span class="p">,</span> <span class="n">task_title</span><span class="p">,</span> <span class="n">case_tag</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
 
 <a href="#qsim.ui.result_summary.summarize_workflow_result" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">
 
-        <p>Build one flat summary row from a <code>run_task</code> result payload.</p>
+        <p>Build one flat summary row from a completed <code>Model</code>.</p>
 
 
     </div>

@@ -328,7 +328,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        四类配置文件
+        五类配置文件
       
     </span>
   </a>
@@ -535,6 +535,33 @@
   
   
     <li class="md-nav__item">
+      <a href="analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="visualization.html" class="md-nav__link">
         
   
@@ -656,10 +683,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -677,8 +704,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1044,7 +1071,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        四类配置文件
+        五类配置文件
       
     </span>
   </a>
@@ -1149,28 +1176,31 @@
 <p>本页说明如何用仓库里的模板和示例，组织一套可运行的 <code>qsim</code> 配置。</p>
 <h2 id="_2">最小可运行示例<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>仓库自带的单比特示例是最好的起点：</p>
-<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>--task-config<span class="w"> </span>examples/noise_simulation_tests/required_tasks/task1_single_qubit.yaml
+<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-model<span class="w"> </span>--task-config<span class="w"> </span>examples/noise_simulation_tests/required_tasks/task1_single_qubit.yaml
 </code></pre></div>
 <p>这份任务会引用：</p>
 <ul>
 <li><code>templates/solvers/qutip.yaml</code></li>
 <li><code>templates/devices/single_qubit.yaml</code></li>
 <li><code>templates/pulses/single_qubit.yaml</code></li>
+<li><code>templates/analysers/default.yaml</code></li>
 </ul>
-<h2 id="_3">四类配置文件<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p>一套标准运行通常拆成四个文件：</p>
+<h2 id="_3">五类配置文件<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>一套标准运行通常拆成五个文件：</p>
 <ol>
 <li><code>task.yaml</code></li>
 <li><code>solver.yaml</code></li>
 <li><code>device.yaml</code></li>
 <li><code>pulse.yaml</code></li>
+<li><code>analyser.yaml</code></li>
 </ol>
 <p>它们分别负责：</p>
 <ul>
 <li><code>task</code>：目标、输入电路、输出目录</li>
-<li><code>solver</code>：引擎、时间步长、分析设置</li>
+<li><code>solver</code>：引擎、时间步长、参考系和数值运行参数</li>
 <li><code>device</code>：设备结构、物理参数、噪声参数</li>
 <li><code>pulse</code>：通道、载频、波形和操作映射</li>
+<li><code>analyser</code>：所有从 <code>trajectory</code> 出发的派生分析</li>
 </ul>
 <h2 id="_4">推荐起步方式<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>最实用的起步方式通常是：</p>
@@ -1179,12 +1209,13 @@
 <li>复制 <code>templates/solvers/qutip.yaml</code></li>
 <li>复制 <code>templates/devices/single_qubit.yaml</code></li>
 <li>复制 <code>templates/pulses/single_qubit.yaml</code></li>
+<li>复制 <code>templates/analysers/default.yaml</code></li>
 <li>先只改相对路径、输出目录和少量物理参数</li>
 </ol>
 <h2 id="_5">最小任务示例<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <p>当前推荐的 <code>task</code> 写法仍然是扁平结构：</p>
 <div class="highlight"><pre><span></span><code><span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.0&quot;</span>
-<span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">trace</span>
+<span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">trajectory</span>
 <span class="nt">input</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">qasm_text</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">OPENQASM 3;</span>
@@ -1196,8 +1227,9 @@
 <span class="w">  </span><span class="nt">solver_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../../../templates/solvers/qutip.yaml</span>
 <span class="w">  </span><span class="nt">device_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../../../templates/devices/single_qubit.yaml</span>
 <span class="w">  </span><span class="nt">pulse_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../../../templates/pulses/single_qubit.yaml</span>
+<span class="w">  </span><span class="nt">analyser_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../../../templates/analysers/default.yaml</span>
 <span class="nt">output</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">out_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../runs/demo_trace</span>
+<span class="w">  </span><span class="nt">out_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../runs/demo_trajectory</span>
 <span class="w">  </span><span class="nt">persist_artifacts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">artifact_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">targeted</span>
 <span class="w">  </span><span class="nt">export_plots</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
@@ -1206,25 +1238,29 @@
 <span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">demo</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <p>然后运行：</p>
-<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>--task-config<span class="w"> </span>path/to/task.yaml
+<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-model<span class="w"> </span>--task-config<span class="w"> </span>path/to/task.yaml
 </code></pre></div>
 <h2 id="_6">路径解析规则<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
-<p><code>task.input.solver_config</code>、<code>device_config</code>、<code>pulse_config</code> 和 <code>qasm_path</code> 都会相对当前 <code>task.yaml</code> 所在目录解析。</p>
+<p><code>task.input.solver_config</code>、<code>device_config</code>、<code>pulse_config</code>、<code>analyser_config</code> 和 <code>qasm_path</code> 都会相对当前 <code>task.yaml</code> 所在目录解析。</p>
 <h2 id="_7">命令行覆盖<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
 <p>如果你想保留任务文件不动，只在某次运行里临时切换外部配置，可以直接覆盖：</p>
-<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-task<span class="w"> </span>^
+<div class="highlight"><pre><span></span><code>qsim<span class="w"> </span>run-model<span class="w"> </span>^
 <span class="w">  </span>--task-config<span class="w"> </span>examples/noise_simulation_tests/required_tasks/task1_single_qubit.yaml<span class="w"> </span>^
 <span class="w">  </span>--solver-config<span class="w"> </span>templates/solvers/qoptics.yaml<span class="w"> </span>^
 <span class="w">  </span>--device-config<span class="w"> </span>templates/devices/single_qubit.yaml<span class="w"> </span>^
-<span class="w">  </span>--pulse-config<span class="w"> </span>templates/pulses/single_qubit.yaml
+<span class="w">  </span>--pulse-config<span class="w"> </span>templates/pulses/single_qubit.yaml<span class="w"> </span>^
+<span class="w">  </span>--analyser-config<span class="w"> </span>templates/analysers/default.yaml
 </code></pre></div>
 <h2 id="python">Python 调用<a class="headerlink" href="#python" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">qsim.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_task_files</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">qsim.workflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_model</span>
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">run_task_files</span><span class="p">(</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">create_model</span><span class="p">(</span>
     <span class="n">task_config</span><span class="o">=</span><span class="s2">&quot;examples/noise_simulation_tests/required_tasks/task1_single_qubit.yaml&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;artifacts&quot;</span><span class="p">][</span><span class="s2">&quot;out_dir&quot;</span><span class="p">])</span>
+<span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">out_dir</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">trajectory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="_8">常见输出<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
 <p>常见输出包括：</p>
@@ -1235,16 +1271,16 @@
 <li><code>compile_report.json</code></li>
 <li><code>pulse_ir.json</code></li>
 <li><code>model_spec.json</code></li>
-<li><code>trace.h5</code></li>
+<li><code>trajectory.h5</code></li>
 <li><code>settings_report.json</code></li>
 <li><code>run_manifest.json</code></li>
 </ul>
 <h2 id="_9">上手建议<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
 <p>建议按这个顺序逐步加复杂度：</p>
 <ol>
-<li>先跑 <code>trace</code></li>
+<li>先跑 <code>trajectory</code></li>
 <li>先用 <code>qutip</code></li>
-<li>先确认 <code>trace.h5</code> 和 <code>pulse_ir.json</code> 正常生成</li>
+<li>先确认 <code>trajectory.h5</code> 和 <code>pulse_ir.json</code> 正常生成</li>
 <li>再引入 readout、reset 和更复杂设备结构</li>
 <li>最后再增加分析目标</li>
 </ol>

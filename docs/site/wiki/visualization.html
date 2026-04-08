@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="solver_config.html">
+        <link rel="prev" href="analyser_config.html">
       
       
         <link rel="next" href="qec_analysis.html">
@@ -386,6 +386,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="analyser_config.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    分析器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -579,10 +606,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
         
           
-          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
             
   
   
@@ -600,8 +627,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_12">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -995,14 +1022,14 @@
 <p><code>qsim</code> 当前的可视化主要围绕三类对象展开：</p>
 <ul>
 <li><code>PulseIR</code></li>
-<li><code>Trace</code></li>
+<li><code>trajectory</code></li>
 <li>分析报告</li>
 </ul>
 <h2 id="workflow">workflow 自动导出<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h2>
 <p>当 <code>task.output.export_plots</code> 为 <code>true</code> 时，常见图像产物包括：</p>
 <ul>
 <li><code>pulse_timing.png</code></li>
-<li><code>trace.png</code></li>
+<li><code>trajectory.png</code></li>
 <li><code>report.png</code></li>
 </ul>
 <p>当 <code>task.output.export_dxf</code> 为 <code>true</code> 且安装了 <code>ezdxf</code> 时，还可以导出：</p>
@@ -1012,7 +1039,7 @@
 <h2 id="_2">调试建议<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <ul>
 <li>看 <code>pulse</code> 配置是否生效：优先检查 <code>pulse_timing.png</code></li>
-<li>看数值演化是否合理：再看 <code>trace.png</code></li>
+<li>看数值演化是否合理：再看 <code>trajectory.png</code></li>
 <li>看分析阶段产出：最后看 <code>report.png</code></li>
 </ul>
 

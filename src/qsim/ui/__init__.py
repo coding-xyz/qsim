@@ -2,7 +2,7 @@
 
 The ``qsim.ui`` package contains lightweight helpers intended for notebooks,
 simple scripts, and result inspection. The most common public helper is
-``plot_default``.
+``plot_default(model)``.
 """
 
 from qsim.ui.notebook import plot_default

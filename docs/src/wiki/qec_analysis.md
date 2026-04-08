@@ -31,6 +31,8 @@
 
 ## 使用建议
 
-- 先把 `trace` 跑通，再增加 QEC 相关目标
-- 先确认 `trace.h5`、`model_spec.json` 和 `settings_report.json` 已正常生成
-- 做多目标任务时，优先保持 `task / solver / device / pulse` 四份配置结构稳定
+- 先把 `trajectory` 跑通，再增加 QEC 相关目标
+- 先确认 `trajectory.h5`、`model_spec.json` 和 `settings_report.json` 已正常生成
+- 做多目标任务时，优先保持 `task / solver / device / pulse / analyser` 五份配置结构稳定
+
+
