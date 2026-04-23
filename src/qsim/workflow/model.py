@@ -4,11 +4,15 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, fields, is_dataclass
 import json
+import math
 import os
 from pathlib import Path
+import re
 import shutil
 import time
 from typing import Any
+
+import numpy as np
 
 from qsim.analysis import MetricRegistry, build_default_metric_registry
 from qsim.common.schemas import Trajectory, write_json
@@ -84,6 +88,8 @@ def _summarize_runtime_payload(value: Any) -> dict[str, Any]:
         summary: dict[str, Any] = {'kind': 'dict', 'size': len(value)}
         if 'snapshots' in value and isinstance(value.get('snapshots'), list):
             summary['snapshots'] = len(value.get('snapshots') or [])
+        if 'runs' in value and isinstance(value.get('runs'), list):
+            summary['runs'] = len(value.get('runs') or [])
         if 'actual_kind' in value:
             summary['actual_kind'] = value.get('actual_kind')
         if 'requested_kind' in value:
@@ -270,6 +276,9 @@ class AnalysisResult:
 class SolverRunResult:
     """Per-solver runtime artifacts and aligned results."""
 
+    solver_id: str | None = None
+    study_name: str | None = None
+    study_index: int | None = None
     runtime_task: WorkflowTask | None = None
     compile_report: dict[str, Any] | None = None
     pulse_ir: Any | None = None
@@ -292,13 +301,35 @@ class ModelResults:
             self.solver_runs[solver_id] = SolverRunResult()
         return self.solver_runs[solver_id]
 
+    def study_run_ids(self, solver_id: str) -> list[str]:
+        return sorted(
+            run_id
+            for run_id, result in self.solver_runs.items()
+            if (result.solver_id or run_id) == solver_id and result.study_name
+        )
+
     @property
     def trajectories(self) -> dict[str, Trajectory]:
-        return {
+        flattened = {
             solver_id: result.trajectory
             for solver_id, result in self.solver_runs.items()
             if result.trajectory is not None
         }
+        aliases: dict[str, tuple[tuple[float, str], Trajectory]] = {}
+        for run_id, result in self.solver_runs.items():
+            if result.trajectory is None:
+                continue
+            solver_id = result.solver_id or run_id
+            if solver_id in flattened:
+                continue
+            order = float(result.study_index) if result.study_index is not None else math.inf
+            key = ((order, run_id))
+            current = aliases.get(solver_id)
+            if current is None or key < current[0]:
+                aliases[solver_id] = (key, result.trajectory)
+        for solver_id, (_, trajectory) in aliases.items():
+            flattened[solver_id] = trajectory
+        return flattened
 
     @property
     def analyses(self) -> dict[str, AnalysisResult]:
@@ -335,6 +366,189 @@ class Model:
             f'analyses={analysis_ids}'
             ')'
         )
+
+    @staticmethod
+    def _safe_study_token(value: str) -> str:
+        token = re.sub(r"[^0-9A-Za-z._-]+", "_", str(value or "").strip())
+        return token.strip("_") or "study"
+
+    def _study_entries(self, solver_cfg: WorkflowSolverConfig) -> list[tuple[int | None, dict[str, Any]]]:
+        entries = [dict(step) for step in list(solver_cfg.study or []) if isinstance(step, dict)]
+        if not entries:
+            return [(None, {})]
+        return [(idx, step) for idx, step in enumerate(entries)]
+
+    def _study_name(self, study: dict[str, Any], study_index: int | None) -> str | None:
+        if not study:
+            return None
+        raw = str(study.get('name', '') or '').strip()
+        if raw:
+            return raw
+        if study_index is None:
+            return None
+        return f'study_{study_index}'
+
+    def _run_id_for_study(
+        self,
+        *,
+        solver_id: str,
+        study: dict[str, Any],
+        study_index: int | None,
+        total_studies: int,
+    ) -> str:
+        if total_studies <= 1:
+            return solver_id
+        study_name = self._study_name(study, study_index)
+        if not study_name:
+            return solver_id
+        return f'{solver_id}__{self._safe_study_token(study_name)}'
+
+    def _analysis_id_for_study(
+        self,
+        *,
+        analyser_id: str,
+        study: dict[str, Any],
+        study_index: int | None,
+        total_studies: int,
+    ) -> str:
+        if total_studies <= 1:
+            return analyser_id
+        study_name = self._study_name(study, study_index)
+        if not study_name:
+            return analyser_id
+        return f'{analyser_id}__{self._safe_study_token(study_name)}'
+
+    def _clone_solver_cfg_with_single_study(
+        self,
+        solver_cfg: WorkflowSolverConfig,
+        *,
+        study: dict[str, Any],
+    ) -> WorkflowSolverConfig:
+        return WorkflowSolverConfig(
+            backend=type(solver_cfg.backend)(**asdict(solver_cfg.backend)),
+            run=type(solver_cfg.run)(**asdict(solver_cfg.run)),
+            frame=type(solver_cfg.frame)(**asdict(solver_cfg.frame)),
+            study=[dict(study)] if study else None,
+        )
+
+    def _clear_solver_results(self, solver_id: str) -> None:
+        for run_id in list(self.results.solver_runs.keys()):
+            result = self.results.solver_runs[run_id]
+            if (result.solver_id or run_id) == solver_id:
+                self.results.solver_runs.pop(run_id, None)
+
+    def _find_run_id(
+        self,
+        *,
+        solver_id: str,
+        study_name: str | None = None,
+    ) -> str | None:
+        candidates: list[tuple[str, SolverRunResult]] = [
+            (run_id, bundle)
+            for run_id, bundle in self.results.solver_runs.items()
+            if (bundle.solver_id or run_id) == solver_id and bundle.trajectory is not None
+        ]
+        if study_name is None:
+            if len(candidates) == 1:
+                return candidates[0][0]
+            return None
+        wanted = str(study_name).strip()
+        for run_id, bundle in candidates:
+            if str(bundle.study_name or '').strip() == wanted:
+                return run_id
+        return None
+
+    @staticmethod
+    def _nearest_centroid(point: complex, centroids: dict[str, complex]) -> str:
+        if not centroids:
+            return ""
+        return min(centroids, key=lambda label: abs(point - centroids[label]))
+
+    @staticmethod
+    def _study_label(bundle: SolverRunResult, analysis: AnalysisResult) -> str | None:
+        runtime_task = bundle.runtime_task
+        if runtime_task is not None:
+            task_input = getattr(runtime_task, "input", None)
+            study_steps = list(getattr(task_input, "study", []) or []) if task_input is not None else []
+            if study_steps:
+                prep_state = dict(study_steps[0].get("prep_state", {}) or {})
+                prep_label = str(prep_state.get("label", "") or "").strip()
+                if prep_label:
+                    return prep_label
+        iq_payload = dict(analysis.iq or {})
+        labels = [str(item).strip() for item in list(iq_payload.get("labels", []) or []) if str(item).strip()]
+        if labels:
+            return labels[0]
+        study_name = str(bundle.study_name or "").strip()
+        if study_name:
+            return study_name
+        return None
+
+    def _build_multi_study_iq_summary(self, analysis_items: list[tuple[SolverRunResult, AnalysisResult]]) -> dict[str, Any] | None:
+        if len(analysis_items) <= 1:
+            return None
+        centroids: dict[str, complex] = {}
+        clouds: dict[str, list[list[float]]] = {}
+        study_map: dict[str, str] = {}
+        noise_sigmas: list[float] = []
+        for bundle, analysis in analysis_items:
+            iq_payload = dict(analysis.iq or {})
+            label = self._study_label(bundle, analysis)
+            if not label:
+                continue
+            centroid_map = dict(iq_payload.get('centroids', {}) or {})
+            centroid_raw = None
+            if label in centroid_map:
+                centroid_raw = centroid_map.get(label)
+            elif centroid_map:
+                centroid_raw = next(iter(centroid_map.values()))
+            if not isinstance(centroid_raw, list | tuple) or len(centroid_raw) < 2:
+                continue
+            centroids[label] = complex(float(centroid_raw[0]), float(centroid_raw[1]))
+            cloud_source = dict(iq_payload.get('synthetic_clouds', {}) or {})
+            raw_cloud = cloud_source.get(label)
+            if raw_cloud is None and cloud_source:
+                raw_cloud = next(iter(cloud_source.values()))
+            clouds[label] = [
+                [float(point[0]), float(point[1])]
+                for point in list(raw_cloud or [])
+                if isinstance(point, (list, tuple)) and len(point) >= 2
+            ]
+            study_map[label] = str(bundle.study_name or '')
+            try:
+                noise_sigmas.append(float(iq_payload.get('noise_sigma', 0.0) or 0.0))
+            except Exception:
+                pass
+        labels = list(centroids.keys())
+        if len(labels) <= 1:
+            return None
+        confusion = np.zeros((len(labels), len(labels)), dtype=int)
+        for i, label in enumerate(labels):
+            for point_raw in clouds.get(label, []):
+                point = complex(float(point_raw[0]), float(point_raw[1]))
+                pred = self._nearest_centroid(point, centroids)
+                if pred in labels:
+                    confusion[i, labels.index(pred)] += 1
+        assignment_fidelity = float(np.trace(confusion) / max(1, confusion.sum())) if confusion.size else 0.0
+        pairwise_distances = [
+            abs(centroids[a] - centroids[b])
+            for i, a in enumerate(labels)
+            for b in labels[i + 1 :]
+        ]
+        noise_sigma = float(np.mean(noise_sigmas)) if noise_sigmas else 0.0
+        cluster_separation = float(min(pairwise_distances) / max(noise_sigma, 1.0e-12)) if pairwise_distances else 0.0
+        snr = float((np.mean(pairwise_distances) if pairwise_distances else 0.0) / max(2.0 * noise_sigma, 1.0e-12))
+        return {
+            "schema_version": "1.0",
+            "labels": labels,
+            "centroids": {label: [float(val.real), float(val.imag)] for label, val in centroids.items()},
+            "synthetic_clouds": clouds,
+            "confusion_matrix": {"labels": labels, "values": confusion.astype(int).tolist()},
+            "assignment_fidelity": assignment_fidelity,
+            "cluster_separation": cluster_separation,
+            "snr": snr,
+            "study_map": study_map,
+        }
 
     def _require_solver_id(self, solver_id: str | None) -> str:
         if solver_id:
@@ -380,19 +594,36 @@ class Model:
             backend_source=self.task.input.solver_config_path,
         )
 
-    def run_solver(self, solver_id: str | None = None) -> None:
-        """Compile and solve one configured solver into ``model.results``."""
+    def _run_one_solver_study(
+        self,
+        *,
+        solver_id: str,
+        solver_cfg: WorkflowSolverConfig,
+        study: dict[str, Any],
+        study_index: int | None,
+        total_studies: int,
+    ) -> str:
         selected_solver_id = self._require_solver_id(solver_id)
-        solver_cfg = self.solvers[selected_solver_id]
         default_analyser = None
         if self.analysers:
             bound = [cfg for cfg in self.analysers.values() if str(cfg.solver_id or '').strip() == selected_solver_id]
             default_analyser = bound[0] if bound else None
-        task = self._compose_runtime_task(solver_cfg=solver_cfg, analyser_cfg=default_analyser)
+        single_solver_cfg = self._clone_solver_cfg_with_single_study(solver_cfg, study=study)
+        task = self._compose_runtime_task(solver_cfg=single_solver_cfg, analyser_cfg=default_analyser)
+        run_id = self._run_id_for_study(
+            solver_id=selected_solver_id,
+            study=study,
+            study_index=study_index,
+            total_studies=total_studies,
+        )
+        study_name = self._study_name(study, study_index)
 
         run_started_at = time.perf_counter()
         timings: dict[str, float] = {}
-        out = resolve_writable_out_dir(Path(task.output.out_dir))
+        preferred_out = Path(task.output.out_dir)
+        if total_studies > 1 and study_name:
+            preferred_out = preferred_out / self._safe_study_token(study_name)
+        out = resolve_writable_out_dir(preferred_out)
         self.out_dir = str(out)
         plan = build_execution_plan(task)
 
@@ -461,7 +692,11 @@ class Model:
             timings['decode'] = time.perf_counter() - started_at
 
         timings['total'] = time.perf_counter() - run_started_at
-        bundle = self.results.ensure_solver(selected_solver_id)
+        bundle = self.results.ensure_solver(run_id)
+        bundle.analyses = {}
+        bundle.solver_id = selected_solver_id
+        bundle.study_name = study_name
+        bundle.study_index = study_index
         bundle.runtime_task = task
         bundle.compile_report = _public_value(parsed['compile_report'])
         bundle.pulse_ir = parsed['pulse_ir']
@@ -479,51 +714,159 @@ class Model:
             'details': _compact_runtime_details(dict(trajectory.metadata or {}).get('details', {})),
             'out_dir': str(out),
             'solver_id': selected_solver_id,
+            'run_id': run_id,
+            'study_name': study_name,
+            'study_index': study_index,
         }
+        return run_id
 
-    def run_analysis(self, *, analyser_id: str | None = None) -> None:
-        """Run one analyser against its bound solver trajectory into ``model.results``."""
+    def run_study(
+        self,
+        *,
+        solver_id: str | None = None,
+        study_name: str | None = None,
+        study_index: int | None = None,
+    ) -> str:
+        """Compile and solve one specific study step into ``model.results``."""
+        selected_solver_id = self._require_solver_id(solver_id)
+        solver_cfg = self.solvers[selected_solver_id]
+        entries = self._study_entries(solver_cfg)
+        chosen_index: int | None = None
+        chosen_study: dict[str, Any] | None = None
+        if study_name is not None:
+            wanted = str(study_name).strip()
+            for idx, step in entries:
+                if str(self._study_name(step, idx) or '').strip() == wanted:
+                    chosen_index = idx
+                    chosen_study = dict(step)
+                    break
+            if chosen_study is None:
+                raise KeyError(f'Unknown study `{wanted}` for solver `{selected_solver_id}`.')
+        elif study_index is not None:
+            for idx, step in entries:
+                if idx == study_index:
+                    chosen_index = idx
+                    chosen_study = dict(step)
+                    break
+            if chosen_study is None:
+                raise IndexError(f'Unknown study index `{study_index}` for solver `{selected_solver_id}`.')
+        else:
+            if len(entries) != 1:
+                raise ValueError(f'study_name or study_index is required for solver `{selected_solver_id}` with multiple study steps.')
+            chosen_index, chosen_study = entries[0]
+        assert chosen_study is not None
+        run_id = self._run_id_for_study(
+            solver_id=selected_solver_id,
+            study=chosen_study,
+            study_index=chosen_index,
+            total_studies=len(entries),
+        )
+        self.results.solver_runs.pop(run_id, None)
+        if len(entries) > 1:
+            aggregate_bundle = self.results.solver_runs.get(selected_solver_id)
+            if aggregate_bundle is not None:
+                aggregate_bundle.analyses = {}
+        return self._run_one_solver_study(
+            solver_id=selected_solver_id,
+            solver_cfg=solver_cfg,
+            study=chosen_study,
+            study_index=chosen_index,
+            total_studies=len(entries),
+        )
+
+    def run_solver(self, solver_id: str | None = None) -> None:
+        """Compile and solve one configured solver, running every study step by default."""
+        selected_solver_id = self._require_solver_id(solver_id)
+        solver_cfg = self.solvers[selected_solver_id]
+        self._clear_solver_results(selected_solver_id)
+        entries = self._study_entries(solver_cfg)
+        for idx, step in entries:
+            self._run_one_solver_study(
+                solver_id=selected_solver_id,
+                solver_cfg=solver_cfg,
+                study=dict(step),
+                study_index=idx,
+                total_studies=len(entries),
+            )
+
+    def run_analysis(self, *, analyser_id: str | None = None, study_name: str | None = None) -> None:
+        """Run one analyser against every matching study trajectory into ``model.results``."""
         selected_analyser_id = self._require_analyser_id(analyser_id)
         analyser_cfg = self.analysers[selected_analyser_id]
         selected_solver_id = self._require_solver_id(analyser_cfg.solver_id)
-        solver_bundle = self.results.ensure_solver(selected_solver_id)
-        if solver_bundle.trajectory is None or solver_bundle.model_spec is None:
+        matching_runs = [
+            (run_id, bundle)
+            for run_id, bundle in self.results.solver_runs.items()
+            if (bundle.solver_id or run_id) == selected_solver_id and bundle.trajectory is not None
+        ]
+        if study_name is not None:
+            matching_runs = [
+                (run_id, bundle)
+                for run_id, bundle in matching_runs
+                if str(bundle.study_name or '').strip() == str(study_name).strip()
+            ]
+        if not matching_runs:
             raise ValueError(f'Solver `{selected_solver_id}` has not been run yet.')
-        cfg = getattr(solver_bundle.runtime_task, 'input', None).backend_config if solver_bundle.runtime_task else None
-        if cfg is None:
-            raise ValueError(f'Missing runtime task/backend config for solver `{selected_solver_id}`.')
 
-        logical_error = None
-        if solver_bundle.decoder_outputs:
-            logical_error = solver_bundle.decoder_outputs.get('logical_error')
+        per_study_analyses: list[tuple[SolverRunResult, AnalysisResult]] = []
+        total_studies = len(matching_runs)
+        for run_id, solver_bundle in matching_runs:
+            cfg = getattr(solver_bundle.runtime_task, 'input', None).backend_config if solver_bundle.runtime_task else None
+            if cfg is None:
+                raise ValueError(f'Missing runtime task/backend config for solver `{selected_solver_id}`.')
+            logical_error = None
+            if solver_bundle.decoder_outputs:
+                logical_error = solver_bundle.decoder_outputs.get('logical_error')
 
-        started_at = time.perf_counter()
-        analyzed = run_analysis_stage(
-            trajectory=solver_bundle.trajectory,
-            model_spec=solver_bundle.model_spec,
-            pulse_ir=solver_bundle.pulse_ir,
-            pulse_cfg={**dict(self.device.pulse or {}), **dict(self.pulse or {})},
-            cfg=cfg,
-            logical_error=logical_error,
-            analyser_cfg=analyser_cfg.to_payload(),
-            metric_registry=self.metric_registry,
-        )
-        analysis_bundle = dict(analyzed.get('analysis', {}) or {})
-        solver_bundle.analyses[selected_analyser_id] = AnalysisResult(
-            analyser_id=selected_analyser_id,
-            trajectory_id=selected_solver_id,
-            metrics=dict(analysis_bundle.get('metrics', {}) or {}) or None,
-            readout=dict(analysis_bundle.get('readout', {}) or {}) or None,
-            iq=dict(analysis_bundle.get('iq', {}) or {}) or None,
-            report=dict(analysis_bundle.get('report', {}) or {}) or None,
-            sensitivity=_public_value(analyzed.get('sensitivity_report')),
-            error_budget=_public_value(analyzed.get('error_budget_v2')),
-        )
-        runtime_meta = dict(solver_bundle.runtime_metadata or {})
-        timings = dict(runtime_meta.get('timings', {}) or {})
-        timings[f'analysis:{selected_analyser_id}'] = time.perf_counter() - started_at
-        runtime_meta['timings'] = timings
-        solver_bundle.runtime_metadata = runtime_meta
+            started_at = time.perf_counter()
+            analyzed = run_analysis_stage(
+                trajectory=solver_bundle.trajectory,
+                model_spec=solver_bundle.model_spec,
+                pulse_ir=solver_bundle.pulse_ir,
+                pulse_cfg={**dict(self.device.pulse or {}), **dict(self.pulse or {})},
+                cfg=cfg,
+                logical_error=logical_error,
+                analyser_cfg=analyser_cfg.to_payload(),
+                metric_registry=self.metric_registry,
+            )
+            analysis_bundle = dict(analyzed.get('analysis', {}) or {})
+            analysis_run_id = self._analysis_id_for_study(
+                analyser_id=selected_analyser_id,
+                study={"name": solver_bundle.study_name} if solver_bundle.study_name else {},
+                study_index=solver_bundle.study_index,
+                total_studies=total_studies,
+            )
+            analysis_result = AnalysisResult(
+                analyser_id=analysis_run_id,
+                trajectory_id=run_id,
+                metrics=dict(analysis_bundle.get('metrics', {}) or {}) or None,
+                readout=dict(analysis_bundle.get('readout', {}) or {}) or None,
+                iq=dict(analysis_bundle.get('iq', {}) or {}) or None,
+                report=dict(analysis_bundle.get('report', {}) or {}) or None,
+                sensitivity=_public_value(analyzed.get('sensitivity_report')),
+                error_budget=_public_value(analyzed.get('error_budget_v2')),
+            )
+            solver_bundle.analyses[analysis_run_id] = analysis_result
+            per_study_analyses.append((solver_bundle, analysis_result))
+            runtime_meta = dict(solver_bundle.runtime_metadata or {})
+            timings = dict(runtime_meta.get('timings', {}) or {})
+            timings[f'analysis:{selected_analyser_id}'] = time.perf_counter() - started_at
+            runtime_meta['timings'] = timings
+            solver_bundle.runtime_metadata = runtime_meta
+
+        if study_name is None:
+            aggregate_bundle = self.results.ensure_solver(selected_solver_id)
+            aggregate_bundle.solver_id = selected_solver_id
+            aggregate_bundle.study_name = None
+            summary_iq = self._build_multi_study_iq_summary(per_study_analyses)
+            if total_studies == 1:
+                aggregate_bundle.analyses[selected_analyser_id] = per_study_analyses[0][1]
+            elif summary_iq is not None:
+                aggregate_bundle.analyses[selected_analyser_id] = AnalysisResult(
+                    analyser_id=selected_analyser_id,
+                    trajectory_id=selected_solver_id,
+                    iq=summary_iq,
+                )
 
     def run_all(self) -> None:
         """Run every configured solver and then every configured analyser."""
@@ -536,13 +879,28 @@ class Model:
         """Run all configured solvers and analysers."""
         self.run_all()
 
-    def get_trajectory(self, solver_id: str | None = None) -> Trajectory | None:
+    def get_trajectory(self, solver_id: str | None = None, *, study_name: str | None = None) -> Trajectory | None:
         selected_solver_id = self._require_solver_id(solver_id)
-        return self.results.ensure_solver(selected_solver_id).trajectory
+        if study_name is None:
+            bundle = self.results.ensure_solver(selected_solver_id)
+            if bundle.trajectory is not None:
+                return bundle.trajectory
+        run_id = self._find_run_id(solver_id=selected_solver_id, study_name=study_name)
+        if run_id is None:
+            if study_name is None:
+                raise ValueError(f'study_name is required to disambiguate solver `{selected_solver_id}` results.')
+            return None
+        return self.results.ensure_solver(run_id).trajectory
 
-    def get_analysis(self, *, analyser_id: str | None = None) -> AnalysisResult | None:
+    def get_analysis(self, *, analyser_id: str | None = None, study_name: str | None = None) -> AnalysisResult | None:
         selected_analyser_id = self._require_analyser_id(analyser_id)
-        return self.results.analyses.get(selected_analyser_id)
+        if study_name is None:
+            direct = self.results.analyses.get(selected_analyser_id)
+            if direct is not None:
+                return direct
+            return None
+        token = self._safe_study_token(study_name)
+        return self.results.analyses.get(f'{selected_analyser_id}__{token}')
 
     def add_solver(self, solver_id: str, solver_cfg: WorkflowSolverConfig) -> None:
         self.solvers[str(solver_id)] = solver_cfg
@@ -762,11 +1120,9 @@ def load_model(path: str | Path) -> Model:
     )
     results_dir = root / 'results'
     if results_dir.exists():
-        for solver_id in model.solvers.keys():
-            solver_dir = results_dir / solver_id
-            if not solver_dir.exists():
-                continue
-            bundle = model.results.ensure_solver(solver_id)
+        for solver_dir in sorted([p for p in results_dir.iterdir() if p.is_dir()]):
+            run_id = solver_dir.name
+            bundle = model.results.ensure_solver(run_id)
             trajectory_path = solver_dir / 'trajectory.h5'
             if trajectory_path.exists():
                 bundle.trajectory = load_trajectory_h5(trajectory_path)
@@ -781,22 +1137,25 @@ def load_model(path: str | Path) -> Model:
                 file_path = solver_dir / filename
                 if file_path.exists():
                     setattr(bundle, attr_name, _read_json(file_path))
+            runtime_meta = dict(bundle.runtime_metadata or {})
+            bundle.solver_id = str(runtime_meta.get('solver_id', run_id))
+            bundle.study_name = str(runtime_meta.get('study_name')).strip() or None if runtime_meta.get('study_name') is not None else None
+            bundle.study_index = int(runtime_meta.get('study_index')) if runtime_meta.get('study_index') is not None else None
             analyses_dir = solver_dir / 'analyses'
             if analyses_dir.exists():
-                for analyser_id in model.analysers.keys():
-                    analysis_path = analyses_dir / f'{analyser_id}.json'
-                    if analysis_path.exists():
-                        payload = _read_json(analysis_path)
-                        bundle.analyses[analyser_id] = AnalysisResult(
-                            analyser_id=str(payload.get('analyser_id')).strip() or None if payload.get('analyser_id') is not None else None,
-                            trajectory_id=str(payload.get('trajectory_id')).strip() or None if payload.get('trajectory_id') is not None else solver_id,
-                            metrics=dict(payload.get('metrics', {}) or {}) or None,
-                            readout=dict(payload.get('readout', {}) or {}) or None,
-                            iq=dict(payload.get('iq', {}) or {}) or None,
-                            report=dict(payload.get('report', {}) or {}) or None,
-                            sensitivity=dict(payload.get('sensitivity', {}) or {}) or None,
-                            error_budget=dict(payload.get('error_budget', {}) or {}) or None,
-                        )
+                for analysis_path in sorted(analyses_dir.glob('*.json')):
+                    payload = _read_json(analysis_path)
+                    analysis_id = str(payload.get('analyser_id')).strip() or analysis_path.stem
+                    bundle.analyses[analysis_id] = AnalysisResult(
+                        analyser_id=analysis_id,
+                        trajectory_id=str(payload.get('trajectory_id')).strip() or None if payload.get('trajectory_id') is not None else run_id,
+                        metrics=dict(payload.get('metrics', {}) or {}) or None,
+                        readout=dict(payload.get('readout', {}) or {}) or None,
+                        iq=dict(payload.get('iq', {}) or {}) or None,
+                        report=dict(payload.get('report', {}) or {}) or None,
+                        sensitivity=dict(payload.get('sensitivity', {}) or {}) or None,
+                        error_budget=dict(payload.get('error_budget', {}) or {}) or None,
+                    )
     return model
 
 

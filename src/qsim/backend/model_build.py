@@ -42,6 +42,13 @@ class DefaultModelBuilder:
     _Z_RE = re.compile(r"^Z_(\d+)$", re.IGNORECASE)
     _RO_RE = re.compile(r"^RO_(\d+)$", re.IGNORECASE)
     _TWO_PI = 2.0 * math.pi
+    _SUPPORTED_SUBSYSTEM_MODELS = {
+        "qubit_network",
+        "transmon_nlevel",
+        "cqed_jc",
+        "cqed_dispersive",
+        "cavity_classical_readout",
+    }
 
     @staticmethod
     def _to_float_list(arr: Any) -> list[float]:
@@ -281,6 +288,10 @@ class DefaultModelBuilder:
         primary_step: dict[str, Any] | None = None,
     ) -> tuple[str, dict[str, str]]:
         structure = cls._resolve_structured_model_selector(hw, primary_step)
+        options = dict((primary_step or {}).get("options", {}) or {})
+        explicit_model = str(options.get("subsystem_model", "") or "").strip().lower()
+        if explicit_model in cls._SUPPORTED_SUBSYSTEM_MODELS:
+            return explicit_model, structure
         structured_keys = {
             "qubit_representation",
             "cavity_representation",
@@ -328,8 +339,13 @@ class DefaultModelBuilder:
         reject_unknown_keys("solver.run", solver_run, {"dt_s", "t_end_s", "t_padding_s"})
         reject_unknown_coupling_keys(list(hw.get("couplings", [])))
 
-        num_qubits = int(max(1, executable.metadata.get("num_qubits", 1)))
-        frame_mode, frame_reference, frame_rwa, explicit_reference_freqs_Hz = self._normalize_frame(frame, num_qubits)
+        study_meta = self._study_metadata(study, primary_step)
+        explicit_options = dict(study_meta["primary_step"].get("options", {}) or {})
+        requested_subsystem_model = str(explicit_options.get("subsystem_model", "") or "").strip().lower()
+
+        raw_num_qubits = int(max(0, executable.metadata.get("num_qubits", 0)))
+        default_num_qubits = max(1, raw_num_qubits)
+        frame_mode, frame_reference, frame_rwa, explicit_reference_freqs_Hz = self._normalize_frame(frame, default_num_qubits)
         composite_quantum = self._composite_quantum_projection(hw)
         raw_qubits = list(hw.get("qubits", []) or composite_quantum.get("qubits", []) or [])
         inferred_t_end_s = float(executable.metadata.get("t_end_s", 0.0))
@@ -366,12 +382,15 @@ class DefaultModelBuilder:
         if req_level == "cqed" and cavity_nmax <= 0:
             req_level = "nlevel" if transmon_levels > 2 else "qubit"
 
-        if req_level == "qubit":
-            dim = int(hw.get("dimension", 2**num_qubits))
-        elif req_level == "nlevel":
-            dim = int(hw.get("dimension", transmon_levels**num_qubits))
+        model_type, model_structure = self._resolve_model_type(
+            req_level=req_level,
+            hw=hw,
+            primary_step=study_meta["primary_step"],
+        )
+        if model_type == "cavity_classical_readout":
+            num_qubits = 0
         else:
-            dim = int(hw.get("dimension", (cavity_nmax + 1) * (transmon_levels**num_qubits)))
+            num_qubits = int(max(1, raw_num_qubits))
 
         controls: list[dict[str, Any]] = []
         readout_controls: list[dict[str, Any]] = []
@@ -462,7 +481,6 @@ class DefaultModelBuilder:
         pulse_carrier_reference_omega_rad_s = [self._TWO_PI * float(x) for x in pulse_carrier_reference_freqs_Hz]
 
         composite_meta = self._composite_metadata(hw)
-        study_meta = self._study_metadata(study, primary_step)
         couplings = []
         for c in hw.get("couplings", []):
             if not isinstance(c, dict):
@@ -589,18 +607,22 @@ class DefaultModelBuilder:
         else:
             noise_model = "markovian_lindblad"
 
-        model_type, model_structure = self._resolve_model_type(
-            req_level=req_level,
-            hw=hw,
-            primary_step=study_meta["primary_step"],
-        )
-
         anharmonicity_Hz = self._expand_value(
             hw.get("anharmonicity_Hz", self._qubit_field(raw_qubits, "anharmonicity_Hz", -0.2) if raw_qubits else -0.2),
             num_qubits,
             -0.2,
         )
         g_cavity_Hz = self._expand_value(hw.get("g_cavity_Hz", 0.0), num_qubits, 0.0)
+
+        if req_level == "qubit":
+            dim = int(hw.get("dimension", 1 if num_qubits == 0 else 2**num_qubits))
+        elif req_level == "nlevel":
+            dim = int(hw.get("dimension", 1 if num_qubits == 0 else transmon_levels**num_qubits))
+        else:
+            if model_type == "cavity_classical_readout":
+                dim = int(hw.get("dimension", 1))
+            else:
+                dim = int(hw.get("dimension", (cavity_nmax + 1) * (transmon_levels**num_qubits)))
 
         return ModelSpec(
             engine="qutip",
@@ -663,9 +685,10 @@ class DefaultModelBuilder:
                 "model_structure": model_structure,
                 "model_assumptions": {
                     "qubit_representation": "two_level_pauli (qubit) or truncated_oscillator (nlevel/cqed)",
-                    "subsystem_model": "qubit_network | transmon_nlevel | cqed_jc | cqed_dispersive",
+                    "subsystem_model": "qubit_network | transmon_nlevel | cqed_jc | cqed_dispersive | cavity_classical_readout",
                     "truncation_cfg_from_backend": executable.metadata.get("truncation", {}),
                     "study_selection": study_meta["study_summary"],
+                    "requested_subsystem_model": requested_subsystem_model,
                 },
             },
         )

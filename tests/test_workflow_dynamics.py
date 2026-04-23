@@ -78,6 +78,7 @@ def test_compact_runtime_details_summarizes_large_payloads():
                 "requested_kind": "density_matrix",
                 "actual_kind": "density_matrix",
                 "snapshots": [[1], [2], [3]],
+                "runs": [[[1], [2], [3]], [[4], [5], [6]]],
             },
             "measurement_records": [{"t": 0.0}, {"t": 1.0}],
         }
@@ -86,4 +87,5 @@ def test_compact_runtime_details_summarizes_large_payloads():
     assert compact["solver_impl"] == "quantumoptics.timeevolution.master_dynamic"
     assert compact["collapse_counts"] == {"relaxation": 1, "dephasing": 1}
     assert compact["quantum_state_trajectory"]["snapshots"] == 3
+    assert compact["quantum_state_trajectory"]["runs"] == 2
     assert "measurement_records" in compact

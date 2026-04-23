@@ -251,6 +251,84 @@ def test_pulse_config_loads_with_template(tmp_path: Path):
     assert pulse["xy_freq_Hz"] == 5.0e9
 
 
+def test_v3_pulse_config_maps_measure_scale_into_measure_amp(tmp_path: Path):
+    p = tmp_path / "pulse_v3.yaml"
+    p.write_text(
+        """
+schema_version: "3.0"
+pulse:
+  channels:
+    - name: RO_q0
+      kind: readout_drive
+      target: r0
+      port: ro_in
+  carriers:
+    RO_q0:
+      freq_Hz: 6.45e9
+      phase_rad: 0.0
+  waveforms:
+    readout_probe:
+      shape: readout
+      duration_ns: 160.0
+      edge_ns: 20.0
+  operations:
+    measure:
+      - channel: RO_q0
+        waveform: readout_probe
+        scale: 4000.0
+""",
+        encoding="utf-8",
+    )
+    pulse = load_pulse_config_file(p)
+    assert pulse["measure_duration_ns"] == 160.0
+    assert pulse["readout_edge_ns"] == 20.0
+    assert pulse["measure_amp"] == 3200.0
+
+
+def test_v3_pulse_config_maps_multi_segment_measure_into_measure_segments(tmp_path: Path):
+    p = tmp_path / "pulse_v3_segments.yaml"
+    p.write_text(
+        """
+schema_version: "3.0"
+pulse:
+  channels:
+    - name: RO_q0
+      kind: readout_drive
+      target: r0
+      port: ro_in
+  carriers:
+    RO_q0:
+      freq_Hz: 6.45e9
+      phase_rad: 0.0
+  waveforms:
+    readout_kick:
+      shape: readout
+      duration_ns: 120.0
+      edge_ns: 20.0
+    readout_hold:
+      shape: readout
+      duration_ns: 680.0
+      edge_ns: 20.0
+  operations:
+    measure:
+      - channel: RO_q0
+        waveform: readout_kick
+        scale: 3000.0
+      - channel: RO_q0
+        waveform: readout_hold
+        scale: 1000.0
+""",
+        encoding="utf-8",
+    )
+    pulse = load_pulse_config_file(p)
+    assert pulse["measure_duration_ns"] == 800.0
+    assert pulse["measure_amp"] == 2400.0
+    assert pulse["measure_segments"] == [
+        {"duration_ns": 120.0, "amp": 2400.0, "edge_ns": 20.0, "shape": "readout"},
+        {"duration_ns": 680.0, "amp": 800.0, "edge_ns": 20.0, "shape": "readout"},
+    ]
+
+
 def test_analyser_config_loads_metrics_and_trajectory(tmp_path: Path):
     p = tmp_path / "analyser.yaml"
     p.write_text(

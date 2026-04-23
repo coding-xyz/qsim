@@ -21,7 +21,9 @@ class RectShape(PulseShape):
     fall: float = 0.0
 
     def sample(self, t: float, t0: float, t1: float, amp: float) -> float:
-        if t < t0 or t > t1:
+        # Use a half-open interval [t0, t1) so adjacent pulse segments do not
+        # double-count the shared boundary sample and create a spurious spike.
+        if t < t0 or t >= t1:
             return 0.0
         width = max(t1 - t0, 1e-12)
         tr = min(self.rise, width / 2)
@@ -40,7 +42,7 @@ class GaussianShape(PulseShape):
     sigma: float | None = None
 
     def sample(self, t: float, t0: float, t1: float, amp: float) -> float:
-        if t < t0 or t > t1:
+        if t < t0 or t >= t1:
             return 0.0
         dur = max(t1 - t0, 1e-12)
         sigma = self.sigma if self.sigma else dur / 6.0
@@ -58,7 +60,7 @@ class DragShape(PulseShape):
     sigma: float | None = None
 
     def sample(self, t: float, t0: float, t1: float, amp: float) -> float:
-        if t < t0 or t > t1:
+        if t < t0 or t >= t1:
             return 0.0
         dur = max(t1 - t0, 1e-12)
         sigma = self.sigma if self.sigma else dur / 6.0

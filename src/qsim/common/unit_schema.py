@@ -7,6 +7,9 @@ from typing import Any
 PULSE_KEYS = {
     "gate_duration_ns",
     "measure_duration_ns",
+    "measure_amp",
+    "measure_segments",
+    "measure_start_delay_ns",
     "rect_edge_ns",
     "readout_edge_ns",
     "reset_measure_duration_ns",

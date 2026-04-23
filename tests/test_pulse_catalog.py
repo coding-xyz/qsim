@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import math
+
+import pytest
+
 from qsim.backend.lowering import DefaultLowering
 from qsim.common.schemas import BackendConfig, CircuitGate, CircuitIR
 from qsim.pulse.catalog import build_gate_mapping_catalog, instantiate_operation_recipe
@@ -11,6 +15,8 @@ def test_build_gate_mapping_catalog_exposes_reset_stages_and_barrier():
 
     assert payload["schema"] == "qsim.pulse-gate-map.v1"
     assert ops["x"]["shared_recipe_group"] == "single_qubit_xy_gaussian"
+    assert ops["rx"]["shared_recipe_group"] == "single_qubit_xy_gaussian"
+    assert ops["ry"]["shared_recipe_group"] == "single_qubit_xy_gaussian"
     assert [step["stage"] for step in ops["reset"]["steps"] if "stage" in step] == [
         "reset_measure",
         "reset_deplete",
@@ -48,6 +54,24 @@ def test_measure_recipe_marks_readout_as_breakable():
     assert pulses[0][0] == "RO_1"
     assert pulses[0][1].params["breakable"] is True
     assert pulses[0][1].params["break_kind"] == "readout"
+
+
+def test_parametric_rx_and_ry_recipes_encode_rotation_angle_and_phase():
+    rx_pulses, rx_duration, _events = instantiate_operation_recipe("rx", [0], gate_params=[math.pi / 2.0], start_ns=0.0)
+    ry_pulses, ry_duration, _events = instantiate_operation_recipe("ry", [0], gate_params=[-math.pi / 2.0], start_ns=0.0)
+    x_pulses, _x_duration, _events = instantiate_operation_recipe("x", [0], start_ns=0.0)
+
+    assert rx_duration == 20.0
+    assert ry_duration == 20.0
+    assert rx_pulses[0][1].params["rotation_axis"] == "x"
+    assert ry_pulses[0][1].params["rotation_axis"] == "y"
+    assert rx_pulses[0][1].params["rotation_rad"] == pytest.approx(math.pi / 2.0)
+    assert ry_pulses[0][1].params["rotation_rad"] == pytest.approx(-math.pi / 2.0)
+    assert rx_pulses[0][1].carrier is not None
+    assert ry_pulses[0][1].carrier is not None
+    assert rx_pulses[0][1].carrier.phase == pytest.approx(0.0)
+    assert ry_pulses[0][1].carrier.phase == pytest.approx(math.pi / 2.0)
+    assert abs(x_pulses[0][1].amp) == pytest.approx(2.0 * abs(rx_pulses[0][1].amp), rel=1e-6)
 
 
 def test_lowering_and_catalog_instantiation_stay_in_sync_for_mixed_circuit():

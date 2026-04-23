@@ -9,7 +9,7 @@ from qsim.common.schemas import CircuitGate, CircuitIR
 
 def _gate_family(name: str) -> str:
     gate = str(name).lower()
-    if gate in {"x", "sx", "h", "z", "rz"}:
+    if gate in {"x", "sx", "h", "rx", "ry", "z", "rz"}:
         return "single_qubit"
     if gate in {"cz", "cx"}:
         return "two_qubit"
@@ -25,7 +25,7 @@ def _gate_family(name: str) -> str:
 def _gate_duration_ns(gate: CircuitGate, hw: dict[str, Any]) -> float:
     name = str(gate.name).lower()
     gate_dur = float(hw["gate_duration_ns"])
-    if name in {"x", "sx", "h", "z", "rz"}:
+    if name in {"x", "sx", "h", "rx", "ry", "z", "rz"}:
         return gate_dur
     if name in {"cz", "cx"}:
         return 2.0 * gate_dur

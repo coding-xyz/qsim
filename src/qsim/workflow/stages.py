@@ -341,13 +341,21 @@ def _resolve_analysis_trajectory(trajectory, analyser_cfg: dict | None) -> dict:
         payload["times"] = list(trajectory.times)
     if requested_kind == "wave_function" and wave_function:
         payload["wave_function"] = list(wave_function.get("snapshots", []) or [])
+        if wave_function.get("runs"):
+            payload["wave_function_runs"] = list(wave_function.get("runs", []) or [])
     elif requested_kind == "density_matrix" and density_matrix:
         payload["density_matrix"] = list(density_matrix.get("snapshots", []) or [])
+        if density_matrix.get("runs"):
+            payload["density_matrix_runs"] = list(density_matrix.get("runs", []) or [])
     else:
         if density_matrix:
             payload["density_matrix"] = list(density_matrix.get("snapshots", []) or [])
+            if density_matrix.get("runs"):
+                payload["density_matrix_runs"] = list(density_matrix.get("runs", []) or [])
         elif wave_function:
             payload["wave_function"] = list(wave_function.get("snapshots", []) or [])
+            if wave_function.get("runs"):
+                payload["wave_function_runs"] = list(wave_function.get("runs", []) or [])
     if getattr(trajectory, "classical", None):
         payload["classical"] = dict(trajectory.classical or {})
     if save_measurement_records and getattr(trajectory, "measurements", None):

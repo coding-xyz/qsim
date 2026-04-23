@@ -369,3 +369,286 @@ def test_qutip_engine_supports_cqed_dispersive_with_classical_feedline():
     assert len(readout.get("measured_voltage", [])) == len(Trajectory.times)
 
 
+def test_qutip_engine_supports_homodyne_sme_without_line_state_feedback():
+    pytest.importorskip("qutip")
+    spec = ModelSpec(
+        solver="me",
+        dimension=9,
+        t_end=5.0e-9,
+        dt=1.0e-9,
+        payload={
+            "model_type": "cqed_dispersive",
+            "num_qubits": 1,
+            "transmon_levels": 3,
+            "cavity_nmax": 2,
+            "cavity_omega_rad_s": 0.0,
+            "qubit_omega_rad_s": [0.0],
+            "anharmonicity_rad_s": [0.0],
+            "g_cavity_rad_s": [2.0 * math.pi * 9.0e7],
+            "components": [
+                {"id": "q0", "type": "transmon", "representation": "quantum", "parameters": {"freq_Hz": 5.0e9}},
+                {
+                    "id": "r0",
+                    "type": "resonator",
+                    "representation": "quantum",
+                    "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6, "kappa_ext_Hz": 7.0e6, "chi_Hz": -1.0e6},
+                },
+                {
+                    "id": "ro0",
+                    "type": "readout_line",
+                    "representation": "classical",
+                    "parameters": {"eta_chain": 0.35, "gain_dB": 40.0, "added_noise_photons": 12.0, "bandwidth_Hz": 8.0e6},
+                },
+            ],
+            "connections": [
+                {"id": "disp", "type": "dispersive", "a": "q0", "b": "r0", "parameters": {"chi_Hz": -1.0e6}},
+                {"id": "feed", "type": "readout_feedline", "a": "r0", "b": "ro0", "parameters": {"kappa_ext_Hz": 7.0e6, "eta_chain": 0.35, "bandwidth_Hz": 8.0e6}},
+            ],
+            "frame": {"mode": "rotating", "reference": "pulse_carrier", "rwa": True},
+            "controls": [],
+            "readout_controls": [
+                {
+                    "channel": "RO_0",
+                    "kind": "readout",
+                    "target": 0,
+                    "times": [0.0, 2.5e-9, 5.0e-9],
+                    "values": [0.0, 0.4, 0.0],
+                    "scale": 1.0,
+                    "carrier_freq_Hz": 6.45e9,
+                    "carrier_omega_rad_s": 2.0 * math.pi * 6.45e9,
+                    "carrier_phase_rad": 0.0,
+                }
+            ],
+            "collapse_operators": [],
+            "primary_step": {"options": {"readout_protocol": "homodyne_sme"}},
+            "analyser": {"trajectory": {"quantum": "density_matrix", "save_times": "all", "save_final_state": True}},
+        },
+    )
+
+    Trajectory = QuTiPEngine().run(spec, run_options={"ntraj": 4, "seed": 11})
+
+    assert Trajectory.metadata.get("solver_impl") == "smesolve"
+    assert len((Trajectory.density_matrix or {}).get("snapshots", [])) == len(Trajectory.times)
+    readout = dict(Trajectory.classical.get("readout", {}) or {})
+    assert readout.get("feedback", {}).get("enabled") is False
+    assert "line_state" not in readout
+    assert len(readout.get("shots", [])) == 4
+    assert len(readout.get("measured_voltage", [])) == len(Trajectory.times)
+    cavity_a = np.asarray(readout.get("cavity_a", []), dtype=float)
+    assert cavity_a.size > 0
+    assert float(np.max(np.abs(cavity_a))) > 0.0
+    basis = dict(Trajectory.classical.get("basis_population", {}) or {})
+    assert len(basis.get("values", [])) == len(Trajectory.times)
+    assert len((Trajectory.measurements or {}).get("records", [])) == 4
+
+
+def test_qutip_engine_supports_heterodyne_sme_with_iq_records():
+    pytest.importorskip("qutip")
+    spec = ModelSpec(
+        solver="me",
+        dimension=9,
+        t_end=5.0e-9,
+        dt=1.0e-9,
+        payload={
+            "model_type": "cqed_dispersive",
+            "num_qubits": 1,
+            "transmon_levels": 3,
+            "cavity_nmax": 2,
+            "cavity_omega_rad_s": 0.0,
+            "qubit_omega_rad_s": [0.0],
+            "anharmonicity_rad_s": [0.0],
+            "g_cavity_rad_s": [2.0 * math.pi * 9.0e7],
+            "components": [
+                {"id": "q0", "type": "transmon", "representation": "quantum", "parameters": {"freq_Hz": 5.0e9}},
+                {
+                    "id": "r0",
+                    "type": "resonator",
+                    "representation": "quantum",
+                    "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6, "kappa_ext_Hz": 7.0e6, "chi_Hz": -1.0e6},
+                },
+                {
+                    "id": "ro0",
+                    "type": "readout_line",
+                    "representation": "classical",
+                    "parameters": {"eta_chain": 0.35, "gain_dB": 40.0, "added_noise_photons": 12.0, "bandwidth_Hz": 8.0e6},
+                },
+            ],
+            "connections": [
+                {"id": "disp", "type": "dispersive", "a": "q0", "b": "r0", "parameters": {"chi_Hz": -1.0e6}},
+                {"id": "feed", "type": "readout_feedline", "a": "r0", "b": "ro0", "parameters": {"kappa_ext_Hz": 7.0e6, "eta_chain": 0.35, "bandwidth_Hz": 8.0e6}},
+            ],
+            "frame": {"mode": "rotating", "reference": "pulse_carrier", "rwa": True},
+            "controls": [],
+            "readout_controls": [
+                {
+                    "channel": "RO_0",
+                    "kind": "readout",
+                    "target": 0,
+                    "times": [0.0, 2.5e-9, 5.0e-9],
+                    "values": [0.0, 0.4, 0.0],
+                    "scale": 1.0,
+                    "carrier_freq_Hz": 6.45e9,
+                    "carrier_omega_rad_s": 2.0 * math.pi * 6.45e9,
+                    "carrier_phase_rad": 0.0,
+                }
+            ],
+            "collapse_operators": [],
+            "primary_step": {"options": {"readout_protocol": "heterodyne_sme"}},
+            "analyser": {"trajectory": {"quantum": "density_matrix", "save_times": "all", "save_final_state": True}},
+        },
+    )
+
+    Trajectory = QuTiPEngine().run(spec, run_options={"ntraj": 4, "seed": 13})
+
+    assert Trajectory.metadata.get("solver_impl") == "smesolve"
+    assert Trajectory.metadata.get("readout_protocol") == "heterodyne_sme"
+    readout = dict(Trajectory.classical.get("readout", {}) or {})
+    assert readout.get("feedback", {}).get("enabled") is False
+    assert len(readout.get("shots", [])) == 4
+    assert len(readout.get("measured_voltage", [])) == len(Trajectory.times)
+    assert len(readout.get("heterodyne_current", [])) == len(Trajectory.times)
+    shot0 = dict(readout.get("shots", [])[0] or {})
+    assert len(shot0.get("heterodyne_I", [])) == len(Trajectory.times)
+    assert len(shot0.get("heterodyne_Q", [])) == len(Trajectory.times)
+    current = np.asarray(readout.get("heterodyne_current", []), dtype=float)
+    assert current.size > 0
+    assert float(np.max(np.abs(current))) > 0.0
+    records = list((Trajectory.measurements or {}).get("records", []) or [])
+    assert len(records) == 4
+    assert len(records[0].get("heterodyne_I", [])) == len(Trajectory.times)
+
+
+def test_qutip_engine_heterodyne_sme_preserves_raw_runs_and_stochastic_cavity_shots():
+    pytest.importorskip("qutip")
+    spec = ModelSpec(
+        solver="me",
+        dimension=9,
+        t_end=5.0e-9,
+        dt=1.0e-9,
+        payload={
+            "model_type": "cqed_dispersive",
+            "num_qubits": 1,
+            "transmon_levels": 3,
+            "cavity_nmax": 2,
+            "cavity_omega_rad_s": 0.0,
+            "qubit_omega_rad_s": [0.0],
+            "anharmonicity_rad_s": [0.0],
+            "g_cavity_rad_s": [2.0 * math.pi * 9.0e7],
+            "components": [
+                {"id": "q0", "type": "transmon", "representation": "quantum", "parameters": {"freq_Hz": 5.0e9}},
+                {
+                    "id": "r0",
+                    "type": "resonator",
+                    "representation": "quantum",
+                    "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6, "kappa_ext_Hz": 7.0e6, "chi_Hz": -1.0e6},
+                },
+                {
+                    "id": "ro0",
+                    "type": "readout_line",
+                    "representation": "classical",
+                    "parameters": {"eta_chain": 0.35, "gain_dB": 40.0, "added_noise_photons": 12.0, "bandwidth_Hz": 8.0e6},
+                },
+            ],
+            "connections": [
+                {"id": "disp", "type": "dispersive", "a": "q0", "b": "r0", "parameters": {"chi_Hz": -1.0e6}},
+                {"id": "feed", "type": "readout_feedline", "a": "r0", "b": "ro0", "parameters": {"kappa_ext_Hz": 7.0e6, "eta_chain": 0.35, "bandwidth_Hz": 8.0e6}},
+            ],
+            "frame": {"mode": "rotating", "reference": "pulse_carrier", "rwa": True},
+            "controls": [],
+            "readout_controls": [
+                {
+                    "channel": "RO_0",
+                    "kind": "readout",
+                    "target": 0,
+                    "times": [0.0, 2.5e-9, 5.0e-9],
+                    "values": [0.0, 0.4, 0.0],
+                    "scale": 1.0,
+                    "carrier_freq_Hz": 6.45e9,
+                    "carrier_omega_rad_s": 2.0 * math.pi * 6.45e9,
+                    "carrier_phase_rad": 0.0,
+                }
+            ],
+            "collapse_operators": [],
+            "primary_step": {"options": {"readout_protocol": "heterodyne_sme"}},
+            "analyser": {"trajectory": {"quantum": "density_matrix", "save_times": "all", "save_final_state": True}},
+        },
+    )
+
+    trajectory = QuTiPEngine().run(spec, run_options={"ntraj": 3, "seed": 17})
+
+    density_matrix = dict(trajectory.density_matrix or {})
+    assert density_matrix.get("actual_kind") == "density_matrix"
+    assert density_matrix.get("num_runs") == 3
+    assert len(density_matrix.get("runs", [])) == 3
+    assert all(len(run) == len(trajectory.times) for run in density_matrix.get("runs", []))
+
+    readout = dict(trajectory.classical.get("readout", {}) or {})
+    shots = list(readout.get("shots", []) or [])
+    assert len(shots) == 3
+    shot0 = np.asarray(shots[0].get("a_cavity", []), dtype=float)
+    shot1 = np.asarray(shots[1].get("a_cavity", []), dtype=float)
+    assert shot0.shape == shot1.shape
+    assert not np.allclose(shot0, shot1)
+
+
+def test_qutip_engine_runs_cavity_classical_readout_without_qutip_dependency():
+    spec = ModelSpec(
+        solver="me",
+        dimension=1,
+        t_end=6.0e-9,
+        dt=1.0e-9,
+        payload={
+            "model_type": "cavity_classical_readout",
+            "num_qubits": 0,
+            "components": [
+                {
+                    "id": "r0",
+                    "type": "resonator",
+                    "representation": "classical",
+                    "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6, "kappa_ext_Hz": 4.5e6, "chi_Hz": -5.5e6},
+                },
+                {
+                    "id": "ro0",
+                    "type": "readout_line",
+                    "representation": "classical",
+                    "parameters": {
+                        "eta_chain": 0.8,
+                        "gain_dB": 42.0,
+                        "added_noise_photons": 2.0,
+                        "bandwidth_Hz": 6.0e6,
+                        "input_amplitude_noise_rel_sigma": 0.02,
+                    },
+                },
+            ],
+            "connections": [
+                {"id": "feed", "type": "readout_feedline", "a": "r0", "b": "ro0", "parameters": {"kappa_ext_Hz": 4.5e6, "eta_chain": 0.8, "bandwidth_Hz": 6.0e6}}
+            ],
+            "readout_controls": [
+                {
+                    "channel": "RO_0",
+                    "kind": "readout",
+                    "target": 0,
+                    "times": [0.0, 3.0e-9, 6.0e-9],
+                    "values": [0.0, 1.0, 0.0],
+                    "scale": 1.0,
+                    "carrier_freq_Hz": 6.45e9,
+                    "carrier_omega_rad_s": 2.0 * math.pi * 6.45e9,
+                    "carrier_phase_rad": 0.0,
+                }
+            ],
+            "primary_step": {"prep_state": {"label": "1", "sequence": []}, "options": {"subsystem_model": "cavity_classical_readout"}},
+            "noise_cfg": {"readout_error": 0.01},
+        },
+    )
+
+    trajectory = QuTiPEngine().run(spec, run_options={"ntraj": 4, "seed": 23})
+
+    assert trajectory.times
+    assert not trajectory.density_matrix
+    readout = dict((trajectory.classical or {}).get("readout", {}) or {})
+    assert len(readout.get("shots", [])) == 4
+    assert readout.get("chain", {}).get("hidden_state") == 1
+    basis_population = dict((trajectory.classical or {}).get("basis_population", {}) or {})
+    assert basis_population.get("series_labels") == ["0", "1"]
+
+

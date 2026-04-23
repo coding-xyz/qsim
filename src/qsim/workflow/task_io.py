@@ -191,18 +191,61 @@ def _map_v3_pulse_payload(raw_pulse: dict[str, Any]) -> dict[str, Any]:
                 return dict(wf)
         return {}
 
+    def _operation_scale(name: str, default: float = 1.0) -> float:
+        steps = list(operations.get(name, []) or [])
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            if "scale" in step:
+                return float(step.get("scale", default))
+        return float(default)
+
+    def _measure_segments() -> list[dict[str, Any]]:
+        steps = list(operations.get("measure", []) or [])
+        segments: list[dict[str, Any]] = []
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            wf_name = str(step.get("waveform", ""))
+            wf = dict(waveforms.get(wf_name, {}) or {}) if wf_name and isinstance(waveforms.get(wf_name), dict) else {}
+            if not wf:
+                continue
+            if "duration_ns" not in wf:
+                continue
+            segments.append(
+                {
+                    "duration_ns": float(wf["duration_ns"]),
+                    "amp": 0.8 * float(step.get("scale", 1.0)),
+                    "edge_ns": float(wf.get("edge_ns", 0.0) or 0.0),
+                    "rise_ns": float(wf.get("rise_ns", wf.get("edge_ns", 0.0)) or 0.0),
+                    "fall_ns": float(wf.get("fall_ns", wf.get("edge_ns", 0.0)) or 0.0),
+                    "shape": str(wf.get("shape", "readout") or "readout"),
+                }
+            )
+        return segments
+
     gate_wf = _waveform_from_operation("x", {"drag", "gaussian", "rect"})
     measure_wf = _waveform_from_operation("measure", {"readout", "rect"})
+    measure_segments = _measure_segments()
 
     mapped: dict[str, Any] = {}
     mapped["xy_freq_Hz"] = _carrier_freq_for_kind("drive", 5.0e9)
     mapped["ro_freq_Hz"] = _carrier_freq_for_kind("readout_drive", mapped["xy_freq_Hz"])
     if "duration_ns" in gate_wf:
         mapped["gate_duration_ns"] = float(gate_wf["duration_ns"])
-    if "duration_ns" in measure_wf:
+    if measure_segments:
+        mapped["measure_segments"] = measure_segments
+        mapped["measure_duration_ns"] = float(sum(float(seg.get("duration_ns", 0.0) or 0.0) for seg in measure_segments))
+        mapped["measure_amp"] = float(measure_segments[0].get("amp", 0.8))
+    elif "duration_ns" in measure_wf:
         mapped["measure_duration_ns"] = float(measure_wf["duration_ns"])
+        mapped["measure_amp"] = 0.8 * _operation_scale("measure", 1.0)
+    else:
+        mapped["measure_amp"] = 0.8 * _operation_scale("measure", 1.0)
     if "edge_ns" in measure_wf:
         mapped["readout_edge_ns"] = float(measure_wf["edge_ns"])
+    if "measure_start_delay_ns" in acquisition:
+        mapped["measure_start_delay_ns"] = float(acquisition["measure_start_delay_ns"])
     if "integration_window_ns" in acquisition:
         mapped["measure_duration_ns"] = float(acquisition["integration_window_ns"])
     if acquisition:

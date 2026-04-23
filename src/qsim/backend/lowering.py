@@ -56,6 +56,7 @@ class DefaultLowering:
             pulses, duration, events = instantiate_operation_recipe(
                 gate.name,
                 gate.qubits,
+                gate_params=gate.params,
                 start_ns=float(item["start_ns"]),
                 hw=resolved_hw,
                 tc_index=item["tc_index"],
@@ -79,6 +80,37 @@ class DefaultLowering:
                     "blocked_by_resources": list(item.get("blocked_by_resources", [])),
                     "reset_feedback_mode": item.get("reset_feedback_mode"),
                     "reset_feedback_offset_ns": float(item.get("reset_feedback_offset_ns", 0.0)),
+                }
+            )
+
+        if not scheduled_gates and int(getattr(schedule_or_circuit, "num_qubits", 0) or 0) == 0:
+            measure_start_delay_ns = float(resolved_hw.get("measure_start_delay_ns", 0.0) or 0.0)
+            pulses, duration, events = instantiate_operation_recipe(
+                "measure",
+                [0],
+                start_ns=measure_start_delay_ns,
+                hw=resolved_hw,
+                tc_index=None,
+                reset_feedback_offset_ns=0.0,
+            )
+            for channel, pulse in pulses:
+                ch_map[channel].append(pulse)
+            reset_events.extend(events)
+            t_end = max(t_end, measure_start_delay_ns + float(duration))
+            schedule_debug.append(
+                {
+                    "gate_index": -1,
+                    "gate_name": "measure",
+                    "qubits": [],
+                    "family": "classical_readout",
+                    "layer_id": 0,
+                    "start_ns": measure_start_delay_ns,
+                    "end_ns": measure_start_delay_ns + float(duration),
+                    "duration_ns": float(duration),
+                    "tc_index": None,
+                    "blocked_by_resources": [],
+                    "reset_feedback_mode": None,
+                    "reset_feedback_offset_ns": 0.0,
                 }
             )
 

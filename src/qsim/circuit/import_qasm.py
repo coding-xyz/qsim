@@ -241,6 +241,8 @@ class CircuitAdapter:
             "x": qc.x,
             "sx": qc.sx,
             "h": qc.h,
+            "rx": qc.rx,
+            "ry": qc.ry,
             "z": qc.z,
             "rz": qc.rz,
             "cx": qc.cx,
@@ -259,9 +261,9 @@ class CircuitAdapter:
 
             if g.name in standard_gate_map:
                 fn = standard_gate_map[g.name]
-                if g.name == "rz":
+                if g.name in {"rx", "ry", "rz"}:
                     if len(g.params) != 1 or len(g.qubits) != 1:
-                        raise ValueError("rz requires exactly one parameter and one qubit")
+                        raise ValueError(f"{g.name} requires exactly one parameter and one qubit")
                     fn(g.params[0], g.qubits[0])
                 elif g.name in {"cx", "cz"}:
                     if len(g.qubits) != 2:

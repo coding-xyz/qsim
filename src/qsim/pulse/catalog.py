@@ -83,6 +83,13 @@ def _single_qubit_rotation_rad(gate_name: str) -> float:
     return 0.0
 
 
+def _single_qubit_xy_phase_rad(gate_name: str) -> float:
+    gate = str(gate_name).lower()
+    if gate == "ry":
+        return 0.5 * math.pi
+    return 0.0
+
+
 def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any]:
     """Normalize lowering device/pulse knobs into one resolved config."""
     hw = hw or {}
@@ -91,12 +98,13 @@ def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any
     measure_dur = float(hw.get("measure_duration_ns", 200.0))
     edge_ns = float(hw.get("rect_edge_ns", 2.0))
     schedule_value = hw.get("schedule", hw.get("schedule_policy", "serial"))
-    return {
+    resolved = {
         "xy_freq_Hz": float(hw.get("xy_freq_Hz", 5.0e9)),
         "ro_freq_Hz": float(hw.get("ro_freq_Hz", 6.5e9)),
         "schedule_policy": str(schedule_value).strip().lower() or "serial",
         "gate_duration_ns": gate_dur,
         "measure_duration_ns": measure_dur,
+        "measure_amp": float(hw.get("measure_amp", 0.8)),
         "rect_edge_ns": edge_ns,
         "readout_edge_ns": float(hw.get("readout_edge_ns", edge_ns)),
         "reset_measure_duration_ns": float(hw.get("reset_measure_duration_ns", max(measure_dur, 400.0))),
@@ -110,6 +118,25 @@ def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any
         "reset_apply_feedback": bool(hw.get("reset_apply_feedback", True)),
         "reset_feedback_policy": str(hw.get("reset_feedback_policy", "parallel")).strip().lower() or "parallel",
     }
+    measure_segments = list(hw.get("measure_segments", []) or [])
+    if measure_segments:
+        resolved["measure_segments"] = [
+            {
+                "duration_ns": float(seg.get("duration_ns", 0.0) or 0.0),
+                "amp": float(seg.get("amp", resolved["measure_amp"]) or resolved["measure_amp"]),
+                "edge_ns": float(seg.get("edge_ns", resolved["readout_edge_ns"]) or resolved["readout_edge_ns"]),
+                "rise_ns": float(seg.get("rise_ns", seg.get("edge_ns", resolved["readout_edge_ns"])) or 0.0),
+                "fall_ns": float(seg.get("fall_ns", seg.get("edge_ns", resolved["readout_edge_ns"])) or 0.0),
+                "shape": str(seg.get("shape", "readout") or "readout"),
+            }
+            for seg in measure_segments
+            if float(seg.get("duration_ns", 0.0) or 0.0) > 0.0
+        ]
+        if resolved["measure_segments"]:
+            resolved["measure_duration_ns"] = float(sum(seg["duration_ns"] for seg in resolved["measure_segments"]))
+            resolved["measure_amp"] = float(resolved["measure_segments"][0]["amp"])
+    resolved["measure_start_delay_ns"] = float(hw.get("measure_start_delay_ns", 0.0) or 0.0)
+    return resolved
 
 
 def _xy_carrier(cfg: dict[str, Any], phase: float = 0.0) -> dict[str, float]:
@@ -230,32 +257,52 @@ def _cx_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _measure_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    measure_dur = float(cfg["measure_duration_ns"])
-    edge_s = float(cfg["readout_edge_ns"]) * NS_TO_S
-    return [
-        {
-            "kind": "pulse",
-            "role": "each_qubit",
-            "channel_template": "RO_{q}",
-            "start_ns": 0.0,
-            "end_ns": measure_dur,
-            "duration_ns": measure_dur,
-            "shape": "readout",
-            "amp": 0.8,
-            "params": {
-                "rise_s": edge_s,
-                "fall_s": edge_s,
-                **breakable_params(
-                    keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
-                    keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
-                    break_kind="readout",
-                    break_stage="measure",
-                ),
-            },
-            "carrier": _ro_carrier(cfg),
-            "hardware_keys": ["measure_duration_ns", "readout_edge_ns", "ro_freq_Hz"],
-        }
-    ]
+    segments = list(cfg.get("measure_segments", []) or [])
+    if not segments:
+        segments = [
+            {
+                "duration_ns": float(cfg["measure_duration_ns"]),
+                "amp": float(cfg["measure_amp"]),
+                "edge_ns": float(cfg["readout_edge_ns"]),
+                "shape": "readout",
+            }
+        ]
+    steps: list[dict[str, Any]] = []
+    start_ns = 0.0
+    for idx, seg in enumerate(segments):
+        duration = float(seg.get("duration_ns", 0.0) or 0.0)
+        if duration <= 0.0:
+            continue
+        edge_s = float(seg.get("edge_ns", cfg["readout_edge_ns"])) * NS_TO_S
+        end_ns = start_ns + duration
+        steps.append(
+            {
+                "kind": "pulse",
+                "role": "each_qubit",
+                "channel_template": "RO_{q}",
+                "start_ns": start_ns,
+                "end_ns": end_ns,
+                "duration_ns": duration,
+                "shape": str(seg.get("shape", "readout") or "readout"),
+                "amp": float(seg.get("amp", cfg["measure_amp"]) or cfg["measure_amp"]),
+                "params": {
+                    "rise_s": edge_s,
+                    "fall_s": edge_s,
+                    "measure_segment_index": idx,
+                    "measure_segment_count": len(segments),
+                    **breakable_params(
+                        keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
+                        keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
+                        break_kind="readout",
+                        break_stage="measure",
+                    ),
+                },
+                "carrier": _ro_carrier(cfg),
+                "hardware_keys": ["measure_duration_ns", "measure_amp", "measure_segments", "readout_edge_ns", "ro_freq_Hz"],
+            }
+        )
+        start_ns = end_ns
+    return steps
 
 
 def _reset_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
@@ -418,6 +465,26 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             note="Current lowering uses the same recipe as x and sx.",
         ),
         _catalog_entry(
+            name="rx",
+            arity=1,
+            duration_ns=gate_dur,
+            steps=_shared_single_qubit_steps(cfg),
+            summary="Parametric single-qubit XY Gaussian pulse with angle from gate parameter.",
+            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
+            shared_recipe_group="single_qubit_xy_gaussian",
+            note="The gate parameter sets rotation_rad; control_scale rescales the realized angle.",
+        ),
+        _catalog_entry(
+            name="ry",
+            arity=1,
+            duration_ns=gate_dur,
+            steps=_shared_single_qubit_steps(cfg),
+            summary="Parametric single-qubit XY Gaussian pulse with quadrature phase shift.",
+            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
+            shared_recipe_group="single_qubit_xy_gaussian",
+            note="The gate parameter sets rotation_rad; control_scale rescales the realized angle.",
+        ),
+        _catalog_entry(
             name="z",
             arity=1,
             duration_ns=gate_dur,
@@ -459,7 +526,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             duration_ns=measure_dur,
             steps=_measure_steps(cfg),
             summary="Readout pulse on RO_* for each measured qubit.",
-            hardware_keys=["measure_duration_ns", "readout_edge_ns", "ro_freq_Hz"],
+            hardware_keys=["measure_duration_ns", "measure_amp", "readout_edge_ns", "ro_freq_Hz"],
             note="Consecutive measure instructions are aligned in parallel by lowering.",
         ),
         _catalog_entry(
@@ -505,6 +572,7 @@ def instantiate_operation_recipe(
     gate_name: str,
     qubits: list[int],
     *,
+    gate_params: list[float] | None = None,
     start_ns: float,
     hw: dict[str, Any] | None = None,
     tc_index: int | None = None,
@@ -533,8 +601,16 @@ def instantiate_operation_recipe(
 
     gate_dur = float(cfg["gate_duration_ns"])
     gate_dur_s = gate_dur * NS_TO_S
-    if gate in {"x", "sx", "h"}:
-        params = {"sigma_s": gate_dur_s / 6.0, "rotation_rad": _single_qubit_rotation_rad(gate)}
+    if gate in {"x", "sx", "h", "rx", "ry"}:
+        if gate in {"rx", "ry"}:
+            rotation_rad = float(list(gate_params or [0.0])[0])
+        else:
+            rotation_rad = _single_qubit_rotation_rad(gate)
+        params = {
+            "sigma_s": gate_dur_s / 6.0,
+            "rotation_rad": float(rotation_rad),
+            "rotation_axis": "y" if gate == "ry" else "x",
+        }
         amp = _xy_rotation_amp_rad_s(
             shape="gaussian",
             duration_s=gate_dur_s,
@@ -542,7 +618,15 @@ def instantiate_operation_recipe(
             rotation_rad=float(params["rotation_rad"]),
         )
         for q in qubits:
-            add(f"XY_{q}", start_ns, start_ns + gate_dur, amp, "gaussian", params, _xy_carrier(cfg))
+            add(
+                f"XY_{q}",
+                start_ns,
+                start_ns + gate_dur,
+                amp,
+                "gaussian",
+                params,
+                _xy_carrier(cfg, phase=_single_qubit_xy_phase_rad(gate)),
+            )
         return pulses, gate_dur, events
 
     if gate in {"rz", "z"}:
@@ -568,27 +652,46 @@ def instantiate_operation_recipe(
         return pulses, duration, events
 
     if gate == "measure":
-        duration = float(cfg["measure_duration_ns"])
-        edge_ns = float(cfg["readout_edge_ns"])
-        for q in qubits:
-            add(
-                f"RO_{q}",
-                start_ns,
-                start_ns + duration,
-                0.8,
-                "readout",
+        segments = list(cfg.get("measure_segments", []) or [])
+        if not segments:
+            segments = [
                 {
-                    "rise_s": edge_ns * NS_TO_S,
-                    "fall_s": edge_ns * NS_TO_S,
-                    **breakable_params(
-                        keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
-                        keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
-                        break_kind="readout",
-                        break_stage="measure",
-                    ),
-                },
-                _ro_carrier(cfg),
-            )
+                    "duration_ns": float(cfg["measure_duration_ns"]),
+                    "amp": float(cfg["measure_amp"]),
+                    "edge_ns": float(cfg["readout_edge_ns"]),
+                    "shape": "readout",
+                }
+            ]
+        duration = float(sum(float(seg.get("duration_ns", 0.0) or 0.0) for seg in segments))
+        for q in qubits:
+            offset_ns = 0.0
+            for idx, seg in enumerate(segments):
+                seg_duration = float(seg.get("duration_ns", 0.0) or 0.0)
+                if seg_duration <= 0.0:
+                    continue
+                seg_rise_ns = float(seg.get("rise_ns", seg.get("edge_ns", cfg["readout_edge_ns"])) or 0.0)
+                seg_fall_ns = float(seg.get("fall_ns", seg.get("edge_ns", cfg["readout_edge_ns"])) or 0.0)
+                add(
+                    f"RO_{q}",
+                    start_ns + offset_ns,
+                    start_ns + offset_ns + seg_duration,
+                    float(seg.get("amp", cfg["measure_amp"]) or cfg["measure_amp"]),
+                    str(seg.get("shape", "readout") or "readout"),
+                    {
+                        "rise_s": seg_rise_ns * NS_TO_S,
+                        "fall_s": seg_fall_ns * NS_TO_S,
+                        "measure_segment_index": idx,
+                        "measure_segment_count": len(segments),
+                        **breakable_params(
+                            keep_head_s=DEFAULT_BREAK_KEEP_HEAD_S,
+                            keep_tail_s=DEFAULT_BREAK_KEEP_TAIL_S,
+                            break_kind="readout",
+                            break_stage="measure",
+                        ),
+                    },
+                    _ro_carrier(cfg),
+                )
+                offset_ns += seg_duration
         return pulses, duration, events
 
     if gate == "reset":

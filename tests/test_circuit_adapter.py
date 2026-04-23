@@ -69,6 +69,18 @@ rz(theta + phi/2) q[0];
     assert pytest.approx(ir.gates[0].params[0], rel=1e-9) == 1.2
 
 
+def test_qasm_param_bindings_support_rx():
+    qasm = """
+OPENQASM 3;
+qubit[1] q;
+rx(theta) q[0];
+"""
+    ir = CircuitAdapter.from_qasm(qasm, param_bindings={"theta": 0.75})
+    assert len(ir.gates) == 1
+    assert ir.gates[0].name == "rx"
+    assert pytest.approx(ir.gates[0].params[0], rel=1e-9) == 0.75
+
+
 def test_qasm_unbound_parameter_raises():
     qasm = """
 OPENQASM 3;

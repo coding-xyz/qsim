@@ -261,6 +261,7 @@ def build_settings_report(
             "device.control_scale": "Amplitude scale for control terms built from pulse samples.",
             "pulse.gate_duration_ns": "Maps each gate to pulse duration in lowering (ns).",
             "pulse.measure_duration_ns": "Maps measure gate to RO pulse length (ns).",
+            "pulse.measure_amp": "Maps measure gate to RO pulse amplitude used by lowering.",
             "pulse.xy_freq_Hz": "Default microwave carrier used for XY pulse generation (Hz).",
             "pulse.ro_freq_Hz": "Default readout carrier used for RO pulse generation (Hz).",
             "pulse.schedule": "Lowering schedule policy: serial | parallel | hybrid.",

@@ -233,3 +233,45 @@ def test_model_builder_selects_cqed_dispersive_from_selected_step_structure():
     assert spec.payload["model_type"] == "cqed_dispersive"
     assert spec.payload["model_structure"]["qubit_cavity_coupling"] == "dispersive"
     assert spec.payload["model_structure"]["cavity_feedline_coupling"] == "input_output"
+
+
+def test_model_builder_supports_cavity_classical_readout_with_zero_qubits():
+    executable = ExecutableModel(solver="me", metadata={"num_qubits": 0})
+    pulse_samples = {
+        "RO_0": {
+            "t": [0.0, 1.0e-9, 2.0e-9],
+            "y": [0.0, 1.0, 0.0],
+            "carrier_freq_Hz": [6.45e9],
+            "carrier_phase_rad": [0.0],
+        }
+    }
+    primary_step = {
+        "name": "classical_readout",
+        "active_components": ["r0", "ro0"],
+        "active_connections": ["feed"],
+        "representations": {"r0": "classical", "ro0": "classical"},
+        "options": {"subsystem_model": "cavity_classical_readout"},
+        "prep_state": {"label": "1", "sequence": []},
+    }
+    hw = {
+        "components": [
+            {"id": "r0", "type": "resonator", "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6, "kappa_ext_Hz": 4.5e6, "chi_Hz": -5.5e6}},
+            {"id": "ro0", "type": "readout_line", "parameters": {"gain_dB": 42.0, "eta_chain": 0.8, "added_noise_photons": 2.0}},
+        ],
+        "connections": [{"id": "feed", "type": "readout_feedline", "a": "r0", "b": "ro0", "parameters": {"kappa_ext_Hz": 4.5e6}}],
+        "simulation_level": "cqed",
+    }
+
+    spec = DefaultModelBuilder().build(
+        executable,
+        hw=hw,
+        noise={},
+        pulse_samples=pulse_samples,
+        study=[primary_step],
+        primary_step=primary_step,
+    )
+
+    assert spec.payload["model_type"] == "cavity_classical_readout"
+    assert spec.payload["num_qubits"] == 0
+    assert spec.dimension == 1
+    assert len(spec.payload["readout_controls"]) == 1
