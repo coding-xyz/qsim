@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import math
 from typing import Protocol
 
 from qsim.common.schemas import (
@@ -26,6 +27,17 @@ class ILowering(Protocol):
 class DefaultLowering:
     """Default gate-to-pulse lowering with simple serial scheduling."""
 
+    @staticmethod
+    def _apply_virtual_z_phase(pulses: list[tuple[str, object]], phase_by_qubit: dict[int, float]) -> None:
+        for channel, pulse in pulses:
+            if not channel.startswith("XY_") or pulse.carrier is None:
+                continue
+            try:
+                qubit = int(channel.split("_", 1)[1])
+            except (IndexError, ValueError):
+                continue
+            pulse.carrier.phase = float(pulse.carrier.phase) + float(phase_by_qubit.get(qubit, 0.0))
+
     def lower(self, schedule_or_circuit: CircuitIR, hw: dict | None, cfg: BackendConfig) -> tuple[PulseIR, ExecutableModel]:
         """Lower ``CircuitIR`` to ``PulseIR`` and ``ExecutableModel``.
 
@@ -48,11 +60,15 @@ class DefaultLowering:
         resolved_hw = resolve_lowering_hardware(hw)
         ch_map = defaultdict(list)
         reset_events: list[dict] = []
+        virtual_z_phase_by_qubit: dict[int, float] = defaultdict(float)
         scheduled_gates = build_gate_schedule(schedule_or_circuit, resolved_hw)
         schedule_debug: list[dict] = []
         t_end = 0.0
         for item in scheduled_gates:
             gate = item["gate"]
+            gate_name = str(gate.name).lower()
+            gate_qubits = [int(q) for q in gate.qubits]
+            phase_before = {q: float(virtual_z_phase_by_qubit[q]) for q in gate_qubits}
             pulses, duration, events = instantiate_operation_recipe(
                 gate.name,
                 gate.qubits,
@@ -62,9 +78,21 @@ class DefaultLowering:
                 tc_index=item["tc_index"],
                 reset_feedback_offset_ns=float(item.get("reset_feedback_offset_ns", 0.0)),
             )
+            self._apply_virtual_z_phase(pulses, phase_before)
             for channel, pulse in pulses:
                 ch_map[channel].append(pulse)
             reset_events.extend(events)
+            if gate_name == "h":
+                for q in gate_qubits:
+                    virtual_z_phase_by_qubit[q] = float(virtual_z_phase_by_qubit[q]) + math.pi
+            elif gate_name == "z":
+                for q in gate_qubits:
+                    virtual_z_phase_by_qubit[q] = float(virtual_z_phase_by_qubit[q]) + math.pi
+            elif gate_name == "rz":
+                phase_delta = float(list(gate.params or [0.0])[0])
+                for q in gate_qubits:
+                    virtual_z_phase_by_qubit[q] = float(virtual_z_phase_by_qubit[q]) + phase_delta
+            phase_after = {q: float(virtual_z_phase_by_qubit[q]) for q in gate_qubits}
             t_end = max(t_end, float(item["start_ns"]) + float(duration))
             schedule_debug.append(
                 {
@@ -80,6 +108,8 @@ class DefaultLowering:
                     "blocked_by_resources": list(item.get("blocked_by_resources", [])),
                     "reset_feedback_mode": item.get("reset_feedback_mode"),
                     "reset_feedback_offset_ns": float(item.get("reset_feedback_offset_ns", 0.0)),
+                    "virtual_z_phase_before_rad": phase_before,
+                    "virtual_z_phase_after_rad": phase_after,
                 }
             )
 

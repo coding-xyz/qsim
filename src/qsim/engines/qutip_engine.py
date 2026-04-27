@@ -1866,10 +1866,26 @@ class QuTiPEngine(Engine):
 
         H = [H0]
         for ctrl in payload.get("controls", []):
+            axis = str(ctrl.get("axis", "x")).lower()
+            if axis == "zz":
+                pair = list(ctrl.get("target_pair", []) or [])
+                if len(pair) < 2:
+                    continue
+                i, j = int(pair[0]), int(pair[1])
+                if i < 0 or j < 0 or i >= n_qubits or j >= n_qubits or i == j:
+                    continue
+                op = z_ops[i] * z_ops[j]
+                coeff_env = self._coeff_interp(
+                    [float(x) for x in ctrl.get("times", [])],
+                    [float(x) for x in ctrl.get("values", [])],
+                    float(ctrl.get("scale", 1.0)),
+                )
+                H.append([op, coeff_env])
+                continue
+
             target = int(ctrl.get("target", -1))
             if target < 0 or target >= n_qubits:
                 continue
-            axis = str(ctrl.get("axis", "x")).lower()
             if axis == "x":
                 op_x = x_ops[target]
                 op_y = y_ops[target]

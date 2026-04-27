@@ -24,6 +24,8 @@ class PulseCompiler:
         for ch in pulse_ir.channels:
             t = np.arange(0.0, pulse_ir.t_end_s + dt_s, dt_s)
             y = np.zeros_like(t)
+            y_quadrature = np.zeros_like(t)
+            has_quadrature = False
             carrier_freq_Hz = 0.0
             carrier_phase_rad = 0.0
             for p in ch.pulses:
@@ -32,13 +34,22 @@ class PulseCompiler:
                     carrier_freq_Hz = float(p.carrier.freq)
                     carrier_phase_rad = float(p.carrier.phase)
                 for i, ti in enumerate(t):
-                    y[i] += shape.sample(float(ti), p.t0_s, p.t1_s, p.amp)
-            channels[ch.name] = {
+                    if hasattr(shape, "quadratures"):
+                        i_env, q_env = shape.quadratures(float(ti), p.t0_s, p.t1_s, p.amp)
+                        y[i] += i_env
+                        y_quadrature[i] += q_env
+                        has_quadrature = has_quadrature or (q_env != 0.0)
+                    else:
+                        y[i] += shape.sample(float(ti), p.t0_s, p.t1_s, p.amp)
+            payload = {
                 "t": t,
                 "y": y,
                 "carrier_freq_Hz": np.asarray([carrier_freq_Hz], dtype=float),
                 "carrier_phase_rad": np.asarray([carrier_phase_rad], dtype=float),
             }
+            if has_quadrature:
+                payload["y_quadrature"] = y_quadrature
+            channels[ch.name] = payload
         return channels
 
     @staticmethod
@@ -48,6 +59,8 @@ class PulseCompiler:
         for ch, payload in samples.items():
             flat[f"{ch}_t"] = payload["t"]
             flat[f"{ch}_y"] = payload["y"]
+            if "y_quadrature" in payload:
+                flat[f"{ch}_y_quadrature"] = payload["y_quadrature"]
             if "carrier_freq_Hz" in payload:
                 flat[f"{ch}_carrier_freq_Hz"] = payload["carrier_freq_Hz"]
             if "carrier_phase_rad" in payload:

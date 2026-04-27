@@ -78,7 +78,7 @@ def _single_qubit_rotation_rad(gate_name: str) -> float:
     gate = str(gate_name).lower()
     if gate == "x":
         return math.pi
-    if gate in {"sx", "h"}:
+    if gate == "sx":
         return 0.5 * math.pi
     return 0.0
 
@@ -88,6 +88,49 @@ def _single_qubit_xy_phase_rad(gate_name: str) -> float:
     if gate == "ry":
         return 0.5 * math.pi
     return 0.0
+
+
+def _single_qubit_shape(cfg: dict[str, Any]) -> str:
+    shape = str(cfg.get("single_qubit_shape", "gaussian")).strip().lower()
+    if shape not in {"gaussian", "drag", "rect"}:
+        return "gaussian"
+    return shape
+
+
+def _single_qubit_shape_hardware_keys(cfg: dict[str, Any]) -> list[str]:
+    keys = ["gate_duration_ns", "xy_freq_Hz", "single_qubit_shape"]
+    shape = _single_qubit_shape(cfg)
+    if shape in {"gaussian", "drag"}:
+        keys.append("single_qubit_sigma_fraction")
+    if shape == "drag":
+        keys.append("single_qubit_drag_beta")
+    if shape == "rect":
+        keys.append("single_qubit_rect_edge_ns")
+    return keys
+
+
+def _single_qubit_shape_params(
+    cfg: dict[str, Any],
+    *,
+    rotation_rad: float,
+    rotation_axis: str,
+) -> tuple[str, dict[str, Any]]:
+    gate_dur_s = float(cfg["gate_duration_ns"]) * NS_TO_S
+    shape = _single_qubit_shape(cfg)
+    params: dict[str, Any] = {
+        "rotation_rad": float(rotation_rad),
+        "rotation_axis": str(rotation_axis),
+    }
+    if shape in {"gaussian", "drag"}:
+        sigma_fraction = max(float(cfg.get("single_qubit_sigma_fraction", 1.0 / 6.0)), 1e-6)
+        params["sigma_s"] = max(gate_dur_s * sigma_fraction, 1e-18)
+    if shape == "drag":
+        params["beta"] = float(cfg.get("single_qubit_drag_beta", 0.35))
+    if shape == "rect":
+        edge_s = max(float(cfg.get("single_qubit_rect_edge_ns", 0.0)), 0.0) * NS_TO_S
+        params["rise_s"] = edge_s
+        params["fall_s"] = edge_s
+    return shape, params
 
 
 def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -107,6 +150,10 @@ def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any
         "measure_amp": float(hw.get("measure_amp", 0.8)),
         "rect_edge_ns": edge_ns,
         "readout_edge_ns": float(hw.get("readout_edge_ns", edge_ns)),
+        "single_qubit_shape": _single_qubit_shape(hw),
+        "single_qubit_sigma_fraction": float(hw.get("single_qubit_sigma_fraction", 1.0 / 6.0)),
+        "single_qubit_drag_beta": float(hw.get("single_qubit_drag_beta", 0.35)),
+        "single_qubit_rect_edge_ns": float(hw.get("single_qubit_rect_edge_ns", hw.get("rect_edge_ns", 0.0))),
         "reset_measure_duration_ns": float(hw.get("reset_measure_duration_ns", max(measure_dur, 400.0))),
         "reset_deplete_duration_ns": float(hw.get("reset_deplete_duration_ns", 150.0)),
         "reset_latency_duration_ns": float(hw.get("reset_latency_duration_ns", 120.0)),
@@ -149,7 +196,7 @@ def _ro_carrier(cfg: dict[str, Any], phase: float = 0.0) -> dict[str, float]:
 
 def _shared_single_qubit_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
     gate_dur = float(cfg["gate_duration_ns"])
-    gate_dur_s = gate_dur * NS_TO_S
+    shape, params = _single_qubit_shape_params(cfg, rotation_rad=0.0, rotation_axis="x")
     return [
         {
             "kind": "pulse",
@@ -158,32 +205,37 @@ def _shared_single_qubit_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "start_ns": 0.0,
             "end_ns": gate_dur,
             "duration_ns": gate_dur,
-            "shape": "gaussian",
+            "shape": shape,
             "amp": 0.0,
-            "params": {"sigma_s": gate_dur_s / 6.0},
+            "params": params,
             "carrier": _xy_carrier(cfg),
-            "hardware_keys": ["gate_duration_ns", "xy_freq_Hz"],
+            "hardware_keys": _single_qubit_shape_hardware_keys(cfg),
         }
     ]
 
 
 def _z_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
+    del cfg
+    return []
+
+
+def _h_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
     gate_dur = float(cfg["gate_duration_ns"])
-    edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
+    xy_shape, xy_params = _single_qubit_shape_params(cfg, rotation_rad=0.5 * math.pi, rotation_axis="y")
     return [
         {
             "kind": "pulse",
             "role": "each_qubit",
-            "channel_template": "Z_{q}",
+            "channel_template": "XY_{q}",
             "start_ns": 0.0,
             "end_ns": gate_dur,
             "duration_ns": gate_dur,
-            "shape": "rect",
-            "amp": 0.2,
-            "params": {"rise_s": edge_s, "fall_s": edge_s},
-            "carrier": None,
-            "hardware_keys": ["gate_duration_ns", "rect_edge_ns"],
-        }
+            "shape": xy_shape,
+            "amp": 0.0,
+            "params": xy_params,
+            "carrier": _xy_carrier(cfg, phase=0.5 * math.pi),
+            "hardware_keys": _single_qubit_shape_hardware_keys(cfg),
+        },
     ]
 
 
@@ -191,6 +243,8 @@ def _cz_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
     gate_dur = float(cfg["gate_duration_ns"])
     edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
     duration = 2.0 * gate_dur
+    duration_s = duration * NS_TO_S
+    amp = -math.pi / max(duration_s, 1e-18)
     return [
         {
             "kind": "pulse",
@@ -200,8 +254,8 @@ def _cz_steps(cfg: dict[str, Any]) -> list[dict[str, Any]]:
             "end_ns": duration,
             "duration_ns": duration,
             "shape": "rect",
-            "amp": 0.75,
-            "params": {"rise_s": edge_s, "fall_s": edge_s},
+            "amp": amp,
+            "params": {"rise_s": edge_s, "fall_s": edge_s, "target_conditional_phase_rad": math.pi},
             "carrier": None,
             "hardware_keys": ["gate_duration_ns", "rect_edge_ns"],
         }
@@ -439,39 +493,39 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             arity=1,
             duration_ns=gate_dur,
             steps=_shared_single_qubit_steps(cfg),
-            summary="Single-qubit XY Gaussian pulse.",
-            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
-            shared_recipe_group="single_qubit_xy_gaussian",
-            note="Current lowering uses the same recipe as sx and h.",
+            summary="Single-qubit XY pulse with configurable gaussian, DRAG, or rectangular envelope.",
+            hardware_keys=_single_qubit_shape_hardware_keys(cfg),
+            shared_recipe_group="single_qubit_xy_configurable",
+            note="Current lowering uses the same physical recipe as sx.",
         ),
         _catalog_entry(
             name="sx",
             arity=1,
             duration_ns=gate_dur,
             steps=_shared_single_qubit_steps(cfg),
-            summary="Single-qubit XY Gaussian pulse.",
-            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
-            shared_recipe_group="single_qubit_xy_gaussian",
-            note="Current lowering uses the same recipe as x and h.",
+            summary="Single-qubit XY pulse with configurable gaussian, DRAG, or rectangular envelope.",
+            hardware_keys=_single_qubit_shape_hardware_keys(cfg),
+            shared_recipe_group="single_qubit_xy_configurable",
+            note="Current lowering uses the same physical recipe as x.",
         ),
         _catalog_entry(
             name="h",
             arity=1,
             duration_ns=gate_dur,
-            steps=_shared_single_qubit_steps(cfg),
-            summary="Single-qubit XY Gaussian pulse.",
-            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
-            shared_recipe_group="single_qubit_xy_gaussian",
-            note="Current lowering uses the same recipe as x and sx.",
+            steps=_h_steps(cfg),
+            summary="Hadamard lowering as one physical Y(pi/2) pulse plus a virtual Z(pi) frame update.",
+            hardware_keys=_single_qubit_shape_hardware_keys(cfg),
+            shared_recipe_group="single_qubit_hadamard_virtual_z",
+            note="The emitted pulse is Ry(pi/2); the trailing Z(pi) is virtual and is applied by lowering as a frame update.",
         ),
         _catalog_entry(
             name="rx",
             arity=1,
             duration_ns=gate_dur,
             steps=_shared_single_qubit_steps(cfg),
-            summary="Parametric single-qubit XY Gaussian pulse with angle from gate parameter.",
-            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
-            shared_recipe_group="single_qubit_xy_gaussian",
+            summary="Parametric single-qubit XY pulse with configurable envelope and angle from gate parameter.",
+            hardware_keys=_single_qubit_shape_hardware_keys(cfg),
+            shared_recipe_group="single_qubit_xy_configurable",
             note="The gate parameter sets rotation_rad; control_scale rescales the realized angle.",
         ),
         _catalog_entry(
@@ -479,30 +533,30 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             arity=1,
             duration_ns=gate_dur,
             steps=_shared_single_qubit_steps(cfg),
-            summary="Parametric single-qubit XY Gaussian pulse with quadrature phase shift.",
-            hardware_keys=["gate_duration_ns", "xy_freq_Hz"],
-            shared_recipe_group="single_qubit_xy_gaussian",
+            summary="Parametric single-qubit XY pulse with configurable envelope and quadrature phase shift.",
+            hardware_keys=_single_qubit_shape_hardware_keys(cfg),
+            shared_recipe_group="single_qubit_xy_configurable",
             note="The gate parameter sets rotation_rad; control_scale rescales the realized angle.",
         ),
         _catalog_entry(
             name="z",
             arity=1,
-            duration_ns=gate_dur,
+            duration_ns=0.0,
             steps=_z_steps(cfg),
-            summary="Single-qubit rectangular Z pulse.",
-            hardware_keys=["gate_duration_ns", "rect_edge_ns"],
-            shared_recipe_group="single_qubit_z_rect",
-            note="Current lowering uses the same recipe as rz.",
+            summary="Virtual single-qubit Z rotation implemented as a frame update with no emitted pulse.",
+            hardware_keys=[],
+            shared_recipe_group="single_qubit_virtual_z",
+            note="Lowering emits no pulse and only updates the per-qubit XY frame phase.",
         ),
         _catalog_entry(
             name="rz",
             arity=1,
-            duration_ns=gate_dur,
+            duration_ns=0.0,
             steps=_z_steps(cfg),
-            summary="Single-qubit rectangular Z pulse.",
-            hardware_keys=["gate_duration_ns", "rect_edge_ns"],
-            shared_recipe_group="single_qubit_z_rect",
-            note="Current lowering uses the same recipe as z.",
+            summary="Virtual parametric Z rotation implemented as a frame update with no emitted pulse.",
+            hardware_keys=[],
+            shared_recipe_group="single_qubit_virtual_z",
+            note="Lowering emits no pulse and only updates the per-qubit XY frame phase.",
         ),
         _catalog_entry(
             name="cz",
@@ -601,18 +655,18 @@ def instantiate_operation_recipe(
 
     gate_dur = float(cfg["gate_duration_ns"])
     gate_dur_s = gate_dur * NS_TO_S
-    if gate in {"x", "sx", "h", "rx", "ry"}:
+    if gate in {"x", "sx", "rx", "ry"}:
         if gate in {"rx", "ry"}:
             rotation_rad = float(list(gate_params or [0.0])[0])
         else:
             rotation_rad = _single_qubit_rotation_rad(gate)
-        params = {
-            "sigma_s": gate_dur_s / 6.0,
-            "rotation_rad": float(rotation_rad),
-            "rotation_axis": "y" if gate == "ry" else "x",
-        }
+        shape, params = _single_qubit_shape_params(
+            cfg,
+            rotation_rad=float(rotation_rad),
+            rotation_axis="y" if gate == "ry" else "x",
+        )
         amp = _xy_rotation_amp_rad_s(
-            shape="gaussian",
+            shape=shape,
             duration_s=gate_dur_s,
             params=params,
             rotation_rad=float(params["rotation_rad"]),
@@ -623,22 +677,54 @@ def instantiate_operation_recipe(
                 start_ns,
                 start_ns + gate_dur,
                 amp,
-                "gaussian",
+                shape,
                 params,
                 _xy_carrier(cfg, phase=_single_qubit_xy_phase_rad(gate)),
             )
         return pulses, gate_dur, events
 
-    if gate in {"rz", "z"}:
-        edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
+    if gate == "h":
+        rotation_rad = 0.5 * math.pi
+        shape, params = _single_qubit_shape_params(
+            cfg,
+            rotation_rad=rotation_rad,
+            rotation_axis="y",
+        )
+        amp = _xy_rotation_amp_rad_s(
+            shape=shape,
+            duration_s=gate_dur_s,
+            params=params,
+            rotation_rad=float(params["rotation_rad"]),
+        )
         for q in qubits:
-            add(f"Z_{q}", start_ns, start_ns + gate_dur, 0.2, "rect", {"rise_s": edge_s, "fall_s": edge_s}, None)
+            add(
+                f"XY_{q}",
+                start_ns,
+                start_ns + gate_dur,
+                amp,
+                shape,
+                params,
+                _xy_carrier(cfg, phase=0.5 * math.pi),
+            )
         return pulses, gate_dur, events
+
+    if gate in {"rz", "z"}:
+        return pulses, 0.0, events
 
     if gate == "cz":
         edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
         duration = 2.0 * gate_dur
-        add(f"TC_{0 if tc_index is None else int(tc_index)}", start_ns, start_ns + duration, 0.75, "rect", {"rise_s": edge_s, "fall_s": edge_s}, None)
+        duration_s = duration * NS_TO_S
+        amp = -math.pi / max(duration_s, 1e-18)
+        add(
+            f"TC_{0 if tc_index is None else int(tc_index)}",
+            start_ns,
+            start_ns + duration,
+            amp,
+            "rect",
+            {"rise_s": edge_s, "fall_s": edge_s, "target_conditional_phase_rad": math.pi},
+            None,
+        )
         return pulses, duration, events
 
     if gate == "cx":

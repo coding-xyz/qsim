@@ -59,18 +59,25 @@ class DragShape(PulseShape):
     beta: float = 0.3
     sigma: float | None = None
 
-    def sample(self, t: float, t0: float, t1: float, amp: float) -> float:
+    def quadratures(self, t: float, t0: float, t1: float, amp: float) -> tuple[float, float]:
         if t < t0 or t >= t1:
-            return 0.0
+            return 0.0, 0.0
         dur = max(t1 - t0, 1e-12)
         sigma = self.sigma if self.sigma else dur / 6.0
         mu = 0.5 * (t0 + t1)
         x = (t - mu) / sigma
         g = math.exp(-0.5 * x * x)
-        dg = -x * g / sigma
         edge = math.exp(-0.5 * ((t0 - mu) / sigma) ** 2)
         g_norm = max(0.0, (g - edge) / max(1e-12, 1.0 - edge))
-        return amp * (g_norm + self.beta * dg)
+        # Keep beta dimensionless by scaling the derivative component back to
+        # the same units as the Gaussian envelope. True DRAG uses a symmetric
+        # in-phase Gaussian and an antisymmetric quadrature correction.
+        d_norm = -x * g_norm
+        return amp * g_norm, amp * self.beta * d_norm
+
+    def sample(self, t: float, t0: float, t1: float, amp: float) -> float:
+        i_env, _q_env = self.quadratures(t, t0, t1, amp)
+        return i_env
 
 
 @dataclass

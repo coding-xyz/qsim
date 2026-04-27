@@ -14,9 +14,13 @@ def test_build_gate_mapping_catalog_exposes_reset_stages_and_barrier():
     ops = {item["op_name"]: item for item in payload["operations"]}
 
     assert payload["schema"] == "qsim.pulse-gate-map.v1"
-    assert ops["x"]["shared_recipe_group"] == "single_qubit_xy_gaussian"
-    assert ops["rx"]["shared_recipe_group"] == "single_qubit_xy_gaussian"
-    assert ops["ry"]["shared_recipe_group"] == "single_qubit_xy_gaussian"
+    assert ops["x"]["shared_recipe_group"] == "single_qubit_xy_configurable"
+    assert ops["rx"]["shared_recipe_group"] == "single_qubit_xy_configurable"
+    assert ops["ry"]["shared_recipe_group"] == "single_qubit_xy_configurable"
+    assert ops["h"]["shared_recipe_group"] == "single_qubit_hadamard_virtual_z"
+    assert ops["h"]["duration_ns"] == 20.0
+    assert ops["z"]["shared_recipe_group"] == "single_qubit_virtual_z"
+    assert ops["rz"]["duration_ns"] == 0.0
     assert [step["stage"] for step in ops["reset"]["steps"] if "stage" in step] == [
         "reset_measure",
         "reset_deplete",
@@ -74,11 +78,65 @@ def test_parametric_rx_and_ry_recipes_encode_rotation_angle_and_phase():
     assert abs(x_pulses[0][1].amp) == pytest.approx(2.0 * abs(rx_pulses[0][1].amp), rel=1e-6)
 
 
+def test_single_qubit_shape_config_supports_rect_and_drag():
+    rect_pulses, rect_duration, _events = instantiate_operation_recipe(
+        "x",
+        [0],
+        start_ns=0.0,
+        hw={"single_qubit_shape": "rect", "single_qubit_rect_edge_ns": 1.5},
+    )
+    drag_pulses, drag_duration, _events = instantiate_operation_recipe(
+        "ry",
+        [0],
+        gate_params=[math.pi / 2.0],
+        start_ns=0.0,
+        hw={
+            "single_qubit_shape": "drag",
+            "single_qubit_drag_beta": 0.42,
+            "single_qubit_sigma_fraction": 0.2,
+        },
+    )
+
+    assert rect_duration == 20.0
+    assert rect_pulses[0][1].shape == "rect"
+    assert rect_pulses[0][1].params["rise_s"] == pytest.approx(1.5e-9)
+    assert rect_pulses[0][1].params["fall_s"] == pytest.approx(1.5e-9)
+    assert drag_duration == 20.0
+    assert drag_pulses[0][1].shape == "drag"
+    assert drag_pulses[0][1].params["beta"] == pytest.approx(0.42)
+    assert drag_pulses[0][1].params["sigma_s"] == pytest.approx(4.0e-9)
+    assert drag_pulses[0][1].params["rotation_axis"] == "y"
+
+
+def test_h_recipe_emits_only_y_half_pi_pulse_and_virtual_z_is_handled_by_lowering():
+    pulses, duration, _events = instantiate_operation_recipe("h", [0], start_ns=0.0)
+
+    assert duration == 20.0
+    assert [channel for channel, _pulse in pulses] == ["XY_0"]
+    assert pulses[0][1].params["rotation_axis"] == "y"
+    assert pulses[0][1].params["rotation_rad"] == pytest.approx(math.pi / 2.0)
+    assert pulses[0][1].carrier is not None
+    assert pulses[0][1].carrier.phase == pytest.approx(math.pi / 2.0)
+    assert pulses[0][1].t0_ns == pytest.approx(0.0)
+    assert pulses[0][1].t1_ns == pytest.approx(20.0)
+
+
+def test_virtual_z_recipe_emits_no_pulse_and_zero_duration():
+    z_pulses, z_duration, _events = instantiate_operation_recipe("z", [0], start_ns=0.0)
+    rz_pulses, rz_duration, _events = instantiate_operation_recipe("rz", [0], gate_params=[math.pi / 3.0], start_ns=0.0)
+
+    assert z_pulses == []
+    assert rz_pulses == []
+    assert z_duration == 0.0
+    assert rz_duration == 0.0
+
+
 def test_lowering_and_catalog_instantiation_stay_in_sync_for_mixed_circuit():
     circuit = CircuitIR(
         num_qubits=2,
         gates=[
             CircuitGate(name="x", qubits=[0]),
+            CircuitGate(name="h", qubits=[1]),
             CircuitGate(name="cz", qubits=[0, 1]),
             CircuitGate(name="measure", qubits=[0]),
             CircuitGate(name="measure", qubits=[1]),
@@ -89,12 +147,43 @@ def test_lowering_and_catalog_instantiation_stay_in_sync_for_mixed_circuit():
     pulse_ir, executable = DefaultLowering().lower(circuit, hw={}, cfg=BackendConfig())
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
-    assert pulse_ir.t_end_ns == 950.0
+    assert pulse_ir.t_end_ns == 970.0
     assert len(executable.metadata["reset_events"]) == 1
     assert by_channel["XY_0"][0].shape == "gaussian"
+    assert by_channel["XY_1"][0].params["rotation_axis"] == "y"
+    assert by_channel["XY_1"][0].carrier.phase == pytest.approx(math.pi / 2.0)
+    assert "Z_1" not in by_channel
     assert by_channel["TC_0"][0].duration_ns == 40.0
     assert [pulse.shape for pulse in by_channel["RO_0"]] == ["readout", "readout", "rect"]
     assert by_channel["XY_0"][-1].params["stage"] == "reset_conditional_pi"
+
+
+def test_virtual_z_lowering_updates_following_xy_frame_without_adding_duration():
+    circuit = CircuitIR(
+        num_qubits=1,
+        gates=[
+            CircuitGate(name="h", qubits=[0]),
+            CircuitGate(name="x", qubits=[0]),
+            CircuitGate(name="rz", qubits=[0], params=[math.pi / 2.0]),
+            CircuitGate(name="sx", qubits=[0]),
+        ],
+    )
+
+    pulse_ir, executable = DefaultLowering().lower(circuit, hw={}, cfg=BackendConfig())
+    by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
+    xy_pulses = by_channel["XY_0"]
+
+    assert pulse_ir.t_end_ns == 60.0
+    assert len(xy_pulses) == 3
+    assert xy_pulses[0].t0_ns == pytest.approx(0.0)
+    assert xy_pulses[0].carrier.phase == pytest.approx(math.pi / 2.0)
+    assert xy_pulses[1].t0_ns == pytest.approx(20.0)
+    assert xy_pulses[1].carrier.phase == pytest.approx(math.pi)
+    assert xy_pulses[2].t0_ns == pytest.approx(40.0)
+    assert xy_pulses[2].carrier.phase == pytest.approx(1.5 * math.pi)
+    debug = executable.metadata["schedule_debug"]
+    assert debug[0]["virtual_z_phase_after_rad"] == {0: pytest.approx(math.pi)}
+    assert debug[2]["virtual_z_phase_after_rad"] == {0: pytest.approx(1.5 * math.pi)}
 
 
 def test_parallel_policy_allows_disjoint_cz_to_overlap():

@@ -41,6 +41,7 @@ class DefaultModelBuilder:
     _XY_RE = re.compile(r"^XY_(\d+)$", re.IGNORECASE)
     _Z_RE = re.compile(r"^Z_(\d+)$", re.IGNORECASE)
     _RO_RE = re.compile(r"^RO_(\d+)$", re.IGNORECASE)
+    _TC_RE = re.compile(r"^TC_(\d+)$", re.IGNORECASE)
     _TWO_PI = 2.0 * math.pi
     _SUPPORTED_SUBSYSTEM_MODELS = {
         "qubit_network",
@@ -398,6 +399,7 @@ class DefaultModelBuilder:
         for ch_name, ch_payload in pulse_samples.items():
             times = self._to_float_list(ch_payload.get("t", []))
             values = self._to_float_list(ch_payload.get("y", []))
+            quadrature_values = self._to_float_list(ch_payload.get("y_quadrature", [])) if "y_quadrature" in ch_payload else []
             if not times or not values:
                 continue
             carrier_freq_Hz = float(self._to_float_list(ch_payload.get("carrier_freq_Hz", [0.0]))[0])
@@ -408,6 +410,7 @@ class DefaultModelBuilder:
             mxy = self._XY_RE.match(ch_name)
             mz = self._Z_RE.match(ch_name)
             mro = self._RO_RE.match(ch_name)
+            mtc = self._TC_RE.match(ch_name)
             if mxy:
                 target = int(mxy.group(1))
                 axis = "x"
@@ -429,11 +432,68 @@ class DefaultModelBuilder:
                     }
                 )
                 continue
+            elif mtc:
+                pair_index = int(mtc.group(1))
+                raw_couplings = [dict(c) for c in list(hw.get("couplings", []) or []) if isinstance(c, dict)]
+                coupling = raw_couplings[pair_index] if 0 <= pair_index < len(raw_couplings) else {"i": 0, "j": 1}
+                i = int(coupling.get("i", 0))
+                j = int(coupling.get("j", 1))
+                if 0 <= i < num_qubits and 0 <= j < num_qubits and i != j:
+                    controls.append(
+                        {
+                            "channel": ch_name,
+                            "target_pair": [i, j],
+                            "axis": "zz",
+                            "times": times,
+                            "values": values,
+                            "scale": 1.0,
+                            "pair_index": pair_index,
+                        }
+                    )
+                continue
 
             if axis is None or target is None or target >= num_qubits:
                 continue
             if axis == "x" and carrier_freq_Hz != 0.0 and pulse_carrier_reference_freqs_Hz[target] == 0.0:
                 pulse_carrier_reference_freqs_Hz[target] = carrier_freq_Hz
+            if axis == "x" and quadrature_values and any(abs(float(v)) > 1e-15 for v in quadrature_values):
+                cos_phase = math.cos(carrier_phase_rad)
+                sin_phase = math.sin(carrier_phase_rad)
+                values_x = [
+                    float(i_val) * cos_phase - float(q_val) * sin_phase
+                    for i_val, q_val in zip(values, quadrature_values, strict=False)
+                ]
+                values_y = [
+                    float(i_val) * sin_phase + float(q_val) * cos_phase
+                    for i_val, q_val in zip(values, quadrature_values, strict=False)
+                ]
+                controls.append(
+                    {
+                        "channel": ch_name,
+                        "target": target,
+                        "axis": "x",
+                        "times": times,
+                        "values": values_x,
+                        "scale": float(hw.get("control_scale", 1.0)),
+                        "carrier_freq_Hz": carrier_freq_Hz,
+                        "carrier_omega_rad_s": self._TWO_PI * carrier_freq_Hz,
+                        "carrier_phase_rad": 0.0,
+                    }
+                )
+                controls.append(
+                    {
+                        "channel": f"{ch_name}:drag_q",
+                        "target": target,
+                        "axis": "y",
+                        "times": times,
+                        "values": values_y,
+                        "scale": float(hw.get("control_scale", 1.0)),
+                        "carrier_freq_Hz": carrier_freq_Hz,
+                        "carrier_omega_rad_s": self._TWO_PI * carrier_freq_Hz,
+                        "carrier_phase_rad": 0.0,
+                    }
+                )
+                continue
 
             controls.append(
                 {
@@ -465,6 +525,8 @@ class DefaultModelBuilder:
             reference_freqs_Hz = [float(x) for x in pulse_carrier_reference_freqs_Hz]
 
         for ctrl in controls:
+            if "target" not in ctrl:
+                continue
             target = int(ctrl["target"])
             ref = float(reference_freqs_Hz[target]) if 0 <= target < num_qubits else 0.0
             ctrl["reference_freq_Hz"] = ref
