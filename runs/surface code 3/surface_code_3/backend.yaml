@@ -1,5 +1,0 @@
-level: qubit
-noise: deterministic
-solver: se
-analysis_pipeline: default
-seed: 1234
