@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from qsim.analysis.metrics import DEFAULT_METRIC_REGISTRY, build_default_metric_registry, resolve_metrics_payload
-from qsim.common.schemas import ModelSpec, Trajectory
+from qsim.common.schemas import Trajectory, model_spec_from_runtime_dict
 from qsim.workflow import DefaultAnalyserConfig, create_model
 
 
@@ -41,7 +41,13 @@ def test_resolve_metrics_payload_uses_registered_metric():
         },
         metadata={"num_qubits": 1},
     )
-    model_spec = ModelSpec(solver="me", dimension=2, t_end=1.0, dt=1.0, payload={"num_qubits": 1})
+    model_spec = model_spec_from_runtime_dict(
+        solver="me",
+        dimension=2,
+        t_end=1.0,
+        dt=1.0,
+        model={"num_qubits": 1},
+    )
 
     metrics, observables, report = resolve_metrics_payload(
         trajectory,

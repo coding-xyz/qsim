@@ -4,9 +4,9 @@ import math
 
 import pytest
 
-from qsim.backend.lowering import DefaultLowering
 from qsim.common.schemas import BackendConfig, CircuitGate, CircuitIR
 from qsim.pulse.catalog import build_gate_mapping_catalog, instantiate_operation_recipe
+from qsim.pulse.lowering import DefaultPulseLowering
 
 
 def test_build_gate_mapping_catalog_exposes_reset_stages_and_barrier():
@@ -144,7 +144,7 @@ def test_lowering_and_catalog_instantiation_stay_in_sync_for_mixed_circuit():
         ],
     )
 
-    pulse_ir, executable = DefaultLowering().lower(circuit, hw={}, cfg=BackendConfig())
+    pulse_ir, executable = DefaultPulseLowering().lower(circuit, hw={}, cfg=BackendConfig())
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
     assert pulse_ir.t_end_ns == 970.0
@@ -169,7 +169,7 @@ def test_virtual_z_lowering_updates_following_xy_frame_without_adding_duration()
         ],
     )
 
-    pulse_ir, executable = DefaultLowering().lower(circuit, hw={}, cfg=BackendConfig())
+    pulse_ir, executable = DefaultPulseLowering().lower(circuit, hw={}, cfg=BackendConfig())
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
     xy_pulses = by_channel["XY_0"]
 
@@ -195,7 +195,7 @@ def test_parallel_policy_allows_disjoint_cz_to_overlap():
         ],
     )
 
-    pulse_ir, executable = DefaultLowering().lower(circuit, hw={"schedule_policy": "parallel"}, cfg=BackendConfig())
+    pulse_ir, executable = DefaultPulseLowering().lower(circuit, hw={"schedule_policy": "parallel"}, cfg=BackendConfig())
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
     assert executable.metadata["schedule_policy"] == "parallel"
@@ -220,7 +220,7 @@ def test_hybrid_policy_parallelizes_consecutive_same_family_only():
         ],
     )
 
-    pulse_ir, executable = DefaultLowering().lower(circuit, hw={"schedule_policy": "hybrid"}, cfg=BackendConfig())
+    pulse_ir, executable = DefaultPulseLowering().lower(circuit, hw={"schedule_policy": "hybrid"}, cfg=BackendConfig())
     by_channel = {ch.name: ch.pulses for ch in pulse_ir.channels}
 
     assert executable.metadata["schedule_policy"] == "hybrid"
@@ -243,7 +243,7 @@ def test_serial_global_reset_feedback_keeps_measurement_parallel_but_staggers_fe
         ],
     )
 
-    pulse_ir, executable = DefaultLowering().lower(
+    pulse_ir, executable = DefaultPulseLowering().lower(
         circuit,
         hw={"schedule_policy": "serial", "reset_feedback_policy": "serial_global"},
         cfg=BackendConfig(),
@@ -272,7 +272,7 @@ def test_hybrid_reset_feedback_policy_serial_global_is_respected():
         ],
     )
 
-    pulse_ir, executable = DefaultLowering().lower(
+    pulse_ir, executable = DefaultPulseLowering().lower(
         circuit,
         hw={"schedule_policy": "hybrid", "reset_feedback_policy": "serial_global"},
         cfg=BackendConfig(),
@@ -298,7 +298,7 @@ def test_parallel_conflict_reason_is_recorded_for_shared_qubit_gate():
         ],
     )
 
-    pulse_ir, executable = DefaultLowering().lower(circuit, hw={"schedule_policy": "parallel"}, cfg=BackendConfig())
+    pulse_ir, executable = DefaultPulseLowering().lower(circuit, hw={"schedule_policy": "parallel"}, cfg=BackendConfig())
 
     assert pulse_ir.t_end_ns == 40.0
     debug = executable.metadata["schedule_debug"]

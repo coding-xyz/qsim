@@ -43,7 +43,7 @@
 
 ### `src/qsim/engines/`
 
-负责数值求解引擎接入。
+负责数值求解引擎接入。Backend 实现按子包组织，例如 `qutip/`、`qoptics/`、`qtoolbox/`、`stim/`；根目录中的旧 `*_engine.py` 模块仅作为兼容入口保留。QuTiP backend 内部按 runner、operators、readout、SME 和 serialization 拆分，避免把求解入口、读出协议和结果格式化继续堆在同一个文件里。
 
 ### `src/qsim/qec/`
 

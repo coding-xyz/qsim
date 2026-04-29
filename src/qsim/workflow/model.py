@@ -645,6 +645,8 @@ class Model:
                 'dt_s': task.run.dt_s,
                 't_end_s': task.run.t_end_s,
                 't_padding_s': task.run.t_padding_s,
+                'seed': task.run.seed,
+                'ntraj': task.run.mcwf_ntraj,
             },
             solver_mode=task.run.solver_mode,
             param_bindings=task.input.param_bindings,

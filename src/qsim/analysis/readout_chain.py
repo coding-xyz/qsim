@@ -7,6 +7,13 @@ from typing import Any
 
 import numpy as np
 
+from qsim.backend.config import normalize_device_config
+from qsim.backend.model.lowering import (
+    infer_classical_readout_chain,
+    readout_coupling_prefactor,
+    readout_topology_input,
+)
+from qsim.common.channels import safe_float
 from qsim.pulse.shapes import make_shape
 
 
@@ -38,14 +45,11 @@ def _complex_from_pairs(values: list[list[float]] | list[float] | None) -> np.nd
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
-    try:
-        return float(value)
-    except Exception:
-        return float(default)
+    return safe_float(value, default)
 
 
 def _readout_coupling_prefactor(kappa_ext_hz: float) -> float:
-    return math.sqrt(max(0.0, 2.0 * math.pi * float(kappa_ext_hz)))
+    return readout_coupling_prefactor(kappa_ext_hz)
 
 
 def _integrate_trapezoid(y: np.ndarray, x: np.ndarray) -> float:
@@ -259,45 +263,19 @@ def _sample_readout_drive(pulse_ir, times: np.ndarray) -> np.ndarray:
 
 
 def _infer_chain_params(model_payload: dict[str, Any]) -> dict[str, float | str]:
-    components = list(model_payload.get("components", []) or [])
-    connections = list(model_payload.get("connections", []) or [])
-
-    cavity_params: dict[str, Any] = {}
-    line_params: dict[str, Any] = {}
-    io_params: dict[str, Any] = {}
-    for comp in components:
-        if not isinstance(comp, dict):
-            continue
-        comp_type = str(comp.get("type", "")).strip().lower()
-        params = dict(comp.get("parameters", {}) or {})
-        if comp_type == "resonator" and not cavity_params:
-            cavity_params = params
-        elif comp_type == "readout_line" and not line_params:
-            line_params = params
-    for conn in connections:
-        if not isinstance(conn, dict):
-            continue
-        if str(conn.get("type", "")).strip().lower() == "readout_feedline":
-            io_params = dict(conn.get("parameters", {}) or {})
-            break
-
-    kappa_ext = _safe_float(io_params.get("kappa_ext_Hz", cavity_params.get("kappa_ext_Hz", 0.0)), 0.0)
-    kappa_int = _safe_float(cavity_params.get("kappa_int_Hz", 0.0), 0.0)
-    eta_chain = _safe_float(io_params.get("eta_chain", line_params.get("eta_chain", 1.0)), 1.0)
-    added_noise_photons = _safe_float(line_params.get("added_noise_photons", 0.0), 0.0)
-    gain_dB = _safe_float(line_params.get("gain_dB", 0.0), 0.0)
-    center_freq_Hz = _safe_float(line_params.get("center_freq_Hz", cavity_params.get("freq_Hz", 0.0)), 0.0)
-
-    return {
-        "kappa_ext_Hz": kappa_ext,
-        "kappa_int_Hz": kappa_int,
-        "eta_chain": eta_chain,
-        "added_noise_photons": added_noise_photons,
-        "gain_dB": gain_dB,
-        "center_freq_Hz": center_freq_Hz,
-        "cavity_equation": str(dict(io_params.get("input_output", {}) or {}).get("cavity_equation", "")),
-        "output_equation": str(dict(io_params.get("input_output", {}) or {}).get("output_equation", "")),
-    }
+    device = normalize_device_config(
+        {
+            "components": list(model_payload.get("components", []) or []),
+            "connections": list(model_payload.get("connections", []) or []),
+        }
+    )
+    topology = readout_topology_input(
+        device.components,
+        device.connections,
+        primary_step=dict(model_payload.get("primary_step", {}) or {}),
+        readout_chain=dict(model_payload.get("readout_chain", {}) or {}),
+    )
+    return infer_classical_readout_chain(topology)
 
 
 def _nearest_centroid(point: complex, centroids: dict[str, complex]) -> str:

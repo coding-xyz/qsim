@@ -5,12 +5,12 @@ by the workflow pipeline, including QuTiP and Julia-oriented backends.
 """
 
 from qsim.engines.base import Engine
-from qsim.engines.cirq_qec_engine import CirqQECAnalysisEngine
-from qsim.engines.qoptics_engine import QOpticsEngine
+from qsim.engines.cirq import CirqQECAnalysisEngine
+from qsim.engines.qoptics import QOpticsEngine
 from qsim.engines.qec_base import QECAnalysisEngine
-from qsim.engines.qutip_engine import QuTiPEngine
-from qsim.engines.stim_qec_engine import StimQECAnalysisEngine
-from qsim.engines.qtoolbox_engine import QToolboxEngine
+from qsim.engines.qutip import QuTiPEngine
+from qsim.engines.stim import StimQECAnalysisEngine
+from qsim.engines.qtoolbox import QToolboxEngine
 
 __all__ = [
     "Engine",

@@ -22,6 +22,70 @@ function _safe_int(x, default::Int=0)
     end
 end
 
+function _asdict(value)
+    try
+        return Dict{String, Any}(value)
+    catch
+        return Dict{String, Any}()
+    end
+end
+
+function _typed_control_payload(term)
+    item = _asdict(term)
+    op = _asdict(get(item, "operator", Dict{String, Any}()))
+    coeff = _asdict(get(item, "coefficient", Dict{String, Any}()))
+    carrier = _asdict(get(coeff, "carrier", Dict{String, Any}()))
+    metadata = _asdict(get(item, "metadata", Dict{String, Any}()))
+    out = Dict{String, Any}(
+        "target" => get(op, "target", -1),
+        "target_pair" => get(op, "target_pair", Any[]),
+        "axis" => get(op, "name", "x"),
+        "times" => get(coeff, "times_s", Any[]),
+        "values" => get(coeff, "values", Any[]),
+        "scale" => get(coeff, "scale", 1.0),
+        "carrier_omega_rad_s" => get(carrier, "omega_rad_s", 0.0),
+        "carrier_phase_rad" => get(carrier, "phase_rad", 0.0),
+    )
+    merge!(out, metadata)
+    return out
+end
+
+function _typed_model_payload(model_spec)
+    system = _asdict(get(model_spec, "system", Dict{String, Any}()))
+    frame = _asdict(get(model_spec, "frame", Dict{String, Any}()))
+    hamiltonian = _asdict(get(model_spec, "hamiltonian", Dict{String, Any}()))
+    noise = _asdict(get(model_spec, "noise", Dict{String, Any}()))
+    readout = _asdict(get(model_spec, "readout", Dict{String, Any}()))
+    analysis_request = _asdict(get(model_spec, "analysis_request", Dict{String, Any}()))
+    study = _asdict(get(model_spec, "study", Dict{String, Any}()))
+    return Dict{String, Any}(
+        "model_type" => get(system, "model_type", "qubit_network"),
+        "simulation_level" => get(system, "simulation_level", "qubit"),
+        "num_qubits" => get(system, "num_qubits", 1),
+        "transmon_levels" => get(system, "transmon_levels", 2),
+        "cavity_nmax" => get(system, "cavity_nmax", 0),
+        "qubit_omega_rad_s" => get(system, "qubit_omega_rad_s", Any[]),
+        "anharmonicity_rad_s" => get(system, "anharmonicity_rad_s", Any[]),
+        "cavity_omega_rad_s" => get(system, "cavity_omega_rad_s", 0.0),
+        "g_cavity_rad_s" => get(system, "g_cavity_rad_s", Any[]),
+        "frame" => frame,
+        "couplings" => get(hamiltonian, "coupling_terms", Any[]),
+        "controls" => Any[_typed_control_payload(term) for term in get(hamiltonian, "control_terms", Any[])],
+        "collapse_operators" => get(noise, "collapse_channels", Any[]),
+        "noise_summary" => Dict{String, Any}(
+            "selected_model" => get(noise, "selected_model", "markovian_lindblad"),
+            "stochastic" => get(noise, "stochastic_channels", Any[]),
+        ),
+        "readout_controls" => get(readout, "controls", Any[]),
+        "readout_chain" => get(readout, "chain", Dict{String, Any}()),
+        "reset_events" => get(readout, "reset_events", Any[]),
+        "noise_cfg" => get(noise, "config", Dict{String, Any}()),
+        "analyser" => get(analysis_request, "config", Dict{String, Any}()),
+        "study" => get(study, "steps", Any[]),
+        "primary_step" => get(study, "primary_step", Dict{String, Any}()),
+    )
+end
+
 function _build_times(dt::Float64, t_end::Float64)
     step = max(dt, 1e-12)
     n = max(2, Int(floor(t_end / step)) + 1)

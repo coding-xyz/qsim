@@ -4,8 +4,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-from qsim.backend.lowering import DefaultLowering
 from qsim.common.schemas import BackendConfig, ChannelSpec, CircuitGate, CircuitIR, PulseIR, PulseSpec
+from qsim.pulse.lowering import DefaultPulseLowering
 from qsim.pulse.visualize import auto_break_long_pulses, plot_pulses, pulse_ir_from_qasm
 
 NS_TO_S = 1e-9
@@ -126,7 +126,7 @@ def test_auto_break_long_pulses_allows_break_when_other_channels_are_idle():
 
 def test_auto_break_long_pulses_uses_breakable_metadata_from_lowering():
     circuit = CircuitIR(num_qubits=1, gates=[CircuitGate(name="measure", qubits=[0])])
-    pulse_ir, _exe = DefaultLowering().lower(circuit, hw={"measure_duration_ns": 2000.0}, cfg=BackendConfig())
+    pulse_ir, _exe = DefaultPulseLowering().lower(circuit, hw={"measure_duration_ns": 2000.0}, cfg=BackendConfig())
 
     breaks = auto_break_long_pulses(pulse_ir, min_pulse_ns=1000.0)
 
@@ -135,7 +135,7 @@ def test_auto_break_long_pulses_uses_breakable_metadata_from_lowering():
 
 def test_plot_pulses_auto_break_pulses_adds_breaks_from_semantic_hints():
     circuit = CircuitIR(num_qubits=1, gates=[CircuitGate(name="measure", qubits=[0])])
-    pulse_ir, _exe = DefaultLowering().lower(circuit, hw={"measure_duration_ns": 2000.0}, cfg=BackendConfig())
+    pulse_ir, _exe = DefaultPulseLowering().lower(circuit, hw={"measure_duration_ns": 2000.0}, cfg=BackendConfig())
 
     fig = plot_pulses(
         pulse_ir,

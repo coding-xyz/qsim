@@ -9,3 +9,4 @@ examples/
 *runs*
 *.pytest*
 *tmp*
+personal_use/

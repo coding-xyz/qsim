@@ -78,6 +78,16 @@ study:
 - `frame.rwa`
 - `options`
 
+## QuTiP CQED 读出协议
+
+对 `cqed_jc` / `cqed_dispersive` 且包含 classical `readout_line` 的模型，QuTiP engine 可通过 `study[].options.readout_protocol` 或等价的任务 payload 字段选择 monitored readout 协议：
+
+- `homodyne_sme`：扩散型 stochastic master equation，只监测一个输出正交分量，`measurements.records` 中包含 `homodyne_current`。
+- `heterodyne_sme`：扩散型 stochastic master equation，同时监测 I/Q 两个正交分量，`measurements.records` 中包含 `heterodyne_I`、`heterodyne_Q` 和复数形式的 `heterodyne_current`。
+- `photon_counting_sme` / `photocurrent`：跳跃型 photon-counting 轨迹，记录离散 photon detection increment，`measurements.records` 中包含 `photon_counts`、`count_rate` 和 `jump_times`。
+
+`photon_counting_sme` 不输出 IQ 电压或 homodyne current；它的核心观测量是每个时间 bin 的计数增量。固定 `run.seed` 和 `run.ntraj` 时，计数轨迹应可复现。
+
 ## 不再属于 solver 的内容
 
 以下内容不再写在 `solver.yaml` 中，而是统一写到 `analyser.yaml`：

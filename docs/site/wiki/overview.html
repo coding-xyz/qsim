@@ -1261,7 +1261,7 @@
 <h3 id="srcqsimpulse"><code>src/qsim/pulse/</code><a class="headerlink" href="#srcqsimpulse" title="Permanent link">&para;</a></h3>
 <p>负责脉冲 catalog、序列生成、采样与可视化。</p>
 <h3 id="srcqsimengines"><code>src/qsim/engines/</code><a class="headerlink" href="#srcqsimengines" title="Permanent link">&para;</a></h3>
-<p>负责数值求解引擎接入。</p>
+<p>负责数值求解引擎接入。Backend 实现按子包组织，例如 <code>qutip/</code>、<code>qoptics/</code>、<code>qtoolbox/</code>、<code>stim/</code>；根目录中的旧 <code>*_engine.py</code> 模块仅作为兼容入口保留。QuTiP backend 内部按 runner、operators、readout、SME 和 serialization 拆分，避免把求解入口、读出协议和结果格式化继续堆在同一个文件里。</p>
 <h3 id="srcqsimqec"><code>src/qsim/qec/</code><a class="headerlink" href="#srcqsimqec" title="Permanent link">&para;</a></h3>
 <p>负责 logical error、decoder eval、scaling 和 Pauli+ 相关分析流程。</p>
 <h3 id="srcqsimanalysis"><code>src/qsim/analysis/</code><a class="headerlink" href="#srcqsimanalysis" title="Permanent link">&para;</a></h3>

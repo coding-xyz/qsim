@@ -6,6 +6,7 @@ from collections import defaultdict
 import math
 from typing import Protocol
 
+from qsim.backend.scheduling import build_gate_schedule
 from qsim.common.schemas import (
     BackendConfig,
     ChannelSpec,
@@ -14,17 +15,16 @@ from qsim.common.schemas import (
     PulseIR,
 )
 from qsim.pulse.catalog import instantiate_operation_recipe, resolve_lowering_hardware
-from qsim.backend.scheduling import build_gate_schedule
 
 
-class ILowering(Protocol):
+class IPulseLowering(Protocol):
     """Protocol for converting circuit/schedule into pulse-level model."""
 
     def lower(self, schedule_or_circuit: CircuitIR, hw: dict | None, cfg: BackendConfig) -> tuple[PulseIR, ExecutableModel]:
         ...
 
 
-class DefaultLowering:
+class DefaultPulseLowering:
     """Default gate-to-pulse lowering with simple serial scheduling."""
 
     @staticmethod
@@ -164,3 +164,7 @@ class DefaultLowering:
             },
         )
         return pulse_ir, executable
+
+
+ILowering = IPulseLowering
+DefaultLowering = DefaultPulseLowering

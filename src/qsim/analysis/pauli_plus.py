@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from qsim.engines.cirq_qec_engine import CirqQECAnalysisEngine
-from qsim.engines.stim_qec_engine import StimQECAnalysisEngine
+from qsim.engines.cirq import CirqQECAnalysisEngine
+from qsim.engines.stim import StimQECAnalysisEngine
 
 
 def build_component_error_model(

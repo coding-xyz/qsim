@@ -196,7 +196,6 @@ def build_settings_report(
     mcwf_ntraj: int,
 ) -> dict:
     """Build settings_report payload for post-run auditing."""
-    payload = model_spec.payload or {}
     backend_path_value = str(backend_path or "")
     if backend_path_value.startswith("<") and backend_path_value.endswith(">"):
         backend_repr = backend_path_value
@@ -208,7 +207,7 @@ def build_settings_report(
             "backend_path": backend_repr,
             "engine_requested": selected_engine_name,
             "engine_used": trajectory.engine,
-            "solver": model_spec.solver,
+            "solver": model_spec.solver_mode,
             "solver_mode_requested": (solver_mode or "").lower(),
             "allow_mock_fallback": bool(allow_mock_fallback),
             "compare_engines_requested": list(compare_engines or []),
@@ -223,12 +222,12 @@ def build_settings_report(
             "param_bindings": dict(param_bindings or {}),
         },
         "model": {
-            "model_type": payload.get("model_type", "unknown"),
+            "model_type": model_spec.system.model_type,
             "dimension": model_spec.dimension,
-            "num_qubits": payload.get("num_qubits"),
-            "component_summary": payload.get("component_summary", {}),
-            "study_summary": payload.get("study_summary", {}),
-            "model_assumptions": payload.get("model_assumptions", {}),
+            "num_qubits": model_spec.system.num_qubits,
+            "component_summary": model_spec.system.component_summary.to_dict(),
+            "study_summary": dict(model_spec.study.summary if model_spec.study else {}),
+            "model_assumptions": dict(model_spec.system.assumptions),
             "truncation": cfg.truncation,
         },
         "inputs": {
@@ -242,14 +241,19 @@ def build_settings_report(
             "noise": noise or {},
         },
         "resolved": {
-            "simulation_level": payload.get("simulation_level", "qubit"),
-            "qubit_freqs_Hz": payload.get("qubit_freqs_Hz", []),
-            "qubit_omega_rad_s": payload.get("qubit_omega_rad_s", []),
-            "controls_count": len(payload.get("controls", [])),
-            "couplings_count": len(payload.get("couplings", [])),
-            "collapse_operator_count": len(payload.get("collapse_operators", [])),
-            "readout_lines": payload.get("readout_lines", []),
-            "noise_summary": payload.get("noise_summary", {}),
+            "simulation_level": model_spec.system.simulation_level,
+            "qubit_freqs_Hz": list(model_spec.system.qubit_freqs_Hz),
+            "qubit_omega_rad_s": list(model_spec.system.qubit_omega_rad_s),
+            "controls_count": len(model_spec.hamiltonian.control_terms),
+            "couplings_count": len(model_spec.hamiltonian.coupling_terms),
+            "collapse_operator_count": len(model_spec.noise.collapse_channels),
+            "readout_lines": [line.to_dict() for line in model_spec.readout.lines] if model_spec.readout else [],
+            "noise_summary": {
+                "selected_model": model_spec.noise.selected_model,
+                "supported": list(model_spec.noise.supported),
+                "unsupported": list(model_spec.noise.unsupported),
+                "warnings": list(model_spec.noise.warnings),
+            },
         },
         "parameter_mapping": {
             "qasm": "Defines logical gates and order only (x/sx/rz/cx/measure ...).",

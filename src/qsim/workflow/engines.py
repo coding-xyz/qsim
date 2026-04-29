@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from qsim.analysis.trajectory_semantics import pointwise_compare_compatibility, state_encoding, state_rows
-from qsim.engines.qoptics_engine import QOpticsEngine
-from qsim.engines.qutip_engine import QuTiPEngine
-from qsim.engines.qtoolbox_engine import QToolboxEngine
+from qsim.engines.qoptics import QOpticsEngine
+from qsim.engines.qutip import QuTiPEngine
+from qsim.engines.qtoolbox import QToolboxEngine
 
 
 def select_engine(name: str):
@@ -115,21 +115,20 @@ def run_cross_engine_compare(
     trajectories = []
     for name in selected:
         engine = select_engine(name)
-        run_opts = {
-            "seed": int(seed),
-            "solver_mode": model_spec.solver,
-            "allow_mock_fallback": bool(allow_mock_fallback),
-            "julia_timeout_s": float(julia_timeout_s),
-            "ntraj": int(max(1, mcwf_ntraj)),
-        }
-        if julia_bin:
-            run_opts["julia_bin"] = str(julia_bin)
-        if julia_depot_path:
-            run_opts["julia_depot_path"] = str(julia_depot_path)
-        trajectory = engine.run(
-            model_spec,
-            run_options=run_opts,
-        )
+        model_spec.solver.seed = int(seed)
+        model_spec.solver.ntraj = int(max(1, mcwf_ntraj))
+        if str(name).strip().lower() == "qutip":
+            trajectory = engine.run(model_spec)
+        else:
+            run_opts = {
+                "allow_mock_fallback": bool(allow_mock_fallback),
+                "julia_timeout_s": float(julia_timeout_s),
+            }
+            if julia_bin:
+                run_opts["julia_bin"] = str(julia_bin)
+            if julia_depot_path:
+                run_opts["julia_depot_path"] = str(julia_depot_path)
+            trajectory = engine.run(model_spec, run_options=run_opts)
         trajectories.append((name, trajectory))
         item = trajectory_summary(trajectory)
         item["requested_engine"] = name
@@ -149,7 +148,7 @@ def run_cross_engine_compare(
     return {
         "schema_version": "1.0",
         "status": "ok",
-        "solver_mode": str(model_spec.solver),
+        "solver_mode": model_spec.solver_mode,
         "baseline_engine": baseline_name,
         "runs": runs,
         "pairwise": pairwise,

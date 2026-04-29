@@ -22,8 +22,8 @@ class JuliaRuntimeRunner:
     def _resolve_script(self) -> Path:
         here = Path(__file__).resolve().parent
         scripts = {
-            "quantumoptics": here / "qoptics_runtime.jl",
-            "quantumtoolbox": here / "qtoolbox_runtime.jl",
+            "quantumoptics": here / "qoptics" / "qoptics_runtime.jl",
+            "quantumtoolbox": here / "qtoolbox" / "qtoolbox_runtime.jl",
         }
         try:
             return scripts[self.engine_package]
@@ -96,11 +96,12 @@ class JuliaRuntimeRunner:
 
         julia_bin = self._resolve_julia_bin(run_options)
         timeout_s = float(run_options.get("julia_timeout_s", 120.0))
+        model_spec_payload = asdict(model_spec)
         payload = {
             "schema_version": "1.0",
             "engine_package": self.engine_package,
-            "solver_mode": str(run_options.get("solver_mode", model_spec.solver)).lower(),
-            "model_spec": asdict(model_spec),
+            "solver_mode": str(run_options.get("solver_mode", model_spec.solver_mode)).lower(),
+            "model_spec": model_spec_payload,
             "run_options": run_options,
         }
 

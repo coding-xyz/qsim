@@ -477,6 +477,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#qutip-cqed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QuTiP CQED 读出协议
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#solver" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1090,6 +1101,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#qutip-cqed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QuTiP CQED 读出协议
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#solver" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1198,6 +1220,14 @@
 <li><code>frame.rwa</code></li>
 <li><code>options</code></li>
 </ul>
+<h2 id="qutip-cqed">QuTiP CQED 读出协议<a class="headerlink" href="#qutip-cqed" title="Permanent link">&para;</a></h2>
+<p>对 <code>cqed_jc</code> / <code>cqed_dispersive</code> 且包含 classical <code>readout_line</code> 的模型，QuTiP engine 可通过 <code>study[].options.readout_protocol</code> 或等价的任务 payload 字段选择 monitored readout 协议：</p>
+<ul>
+<li><code>homodyne_sme</code>：扩散型 stochastic master equation，只监测一个输出正交分量，<code>measurements.records</code> 中包含 <code>homodyne_current</code>。</li>
+<li><code>heterodyne_sme</code>：扩散型 stochastic master equation，同时监测 I/Q 两个正交分量，<code>measurements.records</code> 中包含 <code>heterodyne_I</code>、<code>heterodyne_Q</code> 和复数形式的 <code>heterodyne_current</code>。</li>
+<li><code>photon_counting_sme</code> / <code>photocurrent</code>：跳跃型 photon-counting 轨迹，记录离散 photon detection increment，<code>measurements.records</code> 中包含 <code>photon_counts</code>、<code>count_rate</code> 和 <code>jump_times</code>。</li>
+</ul>
+<p><code>photon_counting_sme</code> 不输出 IQ 电压或 homodyne current；它的核心观测量是每个时间 bin 的计数增量。固定 <code>run.seed</code> 和 <code>run.ntraj</code> 时，计数轨迹应可复现。</p>
 <h2 id="solver">不再属于 solver 的内容<a class="headerlink" href="#solver" title="Permanent link">&para;</a></h2>
 <p>以下内容不再写在 <code>solver.yaml</code> 中，而是统一写到 <code>analyser.yaml</code>：</p>
 <ul>

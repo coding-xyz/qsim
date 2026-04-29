@@ -1,8 +1,14 @@
 # API - engines
 
 Julia-backed dynamics engines use backend-specific runtimes:
-- `src/qsim/engines/qoptics_runtime.jl`
-- `src/qsim/engines/qtoolbox_runtime.jl`
+- `src/qsim/engines/qoptics/qoptics_runtime.jl`
+- `src/qsim/engines/qtoolbox/qtoolbox_runtime.jl`
+
+Backend implementations are organized by package under `src/qsim/engines/`.
+Legacy modules such as `qsim.engines.qutip_engine` remain as compatibility shims.
+The QuTiP backend keeps the public `QuTiPEngine` facade in `qsim.engines.qutip`,
+with internal helpers split across `operators`, `measurement`, `model`, `modes`,
+`dynamics`, `runner`, and `serialization`.
 
 ## `qsim.engines.base`
 
@@ -12,22 +18,22 @@ Julia-backed dynamics engines use backend-specific runtimes:
 
 ::: qsim.engines.qec_base
 
-## `qsim.engines.stim_qec_engine`
+## `qsim.engines.stim`
 
-::: qsim.engines.stim_qec_engine
+::: qsim.engines.stim
 
-## `qsim.engines.cirq_qec_engine`
+## `qsim.engines.cirq`
 
-::: qsim.engines.cirq_qec_engine
+::: qsim.engines.cirq
 
-## `qsim.engines.qutip_engine`
+## `qsim.engines.qutip`
 
-::: qsim.engines.qutip_engine
+::: qsim.engines.qutip
 
-## `qsim.engines.qtoolbox_engine`
+## `qsim.engines.qtoolbox`
 
-::: qsim.engines.qtoolbox_engine
+::: qsim.engines.qtoolbox
 
-## `qsim.engines.qoptics_engine`
+## `qsim.engines.qoptics`
 
-::: qsim.engines.qoptics_engine
+::: qsim.engines.qoptics

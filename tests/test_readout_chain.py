@@ -1,7 +1,11 @@
 ﻿import math
 
 from qsim.analysis.readout_chain import build_readout_analysis
-from qsim.common.schemas import Carrier, ChannelSpec, ModelSpec, PulseIR, PulseSpec, Trajectory
+from qsim.common.schemas import Carrier, ChannelSpec, PulseIR, PulseSpec, Trajectory, model_spec_from_runtime_dict
+
+
+def _model_spec(*, solver: str, dimension: int, t_end: float, dt: float, model: dict) -> object:
+    return model_spec_from_runtime_dict(solver=solver, dimension=dimension, t_end=t_end, dt=dt, model=model)
 
 
 def test_build_readout_analysis_returns_readout_and_iq_payloads():
@@ -28,12 +32,12 @@ def test_build_readout_analysis_returns_readout_and_iq_payloads():
             }
         },
     )
-    model_spec = ModelSpec(
+    model_spec = _model_spec(
         solver="me",
         dimension=6,
         t_end=3.0e-9,
         dt=1.0e-9,
-        payload={
+        model={
             "components": [
                 {"id": "r0", "type": "resonator", "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6}},
                 {
@@ -136,12 +140,12 @@ def test_build_readout_analysis_uses_actual_shot_payloads():
             }
         },
     )
-    model_spec = ModelSpec(
+    model_spec = _model_spec(
         solver="mcwf",
         dimension=6,
         t_end=3.0e-9,
         dt=1.0e-9,
-        payload={
+        model={
             "components": [
                 {"id": "r0", "type": "resonator", "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6}},
                 {"id": "ro0", "type": "readout_line", "parameters": {"eta_chain": 0.35, "gain_dB": 40.0, "added_noise_photons": 12.0}},
@@ -221,12 +225,12 @@ def test_build_readout_analysis_consumes_heterodyne_iq_shot_payloads():
             }
         },
     )
-    model_spec = ModelSpec(
+    model_spec = _model_spec(
         solver="me",
         dimension=6,
         t_end=3.0e-9,
         dt=1.0e-9,
-        payload={
+        model={
             "components": [
                 {"id": "r0", "type": "resonator", "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6}},
                 {"id": "ro0", "type": "readout_line", "parameters": {"eta_chain": 0.35, "gain_dB": 40.0, "added_noise_photons": 12.0}},
@@ -305,12 +309,12 @@ def test_build_readout_analysis_direct_adc_outputs_receiver_views():
             }
         },
     )
-    model_spec = ModelSpec(
+    model_spec = _model_spec(
         solver="mcwf",
         dimension=6,
         t_end=3.0e-9,
         dt=1.0e-9,
-        payload={
+        model={
             "components": [
                 {"id": "r0", "type": "resonator", "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6}},
                 {"id": "ro0", "type": "readout_line", "parameters": {"eta_chain": 0.35, "gain_dB": 40.0, "added_noise_photons": 12.0}},
@@ -407,12 +411,12 @@ def test_build_readout_analysis_downconversion_outputs_if_alias():
             }
         },
     )
-    model_spec = ModelSpec(
+    model_spec = _model_spec(
         solver="me",
         dimension=6,
         t_end=3.0e-9,
         dt=1.0e-9,
-        payload={
+        model={
             "components": [
                 {"id": "r0", "type": "resonator", "parameters": {"freq_Hz": 6.45e9, "kappa_int_Hz": 1.0e6}},
                 {"id": "ro0", "type": "readout_line", "parameters": {"eta_chain": 0.35, "gain_dB": 40.0, "added_noise_photons": 12.0}},

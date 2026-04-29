@@ -26,7 +26,7 @@ GROUP_DESCRIPTIONS = {
 
 GROUP_ENTRYPOINTS = {
     "analysis": ["qsim.analysis.AnalysisRegistry", "qsim.analysis.AnalysisRunner"],
-    "backend": ["qsim.backend.CompilePipeline", "qsim.backend.DefaultLowering", "qsim.backend.load_backend_config"],
+    "backend": ["qsim.backend.CompilePipeline", "qsim.backend.load_backend_config"],
     "circuit": ["qsim.circuit.CircuitAdapter"],
     "engines": [
         "qsim.engines.QuTiPEngine",
@@ -35,7 +35,7 @@ GROUP_ENTRYPOINTS = {
         "qsim.engines.StimQECAnalysisEngine",
         "qsim.engines.CirqQECAnalysisEngine",
     ],
-    "pulse": ["qsim.pulse.PulseCompiler", "qsim.pulse.build_gate_mapping_catalog"],
+    "pulse": ["qsim.pulse.DefaultPulseLowering", "qsim.pulse.PulseCompiler", "qsim.pulse.build_gate_mapping_catalog"],
     "qec": ["qsim.qec.get_decoder", "qsim.qec.build_prior_and_report", "qsim.qec.summarize_logical_error"],
     "session": ["qsim.session.Session"],
     "ui": ["qsim.ui.plot_default"],

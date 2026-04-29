@@ -10,12 +10,12 @@ from qsim.analysis.readout_chain import build_readout_analysis
 from qsim.analysis.sensitivity import build_error_budget_v2, build_sensitivity_report
 from qsim.backend.compile_pipeline import CompilePipeline
 from qsim.backend.config import load_backend_config
-from qsim.backend.lowering import DefaultLowering
-from qsim.backend.model_build import DefaultModelBuilder
+from qsim.backend.model.build import DefaultModelBuilder
 from qsim.circuit.export_qasm import to_qasm
 from qsim.circuit.import_qasm import CircuitAdapter
 from qsim.common.schemas import CircuitGate, DecoderInput, LogicalErrorSummary, Observables, Report, SyndromeFrame
 from qsim.pulse.sequence import PulseCompiler
+from qsim.pulse.lowering import DefaultPulseLowering
 from qsim.qec.decoder import build_decoder_report, get_decoder, summarize_logical_error
 from qsim.qec.prior import build_prior_and_report
 from qsim.workflow.engines import select_engine
@@ -123,7 +123,7 @@ def parse_compile_lower_model(
     normalized, compile_report = CompilePipeline().run(circuit, cfg, hardware=lowering_device)
     t3 = time.perf_counter()
     stage_timings["compile_pipeline"] = t3 - t2
-    pulse_ir, executable = DefaultLowering().lower(normalized, hw=lowering_device, cfg=cfg)
+    pulse_ir, executable = DefaultPulseLowering().lower(normalized, hw=lowering_device, cfg=cfg)
     t4 = time.perf_counter()
     stage_timings["lowering"] = t4 - t3
 
@@ -146,9 +146,10 @@ def parse_compile_lower_model(
         analyser=analyser,
         study=study,
         primary_step=primary_step,
+        circuit=normalized,
     )
     if solver_mode:
-        model_spec.solver = str(solver_mode).strip().lower()
+        model_spec.solver.mode = str(solver_mode).strip().lower()
     t7 = time.perf_counter()
     stage_timings["model_build"] = t7 - t6
 
@@ -188,19 +189,23 @@ def run_engine_stage(
 ):
     """Run selected engine and annotate trajectory metadata."""
     selected = select_engine(engine)
-    run_options = {
-        "seed": cfg.seed,
-        "solver_mode": model_spec.solver,
-        "allow_mock_fallback": bool(allow_mock_fallback),
-        "julia_timeout_s": float(julia_timeout_s),
-        "ntraj": int(max(1, mcwf_ntraj)),
-    }
-    if julia_bin:
-        run_options["julia_bin"] = str(julia_bin)
-    if julia_depot_path:
-        run_options["julia_depot_path"] = str(julia_depot_path)
+    if model_spec.solver.seed is None:
+        model_spec.solver.seed = int(cfg.seed)
+    if model_spec.solver.ntraj is None:
+        model_spec.solver.ntraj = int(max(1, mcwf_ntraj))
 
-    trajectory = selected.run(model_spec, run_options=run_options)
+    if str(engine).strip().lower() == "qutip":
+        trajectory = selected.run(model_spec)
+    else:
+        run_options = {
+            "allow_mock_fallback": bool(allow_mock_fallback),
+            "julia_timeout_s": float(julia_timeout_s),
+        }
+        if julia_bin:
+            run_options["julia_bin"] = str(julia_bin)
+        if julia_depot_path:
+            run_options["julia_depot_path"] = str(julia_depot_path)
+        trajectory = selected.run(model_spec, run_options=run_options)
     metadata = dict(getattr(trajectory, "metadata", {}) or {})
     wave_function = dict(getattr(trajectory, "wave_function", {}) or {})
     density_matrix = dict(getattr(trajectory, "density_matrix", {}) or {})
@@ -301,7 +306,7 @@ def run_decode_stage(
     prior_model, prior_report = build_prior_and_report(
         syndrome,
         backend=prior_backend,
-        context={"num_qubits": circuit.num_qubits, "solver": model_spec.solver, "engine": engine},
+        context={"num_qubits": circuit.num_qubits, "solver": model_spec.solver_mode, "engine": engine},
     )
     decoder_input = DecoderInput(
         syndrome=syndrome,

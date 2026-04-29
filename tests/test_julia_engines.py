@@ -1,8 +1,8 @@
 ﻿import pytest
 
-from qsim.common.schemas import ModelSpec
-from qsim.engines.qoptics_engine import QOpticsEngine
-from qsim.engines.qtoolbox_engine import QToolboxEngine
+from qsim.common.schemas import ModelSpec, model_spec_from_runtime_dict
+from qsim.engines.qoptics import QOpticsEngine
+from qsim.engines.qtoolbox import QToolboxEngine
 
 
 def _population_series_from_quantum_payload(trajectory):
@@ -26,12 +26,12 @@ def _run_or_skip(engine, spec: ModelSpec):
 
 
 def _minimal_spec(solver: str = "me") -> ModelSpec:
-    return ModelSpec(
+    return model_spec_from_runtime_dict(
         solver=solver,
         dimension=2,
         t_end=10.0,
         dt=1.0,
-        payload={
+        model={
             "model_type": "qubit_network",
             "num_qubits": 1,
             "qubit_omega_rad_s": [0.05],
@@ -106,12 +106,12 @@ def test_julia_runtime_runner_resolves_backend_specific_scripts():
 @pytest.mark.parametrize("engine_cls", [QOpticsEngine, QToolboxEngine])
 def test_julia_engines_short_pulse_on_long_timeline(engine_cls):
     engine = engine_cls()
-    spec = ModelSpec(
+    spec = model_spec_from_runtime_dict(
         solver="se",
         dimension=2,
         t_end=5.0e-5,
         dt=1.0e-9,
-        payload={
+        model={
             "model_type": "qubit_network",
             "num_qubits": 1,
             "qubit_omega_rad_s": [0.0],
@@ -141,12 +141,12 @@ def test_julia_engines_short_pulse_on_long_timeline(engine_cls):
 
 @pytest.mark.parametrize("engine_cls", [QOpticsEngine, QToolboxEngine])
 def test_julia_engines_support_transmon_nlevel(engine_cls):
-    spec = ModelSpec(
+    spec = model_spec_from_runtime_dict(
         solver="se",
         dimension=3,
         t_end=2.0e-8,
         dt=1.0e-9,
-        payload={
+        model={
             "model_type": "transmon_nlevel",
             "num_qubits": 1,
             "transmon_levels": 3,
@@ -176,12 +176,12 @@ def test_julia_engines_support_transmon_nlevel(engine_cls):
 
 @pytest.mark.parametrize("engine_cls", [QOpticsEngine, QToolboxEngine])
 def test_julia_engines_support_cqed_jc(engine_cls):
-    spec = ModelSpec(
+    spec = model_spec_from_runtime_dict(
         solver="se",
         dimension=12,
         t_end=2.0e-8,
         dt=1.0e-9,
-        payload={
+        model={
             "model_type": "cqed_jc",
             "num_qubits": 1,
             "transmon_levels": 3,

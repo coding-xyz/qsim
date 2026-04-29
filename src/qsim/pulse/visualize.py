@@ -12,7 +12,6 @@ import numpy as np
 from matplotlib.collections import LineCollection
 
 from qsim.backend.config import load_backend_config
-from qsim.backend.lowering import DefaultLowering
 from qsim.analysis.trajectory_semantics import state_rows
 from qsim.circuit.import_qasm import CircuitAdapter
 from qsim.common.schemas import BackendConfig, ChannelSpec, Observables, PulseIR, Trajectory, json_restore
@@ -21,6 +20,7 @@ from qsim.pulse.catalog import (
     DEFAULT_BREAK_KEEP_TAIL_NS,
     pulse_break_window,
 )
+from qsim.pulse.lowering import DefaultPulseLowering
 from qsim.pulse.sequence import PulseCompiler
 from qsim.pulse.shapes import make_shape
 
@@ -427,7 +427,7 @@ def pulse_ir_from_qasm(
         lowering_hw["schedule_policy"] = str(schedule_policy)
     if reset_feedback_policy is not None:
         lowering_hw["reset_feedback_policy"] = str(reset_feedback_policy)
-    pulse_ir, _exe = DefaultLowering().lower(circuit, hw=lowering_hw, cfg=cfg)
+    pulse_ir, _exe = DefaultPulseLowering().lower(circuit, hw=lowering_hw, cfg=cfg)
     out = canonicalize_channel_names(pulse_ir) if canonicalize_names else pulse_ir
     if include_empty_z:
         out = ensure_z_channels(out, circuit.num_qubits)

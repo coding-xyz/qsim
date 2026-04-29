@@ -61,9 +61,12 @@ def _population_series_from_quantum_state(trajectory: Trajectory, model_spec: Mo
     if not snapshots:
         return {}
     actual_kind = str(qstate.get("actual_kind", "")).strip().lower()
-    payload = dict(model_spec.payload or {})
-    num_qubits = int(payload.get("num_qubits", 0) or 0)
-    levels = int(payload.get("transmon_levels", 2) or 2) if str(payload.get("model_type", "")).strip().lower() in {"transmon_nlevel", "cqed_jc"} else 2
+    num_qubits = int(model_spec.system.num_qubits or 0)
+    levels = (
+        int(model_spec.system.transmon_levels or 2)
+        if str(model_spec.system.model_type).strip().lower() in {"transmon_nlevel", "cqed_jc", "cqed_dispersive"}
+        else 2
+    )
     series: dict[str, list[float]] = {}
     labels: list[str] = []
 
@@ -117,8 +120,7 @@ def _population_series(trajectory: Trajectory, model_spec: ModelSpec) -> dict[st
 def _mean_excited_series_from_population(series: dict[str, list[float]], model_spec: ModelSpec) -> list[float]:
     if not series:
         return []
-    payload = dict(model_spec.payload or {})
-    num_qubits = int(payload.get("num_qubits", 0) or 0)
+    num_qubits = int(model_spec.system.num_qubits or 0)
     labels = list(series.keys())
     length = max(len(values) for values in series.values())
     values: list[float] = []
@@ -134,8 +136,7 @@ def _mean_excited_series_from_population(series: dict[str, list[float]], model_s
 def _variance_series_from_population(series: dict[str, list[float]], model_spec: ModelSpec) -> list[float]:
     if not series:
         return []
-    payload = dict(model_spec.payload or {})
-    num_qubits = int(payload.get("num_qubits", 0) or 0)
+    num_qubits = int(model_spec.system.num_qubits or 0)
     labels = list(series.keys())
     label_values = {label: _label_excitation_value(label, num_qubits=num_qubits) for label in labels}
     means = _mean_excited_series_from_population(series, model_spec)

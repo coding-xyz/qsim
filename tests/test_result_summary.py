@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-from qsim.common.schemas import ModelSpec, Trajectory
+from qsim.common.schemas import Trajectory, model_spec_from_runtime_dict
 from qsim.ui.result_summary import attach_compare_status, collect_pulse_metrics, summarize_workflow_result
 from qsim.workflow.model import AnalysisResult, ModelResults, SolverRunResult
 
@@ -63,7 +63,13 @@ def test_summarize_workflow_result_builds_flat_row(tmp_path: Path):
                         )
                     },
                     runtime_metadata={"solver_mode": "me", "details": {"solver_impl": "mesolve", "native_solver": True}},
-                    model_spec=ModelSpec(solver="me", dimension=2, t_end=1.0, dt=1.0, payload={"num_qubits": 1}),
+                    model_spec=model_spec_from_runtime_dict(
+                        solver="me",
+                        dimension=2,
+                        t_end=1.0,
+                        dt=1.0,
+                        model={"num_qubits": 1},
+                    ),
                 )
             }
         ),

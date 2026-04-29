@@ -4,7 +4,7 @@ using Random
 using LinearAlgebra
 import QuantumToolbox
 
-include(joinpath(@__DIR__, "_julia_runtime_common.jl"))
+include(joinpath(@__DIR__, "..", "_julia_runtime_common.jl"))
 
 function _qt_tensor_n(ops)
     if length(ops) == 1
@@ -323,11 +323,12 @@ function main()
     end
     solver_mode = lowercase(String(Base.invokelatest(getfield, Main, :solver_mode)))
     model_spec = Dict{String, Any}(Base.invokelatest(getfield, Main, :model_spec))
-    payload = get(model_spec, "payload", Dict{String, Any}())
+    payload = _typed_model_payload(model_spec)
     run_options = Dict{String, Any}(Base.invokelatest(getfield, Main, :run_options))
 
-    dt = _safe_float(get(model_spec, "dt", 1.0), 1.0)
-    t_end = _safe_float(get(model_spec, "t_end", dt), dt)
+    time_cfg = Dict{String, Any}(get(model_spec, "time", Dict{String, Any}()))
+    dt = _safe_float(get(time_cfg, "dt_s", get(model_spec, "dt", 1.0)), 1.0)
+    t_end = _safe_float(get(time_cfg, "t_end_s", get(model_spec, "t_end", dt)), dt)
     times = _build_times(dt, t_end)
     states, dyn_meta = _run_quantumtoolbox_native(times, solver_mode, payload, run_options)
 
