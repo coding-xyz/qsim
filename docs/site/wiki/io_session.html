@@ -389,6 +389,33 @@
   
   
     <li class="md-nav__item">
+      <a href="model_spec.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ModelSpec IR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="analyser_config.html" class="md-nav__link">
         
   
@@ -541,6 +568,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#model_specjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model_spec.json
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trajectoryh5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trajectory.h5
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settings_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings_report.json
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#artifact_mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -628,10 +688,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
         
           
-          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
             
   
   
@@ -649,8 +709,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_13">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -891,6 +951,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/schemas.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/session.html" class="md-nav__link">
         
   
@@ -1013,6 +1101,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#model_specjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model_spec.json
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trajectoryh5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trajectory.h5
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settings_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings_report.json
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#artifact_mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1063,7 +1184,7 @@
 
 
 <h1 id="io">文件 IO<a class="headerlink" href="#io" title="Permanent link">&para;</a></h1>
-<p><code>qsim</code> 会把一次运行的重要输入、中间产物和最终结果写到 <code>task.output.out_dir</code>。</p>
+<p><code>qsim</code> 会把一次运行的重要输入、中间产物和最终结果写到 <code>task.output.out_dir</code>。这些产物用于复现、调试和后续分析。</p>
 <h2 id="_1">常见输出<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <p>基础运行常见文件包括：</p>
 <ul>
@@ -1077,7 +1198,36 @@
 <li><code>settings_report.json</code></li>
 <li><code>run_manifest.json</code></li>
 </ul>
-<h2 id="artifact_mode"><code>artifact_mode</code><a class="headerlink" href="#artifact_mode" title="Permanent link">&para;</a></h2>
+<h2 id="model_specjson">model_spec.json<a class="headerlink" href="#model_specjson" title="Permanent link">&para;</a></h2>
+<p><code>model_spec.json</code> 是 engine-neutral 模型快照。它不是后端私有 runtime，也不是一包无 schema 的 payload。主要结构包括：</p>
+<ul>
+<li><code>solver</code></li>
+<li><code>time</code></li>
+<li><code>frame</code></li>
+<li><code>system</code></li>
+<li><code>hamiltonian</code></li>
+<li><code>noise</code></li>
+<li><code>readout</code></li>
+<li><code>analysis_request</code></li>
+<li><code>study</code></li>
+<li><code>metadata</code></li>
+</ul>
+<p>排查模型时，优先查看：</p>
+<ul>
+<li><code>system.components</code></li>
+<li><code>system.connections</code></li>
+<li><code>hamiltonian.control_terms</code></li>
+<li><code>hamiltonian.readout_drive_terms</code></li>
+<li><code>noise.collapse_channels</code></li>
+<li><code>readout.protocol</code></li>
+<li><code>solver.mode</code></li>
+<li><code>solver.engine</code></li>
+</ul>
+<h2 id="trajectoryh5">trajectory.h5<a class="headerlink" href="#trajectoryh5" title="Permanent link">&para;</a></h2>
+<p><code>trajectory.h5</code> 保存 engine 输出的时间序列、状态摘要、测量记录和 metadata。分析器通常消费这个文件，而不是重新读取原始配置。</p>
+<h2 id="settings_reportjson">settings_report.json<a class="headerlink" href="#settings_reportjson" title="Permanent link">&para;</a></h2>
+<p><code>settings_report.json</code> 面向人读，汇总本次运行的配置、模型、runtime 设置和参数映射。它适合放进实验记录或 notebook 附录。</p>
+<h2 id="artifact_mode">artifact_mode<a class="headerlink" href="#artifact_mode" title="Permanent link">&para;</a></h2>
 <p>当前支持两种模式：</p>
 <ul>
 <li><code>all</code></li>

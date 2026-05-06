@@ -225,7 +225,6 @@ def build_settings_report(
             "model_type": model_spec.system.model_type,
             "dimension": model_spec.dimension,
             "num_qubits": model_spec.system.num_qubits,
-            "component_summary": model_spec.system.component_summary.to_dict(),
             "study_summary": dict(model_spec.study.summary if model_spec.study else {}),
             "model_assumptions": dict(model_spec.system.assumptions),
             "truncation": cfg.truncation,
@@ -240,7 +239,7 @@ def build_settings_report(
             "solver_run": solver_run or {},
             "noise": noise or {},
         },
-        "resolved": {
+        "runtime": {
             "simulation_level": model_spec.system.simulation_level,
             "qubit_freqs_Hz": list(model_spec.system.qubit_freqs_Hz),
             "qubit_omega_rad_s": list(model_spec.system.qubit_omega_rad_s),
@@ -260,7 +259,7 @@ def build_settings_report(
             "device.qubits[].freq_Hz": "Per-qubit lab-frame transition frequency (Hz).",
             "device.qubits[].anharmonicity_Hz": "Per-qubit anharmonicity used by nlevel/cqed models (Hz).",
             "device.components / device.connections": "Composite schema entrypoint for subsystem-based models.",
-            "resolved.simulation_level": "Internal runtime level inferred from the device model for the current engine.",
+            "runtime.simulation_level": "Internal runtime level inferred from the device model for the current engine.",
             "device.qubit_freqs_Hz": "Optional normalized qubit frequencies in the lab frame (Hz).",
             "device.control_scale": "Amplitude scale for control terms built from pulse samples.",
             "pulse.gate_duration_ns": "Maps each gate to pulse duration in lowering (ns).",

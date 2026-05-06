@@ -126,6 +126,8 @@ print("analyser_0" in model.results.analyses["solver_0"])
 - `settings_report.json`
 - `run_manifest.json`
 
+其中 `model_spec.json` 是 engine-neutral 模型快照，包含 `system.components`、`system.connections`、`hamiltonian`、`noise` 和 `readout` 等结构化字段。它适合用来确认配置是否按预期 lower 到仿真模型。
+
 ## 上手建议
 
 建议按这个顺序逐步加复杂度：

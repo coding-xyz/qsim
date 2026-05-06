@@ -14,7 +14,7 @@
         <link rel="prev" href="pulse_config.html">
       
       
-        <link rel="next" href="analyser_config.html">
+        <link rel="next" href="model_spec.html">
       
       
         
@@ -455,10 +455,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#engine" class="md-nav__link">
+  <a href="#engine-modelspec" class="md-nav__link">
     <span class="md-ellipsis">
       
-        engine
+        engine 与 ModelSpec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#solver_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solver_mode
       
     </span>
   </a>
@@ -513,6 +524,33 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="model_spec.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ModelSpec IR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -672,10 +710,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
         
           
-          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
             
   
   
@@ -693,8 +731,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_13">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -935,6 +973,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/schemas.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/session.html" class="md-nav__link">
         
   
@@ -1079,10 +1145,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#engine" class="md-nav__link">
+  <a href="#engine-modelspec" class="md-nav__link">
     <span class="md-ellipsis">
       
-        engine
+        engine 与 ModelSpec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#solver_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solver_mode
       
     </span>
   </a>
@@ -1151,7 +1228,7 @@
 
 
 <h1 id="_1">求解器配置<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p><code>solver</code> 文件只决定数值引擎、时间步长、参考系和数值运行参数。所有派生分析都已经迁移到独立的 <code>analyser</code> 配置。</p>
+<p><code>solver</code> 文件描述数值运行方式：使用哪个 engine、哪个 solver mode、什么时间网格、什么参考系。分析选项不再写在 solver 中，而是放进 <code>analyser</code> 配置。</p>
 <h2 id="_2">当前模板<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>仓库中的主模板包括：</p>
 <ul>
@@ -1159,29 +1236,31 @@
 <li><code>templates/solvers/qoptics.yaml</code></li>
 <li><code>templates/solvers/qtoolbox.yaml</code></li>
 </ul>
-<p>它们都采用同一套结构化组织方式。</p>
+<p>它们都采用 <code>schema_version: "3.0"</code>。</p>
 <h2 id="_3">最小示例<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.0&quot;</span>
 <span class="nt">backend</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">full</span>
+<span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cqed</span>
 <span class="nt">run</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">engine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qutip</span>
 <span class="w">  </span><span class="nt">solver_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">me</span>
 <span class="w">  </span><span class="nt">dt_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
-<span class="w">  </span><span class="nt">t_end_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0e-6</span>
+<span class="w">  </span><span class="nt">t_end_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0e-6</span>
 <span class="w">  </span><span class="nt">t_padding_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<span class="w">  </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12345</span>
+<span class="w">  </span><span class="nt">ntraj</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span>
 <span class="nt">frame</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating</span>
 <span class="w">  </span><span class="nt">reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">carrier</span>
 <span class="w">  </span><span class="nt">rwa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="nt">study</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">control_dynamics</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default</span>
 <span class="w">    </span><span class="nt">active_components</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">q0</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">active_connections</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
 <span class="w">    </span><span class="nt">solver_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">me</span>
 <span class="w">    </span><span class="nt">time</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">dt_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
-<span class="w">      </span><span class="nt">t_end_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0e-6</span>
+<span class="w">      </span><span class="nt">t_end_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0e-6</span>
 <span class="w">      </span><span class="nt">t_padding_s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">    </span><span class="nt">frame</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating</span>
@@ -1190,23 +1269,31 @@
 <span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
 </code></pre></div>
 <h2 id="_4">顶层结构<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<p>当前推荐维护以下键：</p>
 <ul>
-<li><code>schema_version</code></li>
-<li><code>backend</code></li>
-<li><code>run</code></li>
-<li><code>frame</code></li>
-<li><code>study</code></li>
+<li><code>backend</code>：请求的模型层级和截断设置</li>
+<li><code>run</code>：engine、solver mode、时间网格和随机种子</li>
+<li><code>frame</code>：默认参考系</li>
+<li><code>study</code>：可选的 step 列表，用来选择组件、连接和局部覆盖运行参数</li>
 </ul>
-<h2 id="engine">engine<a class="headerlink" href="#engine" title="Permanent link">&para;</a></h2>
-<p><code>engine</code> 决定使用哪一个求解后端。当前模板中常见的是：</p>
+<h2 id="engine-modelspec">engine 与 ModelSpec<a class="headerlink" href="#engine-modelspec" title="Permanent link">&para;</a></h2>
+<p><code>run.engine</code> 决定实际运行后端：</p>
 <ul>
 <li><code>qutip</code></li>
 <li><code>qoptics</code></li>
 <li><code>qtoolbox</code></li>
 </ul>
+<p>在 <code>ModelSpec</code> 中，engine 不在顶层，而是记录在 <code>solver.engine</code>。这是为了让 <code>ModelSpec</code> 保持模型描述能力：同一个模型可以被多个 engine 消费，只有执行时才需要选择后端。</p>
+<h2 id="solver_mode">solver_mode<a class="headerlink" href="#solver_mode" title="Permanent link">&para;</a></h2>
+<p><code>run.solver_mode</code> 和 <code>study[].solver_mode</code> 会 lower 到 <code>SolverSpec.mode</code>。当前常见值：</p>
+<ul>
+<li><code>se</code>：Schrodinger equation</li>
+<li><code>me</code>：master equation</li>
+<li><code>mcwf</code>：Monte Carlo wave function</li>
+<li><code>sme</code>：stochastic master equation</li>
+</ul>
+<p>QuTiP backend 内部按 mode 分派到 <code>qsim.engines.qutip.modes</code>。</p>
 <h2 id="study">study<a class="headerlink" href="#study" title="Permanent link">&para;</a></h2>
-<p><code>study</code> 描述一次求解实验的主要数值设置。常见字段包括：</p>
+<p><code>study</code> 描述一组运行 step。常见字段包括：</p>
 <ul>
 <li><code>name</code></li>
 <li><code>active_components</code></li>
@@ -1220,16 +1307,18 @@
 <li><code>frame.rwa</code></li>
 <li><code>options</code></li>
 </ul>
+<p><code>active_components</code> 和 <code>active_connections</code> 会影响 <code>SystemSpec.components</code> / <code>SystemSpec.connections</code> 中最终进入模型的子系统。</p>
 <h2 id="qutip-cqed">QuTiP CQED 读出协议<a class="headerlink" href="#qutip-cqed" title="Permanent link">&para;</a></h2>
-<p>对 <code>cqed_jc</code> / <code>cqed_dispersive</code> 且包含 classical <code>readout_line</code> 的模型，QuTiP engine 可通过 <code>study[].options.readout_protocol</code> 或等价的任务 payload 字段选择 monitored readout 协议：</p>
+<p>对 <code>cqed_jc</code> / <code>cqed_dispersive</code> 且包含 classical <code>readout_line</code> 的模型，QuTiP 可通过 <code>study[].options.readout_protocol</code> 选择 monitored readout：</p>
 <ul>
-<li><code>homodyne_sme</code>：扩散型 stochastic master equation，只监测一个输出正交分量，<code>measurements.records</code> 中包含 <code>homodyne_current</code>。</li>
-<li><code>heterodyne_sme</code>：扩散型 stochastic master equation，同时监测 I/Q 两个正交分量，<code>measurements.records</code> 中包含 <code>heterodyne_I</code>、<code>heterodyne_Q</code> 和复数形式的 <code>heterodyne_current</code>。</li>
-<li><code>photon_counting_sme</code> / <code>photocurrent</code>：跳跃型 photon-counting 轨迹，记录离散 photon detection increment，<code>measurements.records</code> 中包含 <code>photon_counts</code>、<code>count_rate</code> 和 <code>jump_times</code>。</li>
+<li><code>homodyne_sme</code></li>
+<li><code>heterodyne_sme</code></li>
+<li><code>photon_counting_sme</code> / <code>photocurrent</code></li>
+<li><code>classical_readout</code></li>
 </ul>
-<p><code>photon_counting_sme</code> 不输出 IQ 电压或 homodyne current；它的核心观测量是每个时间 bin 的计数增量。固定 <code>run.seed</code> 和 <code>run.ntraj</code> 时，计数轨迹应可复现。</p>
+<p>这些值会 lower 到 <code>ReadoutSpec.protocol</code>，并由 engine 后端分派。</p>
 <h2 id="solver">不再属于 solver 的内容<a class="headerlink" href="#solver" title="Permanent link">&para;</a></h2>
-<p>以下内容不再写在 <code>solver.yaml</code> 中，而是统一写到 <code>analyser.yaml</code>：</p>
+<p>以下内容属于 <code>analyser.yaml</code>：</p>
 <ul>
 <li><code>trajectory.states</code></li>
 <li><code>trajectory.save_times</code></li>
@@ -1241,12 +1330,11 @@
 <li><code>iq_discrimination</code></li>
 <li><code>report</code></li>
 </ul>
-<p><code>solver</code> 的职责是生成 raw <code>trajectory</code>，<code>analyser</code> 的职责是从 <code>trajectory</code> 生成 population、IQ、report 等所有派生结果。</p>
 <h2 id="_5">实用建议<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <ul>
 <li>从 <code>templates/solvers/qutip.yaml</code> 起步最稳妥</li>
-<li>先只改 <code>engine</code>、<code>dt_s</code>、<code>t_end_s</code></li>
-<li>换引擎时尽量保持 <code>study</code> 结构不变，方便横向对比</li>
+<li>先只改 <code>run.engine</code>、<code>run.solver_mode</code>、<code>dt_s</code>、<code>t_end_s</code></li>
+<li>换 engine 时尽量保持 <code>device</code>、<code>pulse</code> 和 <code>study</code> 不变，方便横向对比</li>
 </ul>
 
 

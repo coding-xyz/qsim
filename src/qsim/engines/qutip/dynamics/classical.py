@@ -129,20 +129,22 @@ class QutipClassicalDynamicsMixin:
             drive_scale
             * (
                 math.sqrt(added_noise_photons / eta_chain) * 1.0e-2
-                + float((model_spec.noise.config or {}).get("readout_error", 0.0) or 0.0)
+                + float(model_spec.noise.readout_error or 0.0)
             ),
         )
         raw_reset_events = list(model_spec.readout.reset_events if model_spec.readout else [])
         reset_events = [
             {
-                **dict(event),
-                "t0_s": 1.0e-9 * float(dict(event).get("t0", 0.0) or 0.0),
-                "t_meas_end_s": 1.0e-9 * float(dict(event).get("t_meas_end", 0.0) or 0.0),
-                "t_feedback_start_s": 1.0e-9 * float(dict(event).get("t_feedback_end", 0.0) or 0.0),
-                "t_apply_s": 1.0e-9 * float(dict(event).get("t1", 0.0) or 0.0),
+                "target": getattr(event, "target", 0),
+                "t0_s": float(getattr(event, "t0_s", 0.0)),
+                "t_meas_end_s": float(getattr(event, "t_meas_end_s", 0.0)),
+                "t_feedback_start_s": float(getattr(event, "t_feedback_start_s", 0.0)),
+                "t_apply_s": float(getattr(event, "t_apply_s", 0.0)),
+                "conditional_on": int(getattr(event, "conditional_on", 1)),
+                "apply_feedback": bool(getattr(event, "apply_feedback", True)),
+                "success_probability": float(getattr(event, "success_probability", feedback_success_prob)),
             }
             for event in raw_reset_events
-            if isinstance(event, dict)
         ]
         reset_events.sort(key=lambda item: float(item.get("t0_s", 0.0)))
 

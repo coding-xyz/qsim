@@ -12,18 +12,22 @@ from qsim.backend.model.common import TWO_PI, expand_value, qubit_field, to_floa
 from qsim.backend.model.noise import lower_noise
 from qsim.common.channels import canonical_readout_protocol, safe_float
 from qsim.common.schemas import (
+    CouplingTermSpec,
     ExecutableModel,
     FrameSpec,
     HamiltonianSpec,
-    ComponentSummarySpec,
     ModelStructureSpec,
     ReadoutSpec,
     ReadoutChainSpec,
     ReadoutControlSpec,
     ReadoutLineSpec,
+    ResetEventSpec,
     StudySpec,
     SystemComponentSpec,
     SystemConnectionSpec,
+    SystemCavitySpec,
+    SystemCouplingSummarySpec,
+    SystemQubitSpec,
     SystemSpec,
     TimeSpec,
     control_dict_to_hamiltonian_term,
@@ -43,24 +47,6 @@ XY_RE = re.compile(r"^XY_(\d+)$", re.IGNORECASE)
 Z_RE = re.compile(r"^Z_(\d+)$", re.IGNORECASE)
 RO_RE = re.compile(r"^RO_(\d+)$", re.IGNORECASE)
 TC_RE = re.compile(r"^TC_(\d+)$", re.IGNORECASE)
-
-
-@dataclass(frozen=True)
-class ComponentSummary:
-    """Compact component inventory for the final system schema."""
-
-    count: int
-    ids: list[str]
-    types: list[str]
-    representations: list[str]
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "count": self.count,
-            "ids": list(self.ids),
-            "types": list(self.types),
-            "representations": list(self.representations),
-        }
 
 
 @dataclass(frozen=True)
@@ -87,7 +73,6 @@ class CompositeMetadata:
 
     components: list[ComponentConfig]
     connections: list[ConnectionConfig]
-    component_summary: ComponentSummary
     readout_lines: list[ReadoutLineInfo]
 
     @property
@@ -225,6 +210,7 @@ def _device_value(hw: DeviceConfig, key: str, default: Any = None) -> Any:
 
 
 def lower_study(study: StudyConfig) -> StudySpec:
+    """Lower normalized study configuration into ``StudySpec``."""
     steps = [dict(step) for step in study.steps]
     selected = dict(study.primary_step)
     summary = {
@@ -239,12 +225,7 @@ def lower_study(study: StudyConfig) -> StudySpec:
 
 
 def composite_metadata(hw: DeviceConfig) -> CompositeMetadata:
-    component_summary = ComponentSummary(
-        count=len(hw.components),
-        ids=[comp.id for comp in hw.components],
-        types=[comp.type for comp in hw.components],
-        representations=[comp.representation for comp in hw.components],
-    )
+    """Project component, connection, and readout-line metadata from a device."""
     readout_lines = [
         ReadoutLineInfo(
             id=comp.id,
@@ -258,12 +239,12 @@ def composite_metadata(hw: DeviceConfig) -> CompositeMetadata:
     return CompositeMetadata(
         components=list(hw.components),
         connections=list(hw.connections),
-        component_summary=component_summary,
         readout_lines=readout_lines,
     )
 
 
 def composite_quantum_projection(hw: DeviceConfig) -> QuantumProjection:
+    """Extract quantum-only defaults used for dimensions and qubit parameters."""
     qubits: list[dict[str, Any]] = []
     cavity_freq_hz = 0.0
     cavity_nmax = 0
@@ -355,6 +336,7 @@ def _selected_structure_scope(
 
 
 def resolve_model_structure(hw: DeviceConfig, primary_step: dict[str, Any] | None = None) -> ModelStructure:
+    """Infer selected subsystem representations and coupling signatures."""
     scope = _selected_structure_scope(hw, primary_step)
 
     def component_rep(comp_type: str) -> str:
@@ -382,6 +364,7 @@ def resolve_model_structure(hw: DeviceConfig, primary_step: dict[str, Any] | Non
 
 
 def resolve_model_type(req_level: str, hw: DeviceConfig, primary_step: dict[str, Any] | None = None) -> tuple[str, ModelStructure]:
+    """Resolve the concrete model type requested by level and study options."""
     structure = resolve_model_structure(hw, primary_step)
     options = dict((primary_step or {}).get("options", {}) or {})
     explicit_model = str(options.get("subsystem_model", "") or "").strip().lower()
@@ -406,6 +389,7 @@ def resolve_model_type(req_level: str, hw: DeviceConfig, primary_step: dict[str,
 
 
 def lower_time(executable: ExecutableModel, pulse_samples: dict[str, dict[str, Any]], solver_run: SolverConfig) -> TimeSpec:
+    """Infer or apply the simulation time grid for ``ModelSpec.time``."""
     inferred_t_end_s = float(executable.metadata.get("t_end_s", 0.0))
     inferred_dt_s = 1.0 * NS_TO_S
     for ch_payload in pulse_samples.values():
@@ -429,6 +413,7 @@ def lower_time(executable: ExecutableModel, pulse_samples: dict[str, dict[str, A
 
 
 def lower_system_context(executable: ExecutableModel, hw: DeviceConfig, study: StudySpec) -> SystemContext:
+    """Build shared context needed by system, frame, noise, and readout lowering."""
     raw_num_qubits = int(max(0, executable.metadata.get("num_qubits", 0)))
     composite_quantum = composite_quantum_projection(hw)
     transmon_levels = int(_device_value(hw, "transmon_levels", composite_quantum.transmon_levels))
@@ -466,6 +451,7 @@ def lower_system(
     context: SystemContext,
     frame: FrameResolution,
 ) -> SystemSpec:
+    """Lower device topology and frame-resolved parameters into ``SystemSpec``."""
     num_qubits = context.num_qubits
     anharmonicity_Hz = expand_value(
         _device_value(hw, "anharmonicity_Hz", qubit_field(context.raw_qubits, "anharmonicity_Hz", -0.2) if context.raw_qubits else -0.2),
@@ -486,24 +472,29 @@ def lower_system(
     return SystemSpec(
         model_type=context.model_type,
         simulation_level=context.simulation_level,
-        num_qubits=num_qubits,
         dimension=dim,
-        transmon_levels=context.transmon_levels,
-        cavity_nmax=context.cavity_nmax,
-        qubit_freqs_Hz=frame.qubit_freqs_Hz,
-        qubit_omega_rad_s=[TWO_PI * float(x) for x in frame.qubit_freqs_Hz],
-        lab_frame_qubit_freqs_Hz=frame.lab_frame_qubit_freqs_Hz,
-        lab_frame_qubit_omega_rad_s=[TWO_PI * float(x) for x in frame.lab_frame_qubit_freqs_Hz],
-        anharmonicity_Hz=anharmonicity_Hz,
-        anharmonicity_rad_s=[TWO_PI * float(x) for x in anharmonicity_Hz],
-        cavity_freq_Hz=cavity_freq_hz,
-        cavity_omega_rad_s=TWO_PI * cavity_freq_hz,
-        g_cavity_Hz=g_cavity_Hz,
-        g_cavity_rad_s=[TWO_PI * float(x) for x in g_cavity_Hz],
         components=[SystemComponentSpec.from_dict(item) for item in context.composite_meta.component_dicts],
         connections=[SystemConnectionSpec.from_dict(item) for item in context.composite_meta.connection_dicts],
-        component_summary=ComponentSummarySpec.from_dict(context.composite_meta.component_summary.to_dict()),
         structure=ModelStructureSpec.from_dict(context.structure.to_dict()),
+        qubits=SystemQubitSpec(
+            num_qubits=num_qubits,
+            transmon_levels=context.transmon_levels,
+            qubit_freqs_Hz=frame.qubit_freqs_Hz,
+            qubit_omega_rad_s=[TWO_PI * float(x) for x in frame.qubit_freqs_Hz],
+            lab_frame_qubit_freqs_Hz=frame.lab_frame_qubit_freqs_Hz,
+            lab_frame_qubit_omega_rad_s=[TWO_PI * float(x) for x in frame.lab_frame_qubit_freqs_Hz],
+            anharmonicity_Hz=anharmonicity_Hz,
+            anharmonicity_rad_s=[TWO_PI * float(x) for x in anharmonicity_Hz],
+        ),
+        cavity=SystemCavitySpec(
+            cavity_nmax=context.cavity_nmax,
+            cavity_freq_Hz=cavity_freq_hz,
+            cavity_omega_rad_s=TWO_PI * cavity_freq_hz,
+        ),
+        couplings=SystemCouplingSummarySpec(
+            g_cavity_Hz=g_cavity_Hz,
+            g_cavity_rad_s=[TWO_PI * float(x) for x in g_cavity_Hz],
+        ),
         assumptions={
             "qubit_representation": "two_level_pauli (qubit) or truncated_oscillator (nlevel/cqed)",
             "subsystem_model": "qubit_network | transmon_nlevel | cqed_jc | cqed_dispersive | cavity_classical_readout",
@@ -550,6 +541,7 @@ def _sampled_control_record(
 
 
 def lower_sampled_channels(hw: DeviceConfig, pulse_samples: dict[str, dict[str, Any]], num_qubits: int) -> SampledChannelsIR:
+    """Convert sampled pulse channels into control/readout control records."""
     controls: list[dict[str, Any]] = []
     readout_controls: list[dict[str, Any]] = []
     pulse_refs = [0.0 for _ in range(num_qubits)]
@@ -660,6 +652,7 @@ def lower_frame(
     channels: SampledChannelsIR,
     num_qubits: int,
 ) -> FrameResolution:
+    """Resolve the model reference frame and annotate controls with detuning."""
     mode = str(frame.mode).strip().lower()
     if mode not in {"rotating", "lab"}:
         mode = "rotating"
@@ -711,29 +704,38 @@ def lower_frame(
     )
 
 
-def lower_couplings(hw: DeviceConfig, num_qubits: int) -> list[dict[str, Any]]:
-    couplings = []
+def lower_couplings(hw: DeviceConfig, num_qubits: int) -> list[CouplingTermSpec]:
+    """Lower device-level two-qubit couplings into Hamiltonian coupling terms."""
+    couplings: list[CouplingTermSpec] = []
     for c in hw.couplings:
         i, j = int(c.i), int(c.j)
         if i == j or i < 0 or j < 0 or i >= num_qubits or j >= num_qubits:
             continue
         g_hz = float(c.g_Hz)
-        couplings.append({"i": i, "j": j, "g_Hz": g_hz, "g_rad_s": TWO_PI * g_hz, "kind": c.kind})
+        couplings.append(
+            CouplingTermSpec(
+                kind=str(c.kind),
+                i=i,
+                j=j,
+                coefficient_Hz=g_hz,
+                coefficient_rad_s=TWO_PI * g_hz,
+            )
+        )
     return couplings
 
 
 def lower_hamiltonian(
     executable: ExecutableModel,
     channels: SampledChannelsIR,
-    couplings: list[dict[str, Any]],
+    couplings: list[CouplingTermSpec],
 ) -> HamiltonianSpec:
+    """Assemble static coupling and sampled controls into ``HamiltonianSpec``."""
     return HamiltonianSpec(
         coupling_terms=couplings,
         control_terms=[control_dict_to_hamiltonian_term(ctrl, kind="control") for ctrl in channels.controls],
         readout_drive_terms=[
             control_dict_to_hamiltonian_term(ctrl, kind="readout_drive") for ctrl in channels.readout_controls
         ],
-        raw_terms=list(executable.h_terms),
     )
 
 
@@ -743,6 +745,7 @@ def readout_topology_input(
     primary_step: dict[str, Any] | None = None,
     readout_chain: dict[str, Any] | None = None,
 ) -> ReadoutTopologyInput:
+    """Collect topology inputs needed to infer readout chains and protocols."""
     return ReadoutTopologyInput(
         components=list(components),
         connections=list(connections),
@@ -909,6 +912,7 @@ def lower_readout(
     context: SystemContext,
     channels: SampledChannelsIR,
 ) -> ReadoutSpec:
+    """Lower topology, controls, and reset metadata into ``ReadoutSpec``."""
     model_data = readout_topology_input(
         context.composite_meta.components,
         context.composite_meta.connections,
@@ -921,9 +925,10 @@ def lower_readout(
     )
     return ReadoutSpec(
         protocol=resolve_readout_protocol(model_data),
+        update_mode=resolve_hybrid_update_mode(model_data),
+        subsystem_model=str((study.primary_step.get("options", {}) or {}).get("subsystem_model", "") or "").strip().lower(),
         chain=ReadoutChainSpec.from_dict(chain),
         controls=[ReadoutControlSpec.from_dict(ctrl) for ctrl in channels.readout_controls],
         lines=[ReadoutLineSpec.from_dict(line) for line in context.composite_meta.readout_line_dicts],
-        reset_events=list(executable.metadata.get("reset_events", [])),
-        options=dict((study.primary_step.get("options", {}) or {})),
+        reset_events=[ResetEventSpec.from_dict(event) for event in list(executable.metadata.get("reset_events", []) or [])],
     )

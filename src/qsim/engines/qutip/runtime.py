@@ -22,6 +22,7 @@ class QutipRunConfig:
 
     @classmethod
     def from_model_spec(cls, model_spec: ModelSpec) -> "QutipRunConfig":
+        """Extract QuTiP runtime controls from ``ModelSpec.solver``."""
         solver = model_spec.solver
         options = dict(getattr(solver, "options", {}) or {})
         backend_options = dict(options.get("backend_options", {}) or {})
@@ -93,6 +94,7 @@ class QutipSystem:
     hybrid_arg_store: dict[str, float] | None = None
 
     def inspect(self) -> dict[str, Any]:
+        """Return counts that summarize the constructed QuTiP system."""
         return {
             "num_hamiltonian_terms": len(self.H),
             "num_expectation_ops": len(self.e_ops),
@@ -111,6 +113,7 @@ class QutipSolverInputs:
     seed: int
 
     def inspect(self) -> dict[str, Any]:
+        """Return a serializable summary of collapse/noise inputs."""
         return {
             "num_collapse_ops": len(self.c_ops),
             "selected_noise": self.selected_noise,
@@ -128,6 +131,7 @@ class QutipTrajectoryRequest:
     options: Any
 
     def inspect(self) -> dict[str, Any]:
+        """Return a serializable summary of requested trajectory storage."""
         return {
             "requested_state_kind": self.requested_state_kind,
             "save_times": self.save_times,

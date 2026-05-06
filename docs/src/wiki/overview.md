@@ -1,28 +1,53 @@
-﻿# 概览
+# 概览
 
-`qsim` 提供了一条从电路输入、编译与 lowering，到求解、分析、产物落盘的完整工作流。它的核心目标不是单点功能，而是把一整次仿真任务稳定地组织成“配置 -> 执行 -> 产物 -> 复现”。
+`qsim` 是一条 workflow-first 的量子仿真管线。它把一次运行拆成配置、标准化 IR、engine-neutral 模型、engine-specific runtime 和可复现输出，方便比较不同设备、脉冲、噪声和求解器设置。
 
 ## 整体流程
 
-一次典型运行通常包含以下阶段：
+一次典型运行通常经过：
 
 1. 读取 `task / solver / device / pulse / analyser` 五类配置
-2. 解析 OpenQASM 电路并做标准化
-3. 根据设备与脉冲参数完成 lowering 和模型构建
-4. 调用求解器运行仿真并生成 raw `trajectory`
-5. 调用 analyser 基于 `trajectory` 生成派生分析结果
-6. 把中间产物和最终结果写入输出目录
+2. 解析 OpenQASM 或已有 `CircuitIR`
+3. 根据设备和脉冲配置生成 `PulseIR` 与 `ExecutableModel`
+4. lower 成 engine-neutral `ModelSpec`
+5. 选定 engine，把 `ModelSpec` 转成后端 runtime
+6. 运行求解器并生成 `Trajectory`
+7. 根据 analyser 配置生成派生分析结果
+8. 写出 `model_spec.json`、`trajectory.h5`、`settings_report.json` 和 manifest
 
-常用入口有：
+常用入口：
 
 - CLI：`qsim run-model`
 - Python：`qsim.workflow.create_model`
+
+## 核心 IR
+
+qsim 当前主要 IR 分层是：
+
+```text
+CircuitIR
+  逻辑电路和门序列
+
+PulseIR
+  采样前的通道、pulse 和 carrier 描述
+
+ExecutableModel
+  pulse lowering 后传给模型构建阶段的中间对象
+
+ModelSpec
+  engine-neutral simulation IR
+
+Trajectory
+  engine 运行后的时间序列、测量和 metadata
+```
+
+`ModelSpec` 是最重要的边界：它描述模型本身，不绑定某个 engine。真正执行时，workflow 或 `SolverSpec.engine` 决定使用 `qutip`、`qoptics` 或 `qtoolbox`。
 
 ## 代码模块分工
 
 ### `src/qsim/workflow/`
 
-负责把五类配置组织成一次可执行任务，包括：
+负责把配置组织成一次可执行任务：
 
 - 配置读取与模板合并
 - target 驱动的执行计划
@@ -33,39 +58,37 @@
 
 负责电路导入、标准化与导出。
 
-### `src/qsim/backend/`
-
-负责 compile pipeline、lowering、调度和 `ExecutableModel -> ModelSpec` 的构建。
-
 ### `src/qsim/pulse/`
 
-负责脉冲 catalog、序列生成、采样与可视化。
+负责 pulse catalog、门到脉冲 lowering、采样和可视化。
+
+### `src/qsim/backend/`
+
+负责从标准化配置构建 engine-neutral `ModelSpec`。这里不应该出现 QuTiP `Qobj`、Julia runtime 调用或某个 engine 私有 API。
+
+### `src/qsim/schemas/`
+
+保存公开 IR 和配置 dataclass。`qsim.common.schemas` 目前只是兼容导出入口，新代码优先从 `qsim.schemas` 或其子模块导入。
 
 ### `src/qsim/engines/`
 
-负责数值求解引擎接入。Backend 实现按子包组织，例如 `qutip/`、`qoptics/`、`qtoolbox/`、`stim/`；根目录中的旧 `*_engine.py` 模块仅作为兼容入口保留。QuTiP backend 内部按 runner、operators、readout、SME 和 serialization 拆分，避免把求解入口、读出协议和结果格式化继续堆在同一个文件里。
+负责数值求解 engine。QuTiP、QuantumOptics.jl 和 QuantumToolbox.jl 各自把 `ModelSpec` 转成自己的 runtime 表示。
 
-### `src/qsim/qec/`
+### `src/qsim/analysis/` 和 `src/qsim/qec/`
 
-负责 logical error、decoder eval、scaling 和 Pauli+ 相关分析流程。
-
-### `src/qsim/analysis/`
-
-负责 observables、error budget、sensitivity 等分析逻辑。
+负责 trajectory 后处理、observable、error budget、decoder eval、scaling 和 Pauli+ 相关流程。
 
 ## 当前推荐口径
 
-当前对外只保留一套最新文档口径：
+- `task`：描述目标、输入路径和输出策略
+- `solver`：描述运行 engine、solver mode、时间步长和参考系
+- `device`：描述组件、连接和噪声
+- `pulse`：描述 gate-to-pulse catalog、通道和采样设置
+- `analyser`：描述从 `Trajectory` 出发的派生分析
 
-- `task`：继续使用扁平写法
-- `device`：使用组件化设备结构
-- `pulse`：使用结构化脉冲描述
-- `solver`：只负责数值求解
-- `analyser`：只负责派生分析
+如果只记一条规则：
 
-如果你只记一条规则，建议记住这句：
-
-> 以当前模板和当前加载器真实支持的字段为准。
+> 配置文件面向用户，`ModelSpec` 面向 engine，`Trajectory` 面向分析。
 
 ## 常用目标
 
@@ -78,5 +101,3 @@
 - `scaling_report`
 - `error_budget_pauli_plus`
 - `cross_engine_compare`
-
-

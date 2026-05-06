@@ -6,7 +6,8 @@ qsim is a workflow-first quantum simulation project with reproducible artifacts,
 
 - Circuit import/export (`OpenQASM`, optional Qiskit adapters)
 - Compile + lowering pipeline (`CircuitIR -> PulseIR -> ExecutableModel -> ModelSpec`)
-- Simulation engines (QuTiP and Julia placeholders)
+- Engine-neutral `ModelSpec` IR with typed system, Hamiltonian, noise, and readout sections
+- Simulation engines (`qutip`, `qoptics`, `qtoolbox`)
 - QEC pipeline:
   - syndrome extraction
   - prior builders (`stim|cirq|mock|auto`)
@@ -103,6 +104,7 @@ mkdocs serve
 - Editor and Git normalization rules live in `.editorconfig` and `.gitattributes`.
 - Markdown sources: `docs/src/`
 - Wiki entry: `docs/src/WIKI.md`
+- ModelSpec IR guide: `docs/src/wiki/model_spec.md`
 
 ## Text Encoding
 

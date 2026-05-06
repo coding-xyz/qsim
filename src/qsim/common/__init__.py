@@ -1,6 +1,6 @@
 """Common qsim exports shared across subsystems."""
 
-from qsim.common.schemas import (
+from qsim.schemas import (
     BackendConfig,
     Carrier,
     ChannelSpec,

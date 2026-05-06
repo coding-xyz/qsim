@@ -1,6 +1,6 @@
-﻿# 求解器配置
+# 求解器配置
 
-`solver` 文件只决定数值引擎、时间步长、参考系和数值运行参数。所有派生分析都已经迁移到独立的 `analyser` 配置。
+`solver` 文件描述数值运行方式：使用哪个 engine、哪个 solver mode、什么时间网格、什么参考系。分析选项不再写在 solver 中，而是放进 `analyser` 配置。
 
 ## 当前模板
 
@@ -10,32 +10,34 @@
 - `templates/solvers/qoptics.yaml`
 - `templates/solvers/qtoolbox.yaml`
 
-它们都采用同一套结构化组织方式。
+它们都采用 `schema_version: "3.0"`。
 
 ## 最小示例
 
 ```yaml
 schema_version: "3.0"
 backend:
-  level: full
+  level: cqed
 run:
   engine: qutip
   solver_mode: me
   dt_s: 1.0e-9
-  t_end_s: 50.0e-6
+  t_end_s: 2.0e-6
   t_padding_s: 0.0
+  seed: 12345
+  ntraj: 64
 frame:
   mode: rotating
   reference: carrier
   rwa: true
 study:
-  - name: control_dynamics
+  - name: default
     active_components: [q0]
     active_connections: []
     solver_mode: me
     time:
       dt_s: 1.0e-9
-      t_end_s: 50.0e-6
+      t_end_s: 2.0e-6
       t_padding_s: 0.0
     frame:
       mode: rotating
@@ -46,25 +48,35 @@ study:
 
 ## 顶层结构
 
-当前推荐维护以下键：
+- `backend`：请求的模型层级和截断设置
+- `run`：engine、solver mode、时间网格和随机种子
+- `frame`：默认参考系
+- `study`：可选的 step 列表，用来选择组件、连接和局部覆盖运行参数
 
-- `schema_version`
-- `backend`
-- `run`
-- `frame`
-- `study`
+## engine 与 ModelSpec
 
-## engine
-
-`engine` 决定使用哪一个求解后端。当前模板中常见的是：
+`run.engine` 决定实际运行后端：
 
 - `qutip`
 - `qoptics`
 - `qtoolbox`
 
+在 `ModelSpec` 中，engine 不在顶层，而是记录在 `solver.engine`。这是为了让 `ModelSpec` 保持模型描述能力：同一个模型可以被多个 engine 消费，只有执行时才需要选择后端。
+
+## solver_mode
+
+`run.solver_mode` 和 `study[].solver_mode` 会 lower 到 `SolverSpec.mode`。当前常见值：
+
+- `se`：Schrodinger equation
+- `me`：master equation
+- `mcwf`：Monte Carlo wave function
+- `sme`：stochastic master equation
+
+QuTiP backend 内部按 mode 分派到 `qsim.engines.qutip.modes`。
+
 ## study
 
-`study` 描述一次求解实验的主要数值设置。常见字段包括：
+`study` 描述一组运行 step。常见字段包括：
 
 - `name`
 - `active_components`
@@ -78,19 +90,22 @@ study:
 - `frame.rwa`
 - `options`
 
+`active_components` 和 `active_connections` 会影响 `SystemSpec.components` / `SystemSpec.connections` 中最终进入模型的子系统。
+
 ## QuTiP CQED 读出协议
 
-对 `cqed_jc` / `cqed_dispersive` 且包含 classical `readout_line` 的模型，QuTiP engine 可通过 `study[].options.readout_protocol` 或等价的任务 payload 字段选择 monitored readout 协议：
+对 `cqed_jc` / `cqed_dispersive` 且包含 classical `readout_line` 的模型，QuTiP 可通过 `study[].options.readout_protocol` 选择 monitored readout：
 
-- `homodyne_sme`：扩散型 stochastic master equation，只监测一个输出正交分量，`measurements.records` 中包含 `homodyne_current`。
-- `heterodyne_sme`：扩散型 stochastic master equation，同时监测 I/Q 两个正交分量，`measurements.records` 中包含 `heterodyne_I`、`heterodyne_Q` 和复数形式的 `heterodyne_current`。
-- `photon_counting_sme` / `photocurrent`：跳跃型 photon-counting 轨迹，记录离散 photon detection increment，`measurements.records` 中包含 `photon_counts`、`count_rate` 和 `jump_times`。
+- `homodyne_sme`
+- `heterodyne_sme`
+- `photon_counting_sme` / `photocurrent`
+- `classical_readout`
 
-`photon_counting_sme` 不输出 IQ 电压或 homodyne current；它的核心观测量是每个时间 bin 的计数增量。固定 `run.seed` 和 `run.ntraj` 时，计数轨迹应可复现。
+这些值会 lower 到 `ReadoutSpec.protocol`，并由 engine 后端分派。
 
 ## 不再属于 solver 的内容
 
-以下内容不再写在 `solver.yaml` 中，而是统一写到 `analyser.yaml`：
+以下内容属于 `analyser.yaml`：
 
 - `trajectory.states`
 - `trajectory.save_times`
@@ -102,12 +117,8 @@ study:
 - `iq_discrimination`
 - `report`
 
-`solver` 的职责是生成 raw `trajectory`，`analyser` 的职责是从 `trajectory` 生成 population、IQ、report 等所有派生结果。
-
 ## 实用建议
 
 - 从 `templates/solvers/qutip.yaml` 起步最稳妥
-- 先只改 `engine`、`dt_s`、`t_end_s`
-- 换引擎时尽量保持 `study` 结构不变，方便横向对比
-
-
+- 先只改 `run.engine`、`run.solver_mode`、`dt_s`、`t_end_s`
+- 换 engine 时尽量保持 `device`、`pulse` 和 `study` 不变，方便横向对比

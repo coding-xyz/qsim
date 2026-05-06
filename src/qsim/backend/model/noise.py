@@ -111,11 +111,11 @@ def lower_noise(
 
     return NoiseSpec(
         selected_model=_noise_model(noise),
+        readout_error=float(noise.get("readout_error", 0.0) or 0.0),
         collapse_channels=collapse_ops,
         stochastic_channels=stochastic_noise,
         per_qubit_rates=per_qubit_rates,
         supported=["relaxation", "dephasing", "excitation", "one_over_f", "ou"],
         unsupported=["non_markovian_memory_kernel"],
         warnings=[],
-        config=noise.to_dict(),
     )

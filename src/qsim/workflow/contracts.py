@@ -548,6 +548,7 @@ def _normalize_composite_device_payload(raw: dict[str, object]) -> dict[str, obj
 
 
 def normalize_device_payload(device: dict | None) -> dict[str, object]:
+    """Normalize legacy and component-based device payloads for model building."""
     raw = dict(device or {})
     if "components" in raw:
         return _normalize_composite_device_payload(raw)

@@ -44,11 +44,18 @@ class IModelBuilder(Protocol):
         primary_step: dict[str, Any] | None = None,
         circuit: CircuitIR | CircuitSpec | None = None,
     ) -> ModelSpec:
+        """Build a ``ModelSpec`` from executable, device, noise, and pulse data."""
         ...
 
 
 class DefaultModelBuilder:
-    """Assemble ``ModelSpec`` from engine-neutral lowering stages."""
+    """Assemble ``ModelSpec`` from engine-neutral lowering stages.
+
+    The builder is the main boundary between workflow configuration and
+    simulation engines. It consumes normalized device/noise/solver/frame inputs
+    and produces a structured ``ModelSpec`` without constructing backend-native
+    objects such as QuTiP operators.
+    """
 
     def build(
         self,
@@ -63,7 +70,23 @@ class DefaultModelBuilder:
         primary_step: dict[str, Any] | None = None,
         circuit: CircuitIR | CircuitSpec | None = None,
     ) -> ModelSpec:
-        """Construct normalized ``ModelSpec`` consumed by simulation engines."""
+        """Construct the normalized ``ModelSpec`` consumed by simulation engines.
+
+        Args:
+            executable: Pulse-lowered executable model metadata and terms.
+            hw: Raw or normalized device configuration dictionary.
+            noise: Raw or normalized noise configuration dictionary.
+            pulse_samples: Sampled channel payloads keyed by channel name.
+            frame: Reference-frame configuration.
+            solver_run: Solver runtime controls.
+            analyser: Analysis request configuration.
+            study: Optional study steps.
+            primary_step: Selected study step.
+            circuit: Optional circuit snapshot to embed in the model spec.
+
+        Returns:
+            A fully structured engine-neutral ``ModelSpec``.
+        """
         pulse_sample_cfg = dict(pulse_samples or {})
         config = normalize_model_build_config(
             device=hw,
@@ -89,7 +112,6 @@ class DefaultModelBuilder:
         }
 
         return ModelSpec(
-            engine="qutip",
             circuit=(
                 circuit
                 if isinstance(circuit, CircuitSpec)
@@ -97,7 +119,7 @@ class DefaultModelBuilder:
             ),
             solver=SolverSpec(
                 mode=str(executable.solver),
-                engine="qutip",
+                engine=str(config.solver.get("engine", "qutip") or "qutip"),
                 seed=config.solver.seed,
                 ntraj=config.solver.ntraj,
                 options=solver_options,

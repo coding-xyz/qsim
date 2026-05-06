@@ -58,16 +58,30 @@ function _typed_model_payload(model_spec)
     readout = _asdict(get(model_spec, "readout", Dict{String, Any}()))
     analysis_request = _asdict(get(model_spec, "analysis_request", Dict{String, Any}()))
     study = _asdict(get(model_spec, "study", Dict{String, Any}()))
+    components = Any[_asdict(item) for item in get(system, "components", Any[])]
+    connections = Any[_asdict(item) for item in get(system, "connections", Any[])]
+    transmons = Any[item for item in components if lowercase(String(get(item, "type", ""))) == "transmon"]
+    resonators = Any[item for item in components if lowercase(String(get(item, "type", ""))) in ("resonator", "cavity")]
+    qubits = _asdict(get(system, "qubits", Dict{String, Any}()))
+    cavity = _asdict(get(system, "cavity", Dict{String, Any}()))
+    coupling_summary = _asdict(get(system, "couplings", Dict{String, Any}()))
+    num_qubits = isempty(transmons) ? get(system, "num_qubits", get(qubits, "num_qubits", 1)) : length(transmons)
+    transmon_levels = isempty(transmons) ? get(system, "transmon_levels", get(qubits, "transmon_levels", 2)) : maximum([_safe_int(get(item, "levels", 2), 2) for item in transmons])
+    cavity_item = isempty(resonators) ? cavity : resonators[1]
+    g_connections = Any[
+        item for item in connections
+        if lowercase(String(get(item, "type", ""))) in ("jc", "dispersive", "zz")
+    ]
     return Dict{String, Any}(
         "model_type" => get(system, "model_type", "qubit_network"),
         "simulation_level" => get(system, "simulation_level", "qubit"),
-        "num_qubits" => get(system, "num_qubits", 1),
-        "transmon_levels" => get(system, "transmon_levels", 2),
-        "cavity_nmax" => get(system, "cavity_nmax", 0),
-        "qubit_omega_rad_s" => get(system, "qubit_omega_rad_s", Any[]),
-        "anharmonicity_rad_s" => get(system, "anharmonicity_rad_s", Any[]),
-        "cavity_omega_rad_s" => get(system, "cavity_omega_rad_s", 0.0),
-        "g_cavity_rad_s" => get(system, "g_cavity_rad_s", Any[]),
+        "num_qubits" => num_qubits,
+        "transmon_levels" => transmon_levels,
+        "cavity_nmax" => get(system, "cavity_nmax", get(cavity_item, "cavity_nmax", get(cavity_item, "nmax", 0))),
+        "qubit_omega_rad_s" => isempty(transmons) ? get(system, "qubit_omega_rad_s", get(qubits, "qubit_omega_rad_s", Any[])) : Any[get(item, "omega_rad_s", 0.0) for item in transmons],
+        "anharmonicity_rad_s" => isempty(transmons) ? get(system, "anharmonicity_rad_s", get(qubits, "anharmonicity_rad_s", Any[])) : Any[get(item, "anharmonicity_rad_s", 0.0) for item in transmons],
+        "cavity_omega_rad_s" => get(system, "cavity_omega_rad_s", get(cavity_item, "cavity_omega_rad_s", get(cavity_item, "omega_rad_s", 0.0))),
+        "g_cavity_rad_s" => isempty(g_connections) ? get(system, "g_cavity_rad_s", get(coupling_summary, "g_cavity_rad_s", Any[])) : Any[get(item, "g_rad_s", 0.0) for item in g_connections],
         "frame" => frame,
         "couplings" => get(hamiltonian, "coupling_terms", Any[]),
         "controls" => Any[_typed_control_payload(term) for term in get(hamiltonian, "control_terms", Any[])],
@@ -79,7 +93,7 @@ function _typed_model_payload(model_spec)
         "readout_controls" => get(readout, "controls", Any[]),
         "readout_chain" => get(readout, "chain", Dict{String, Any}()),
         "reset_events" => get(readout, "reset_events", Any[]),
-        "noise_cfg" => get(noise, "config", Dict{String, Any}()),
+        "noise_cfg" => Dict{String, Any}("readout_error" => get(noise, "readout_error", 0.0)),
         "analyser" => get(analysis_request, "config", Dict{String, Any}()),
         "study" => get(study, "steps", Any[]),
         "primary_step" => get(study, "primary_step", Dict{String, Any}()),
@@ -316,7 +330,7 @@ function _build_static_hamiltonian!(H0, payload, ctx, ops)
         if i < 1 || j < 1 || i > n || j > n || i == j
             continue
         end
-        g = _safe_float(get(item, "g_rad_s", get(item, "g", 0.0)), 0.0)
+        g = _safe_float(get(item, "coefficient_rad_s", get(item, "g_rad_s", get(item, "g", 0.0))), 0.0)
         kind = lowercase(String(get(item, "kind", "xx+yy")))
         if kind == "zz"
             H0 += g * (sz[i] * sz[j])

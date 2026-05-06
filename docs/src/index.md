@@ -53,10 +53,11 @@ qsim run-model --task-config examples/noise_simulation_tests/required_tasks/task
 4. [设备配置](wiki/device_config.md)
 5. [脉冲配置](wiki/pulse_config.md)
 6. [求解器配置](wiki/solver_config.md)
-7. [分析器配置](wiki/analyser_config.md)
-8. [可视化](wiki/visualization.md)
-9. [量子纠错](wiki/qec_analysis.md)
-10. [文件 IO](wiki/io_session.md)
+7. [ModelSpec IR](wiki/model_spec.md)
+8. [分析器配置](wiki/analyser_config.md)
+9. [可视化](wiki/visualization.md)
+10. [量子纠错](wiki/qec_analysis.md)
+11. [文件 IO](wiki/io_session.md)
 
 ## 文档维护
 

@@ -19,6 +19,7 @@ GROUP_DESCRIPTIONS = {
     "engines": "Simulation engines and engine adapters.",
     "pulse": "Pulse compilation, PulseIR helpers, and visualization tools.",
     "qec": "QEC priors, decoders, decoder eval, and summary utilities.",
+    "schemas": "Structured configuration, IR, ModelSpec, and result dataclasses.",
     "session": "Sessions, manifests, and artifact-oriented persistence helpers.",
     "ui": "CLI, notebook helpers, and lightweight result summaries.",
     "workflow": "Config loading, execution planning, model API, and workflow stages.",
@@ -37,6 +38,7 @@ GROUP_ENTRYPOINTS = {
     ],
     "pulse": ["qsim.pulse.DefaultPulseLowering", "qsim.pulse.PulseCompiler", "qsim.pulse.build_gate_mapping_catalog"],
     "qec": ["qsim.qec.get_decoder", "qsim.qec.build_prior_and_report", "qsim.qec.summarize_logical_error"],
+    "schemas": ["qsim.schemas.ModelSpec", "qsim.schemas.SystemSpec", "qsim.schemas.HamiltonianSpec", "qsim.schemas.Trajectory"],
     "session": ["qsim.session.Session"],
     "ui": ["qsim.ui.plot_default"],
     "workflow": [

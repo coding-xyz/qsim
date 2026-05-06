@@ -49,8 +49,8 @@ def _readout_input_from_model_spec(model_spec: ModelSpec) -> ReadoutTopologyInpu
     readout = model_spec.readout
     device = normalize_device_config(
         {
-            "components": [component.to_dict() for component in system.components],
-            "connections": [connection.to_dict() for connection in system.connections],
+            "components": [component.to_device_dict() for component in system.components],
+            "connections": [connection.to_device_dict() for connection in system.connections],
         }
     )
     return readout_topology_input(
@@ -108,6 +108,8 @@ class QutipMeasurementMixin:
     @staticmethod
     def _resolve_hybrid_update_mode(model: ModelSpec | dict[str, Any]) -> str:
         if isinstance(model, ModelSpec):
+            if model.readout is not None:
+                return str(model.readout.update_mode or "predictor_corrector")
             return resolve_hybrid_update_mode(_readout_input_from_model_spec(model))
         return resolve_hybrid_update_mode(_readout_input_from_payload(model))
 

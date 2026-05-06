@@ -49,6 +49,7 @@ nav:
   - 设备配置: wiki/device_config.md
   - 脉冲配置: wiki/pulse_config.md
   - 求解器配置: wiki/solver_config.md
+  - ModelSpec IR: wiki/model_spec.md
   - 分析器配置: wiki/analyser_config.md
   - 可视化: wiki/visualization.md
   - 量子纠错: wiki/qec_analysis.md
@@ -63,6 +64,7 @@ nav:
       - engines: api/engines.md
       - pulse: api/pulse.md
       - qec: api/qec.md
+      - schemas: api/schemas.md
       - session: api/session.md
       - ui: api/ui.md
       - workflow: api/workflow.md

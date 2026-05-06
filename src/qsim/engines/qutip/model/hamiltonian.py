@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from qsim.common.schemas import CouplingTermSpec
 from qsim.engines.qutip.runtime import QutipPlan, QutipSystem
 
 
@@ -147,7 +148,7 @@ def build_hamiltonian_system(engine, setup: QutipPlan) -> QutipSystem:
 def _append_static_couplings(
     *,
     H0,
-    couplings: list[dict[str, Any]],
+    couplings: list[CouplingTermSpec],
     model_type: str,
     n_qubits: int,
     x_ops,
@@ -157,12 +158,12 @@ def _append_static_couplings(
     raise_ops,
 ):
     for c in couplings:
-        i = int(c.get("i", 0))
-        j = int(c.get("j", 0))
+        i = int(c.i)
+        j = int(c.j)
         if i < 0 or j < 0 or i >= n_qubits or j >= n_qubits or i == j:
             continue
-        g = float(c.get("g_rad_s", c.get("g", 0.0)))
-        kind = str(c.get("kind", "xx+yy")).lower()
+        g = float(c.coefficient_rad_s)
+        kind = str(c.kind or "xx+yy").lower()
         if kind == "zz":
             H0 = H0 + g * (z_ops[i] * z_ops[j])
         elif kind == "xx":

@@ -371,7 +371,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        最小示例
+        最小单比特示例
       
     </span>
   </a>
@@ -379,10 +379,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#cqed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        顶层结构
+        CQED 读出示例
       
     </span>
   </a>
@@ -412,10 +412,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#modelspec" class="md-nav__link">
     <span class="md-ellipsis">
       
-        运行时会自动提取什么
+        与 ModelSpec 的关系
       
     </span>
   </a>
@@ -423,7 +423,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         实用建议
@@ -483,6 +483,33 @@
     
   
     求解器配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="model_spec.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ModelSpec IR
   
 
     
@@ -650,10 +677,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
         
           
-          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
             
   
   
@@ -671,8 +698,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_13">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -913,6 +940,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/schemas.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/session.html" class="md-nav__link">
         
   
@@ -1027,7 +1082,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        最小示例
+        最小单比特示例
       
     </span>
   </a>
@@ -1035,10 +1090,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#cqed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        顶层结构
+        CQED 读出示例
       
     </span>
   </a>
@@ -1068,10 +1123,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#modelspec" class="md-nav__link">
     <span class="md-ellipsis">
       
-        运行时会自动提取什么
+        与 ModelSpec 的关系
       
     </span>
   </a>
@@ -1079,7 +1134,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         实用建议
@@ -1107,20 +1162,17 @@
 
 
 <h1 id="_1">设备配置<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p><code>device</code> 文件描述设备结构、组件参数和噪声模型。当前文档只说明推荐使用的组件化设备写法。</p>
-<h2 id="_2">最小示例<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p><code>device</code> 文件描述硬件组件、组件间连接和噪声参数。当前推荐把设备写成 <code>components + connections</code>，这会直接 lower 到 <code>SystemSpec.components</code> 和 <code>SystemSpec.connections</code>。</p>
+<h2 id="_2">最小单比特示例<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.0&quot;</span>
 <span class="nt">device</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">components</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">q0</span>
 <span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transmon</span>
 <span class="w">      </span><span class="nt">representation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">quantum</span>
-<span class="w">      </span><span class="nt">role</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coupled</span>
 <span class="w">      </span><span class="nt">basis</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nlevel</span>
 <span class="w">        </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
-<span class="w">      </span><span class="nt">ports</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">drive</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drive_port</span>
 <span class="w">      </span><span class="nt">parameters</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0e9</span>
 <span class="w">        </span><span class="nt">anharmonicity_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-2.0e8</span>
@@ -1131,44 +1183,118 @@
 <span class="w">  </span><span class="nt">parameters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
 <span class="w">  </span><span class="nt">noise</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
 </code></pre></div>
-<h2 id="_3">顶层结构<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p>当前推荐维护以下键：</p>
-<ul>
-<li><code>schema_version</code></li>
-<li><code>device.components</code></li>
-<li><code>device.connections</code></li>
-<li><code>device.parameters</code></li>
-<li><code>device.noise</code></li>
-</ul>
+<h2 id="cqed">CQED 读出示例<a class="headerlink" href="#cqed" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.0&quot;</span>
+<span class="nt">device</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">components</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">q0</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">transmon</span>
+<span class="w">      </span><span class="nt">representation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">quantum</span>
+<span class="w">      </span><span class="nt">basis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="nv">nlevel</span><span class="p p-Indicator">,</span><span class="nt"> levels</span><span class="p">:</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0e9</span>
+<span class="w">        </span><span class="nt">anharmonicity_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-2.0e8</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">r0</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">resonator</span>
+<span class="w">      </span><span class="nt">representation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">quantum</span>
+<span class="w">      </span><span class="nt">basis</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="nv">fock</span><span class="p p-Indicator">,</span><span class="nt"> nmax</span><span class="p">:</span><span class="w"> </span><span class="nv">8</span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.8e9</span>
+<span class="w">        </span><span class="nt">kappa_int_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2e6</span>
+<span class="w">        </span><span class="nt">kappa_ext_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7.0e6</span>
+<span class="w">        </span><span class="nt">chi_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1.2e6</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ro0</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">readout_line</span>
+<span class="w">      </span><span class="nt">representation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">classical</span>
+<span class="w">      </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">eta_chain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.45</span>
+<span class="w">        </span><span class="nt">gain_dB</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span>
+<span class="w">        </span><span class="nt">added_noise_photons</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8.0</span>
+<span class="w">        </span><span class="nt">center_freq_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6.8e9</span>
+<span class="w">        </span><span class="nt">bandwidth_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25.0e6</span>
+
+<span class="w">  </span><span class="nt">connections</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">q0_r0</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dispersive</span>
+<span class="w">      </span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">q0</span>
+<span class="w">      </span><span class="nt">b</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">r0</span>
+<span class="w">      </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">chi_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1.2e6</span>
+<span class="w">        </span><span class="nt">g_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80.0e6</span>
+
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">r0_ro0</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">readout_feedline</span>
+<span class="w">      </span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">r0</span>
+<span class="w">      </span><span class="nt">b</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ro0</span>
+<span class="w">      </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kappa_ext_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7.0e6</span>
+<span class="w">        </span><span class="nt">eta_chain</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.45</span>
+<span class="w">        </span><span class="nt">bandwidth_Hz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25.0e6</span>
+</code></pre></div>
 <h2 id="components">components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
-<p><code>components</code> 是设备文件的核心。常见字段包括：</p>
+<p>常见组件类型：</p>
+<ul>
+<li><code>transmon</code></li>
+<li><code>resonator</code> / <code>cavity</code></li>
+<li><code>readout_line</code></li>
+</ul>
+<p>通用字段：</p>
 <ul>
 <li><code>id</code>：组件唯一标识</li>
-<li><code>type</code>：例如 <code>transmon</code>、<code>resonator</code></li>
-<li><code>representation</code>：当前模板常用 <code>quantum</code></li>
-<li><code>role</code>：组件在系统中的角色</li>
-<li><code>basis.kind</code>：常见为 <code>nlevel</code></li>
-<li><code>basis.levels</code>：截断能级数</li>
-<li><code>ports</code>：逻辑端口名</li>
-<li><code>parameters</code>：频率、非谐性等物理参数</li>
-<li><code>noise</code>：局域退相干参数</li>
+<li><code>type</code>：组件类型</li>
+<li><code>representation</code>：<code>quantum</code>、<code>classical</code> 或 <code>disabled</code></li>
+<li><code>description</code>：可选说明</li>
+<li><code>basis</code>：截断基信息，例如 <code>levels</code> 或 <code>nmax</code></li>
+<li><code>parameters</code>：频率、耦合、读出链参数等</li>
+<li><code>noise</code>：局域噪声参数</li>
+</ul>
+<p>lowering 后，组件会变成：</p>
+<ul>
+<li><code>TransmonComponentSpec</code></li>
+<li><code>ResonatorComponentSpec</code></li>
+<li><code>ReadoutLineComponentSpec</code></li>
 </ul>
 <h2 id="connections">connections<a class="headerlink" href="#connections" title="Permanent link">&para;</a></h2>
-<p><code>connections</code> 用来表达组件间耦合关系。单比特模板可以先留空；多组件设备再补充连接项。</p>
-<h2 id="_4">运行时会自动提取什么<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<p>当前加载器会从组件化结构中自动提取：</p>
+<p>常见连接类型：</p>
 <ul>
-<li>量子比特列表</li>
-<li><code>qubit_freqs_Hz</code></li>
-<li><code>anharmonicity_Hz</code></li>
-<li><code>T1_s</code>、<code>T2_s</code>、<code>Tphi_s</code></li>
-<li><code>simulation_level</code></li>
+<li><code>jc</code></li>
+<li><code>dispersive</code></li>
+<li><code>readout_feedline</code></li>
+<li><code>zz</code></li>
 </ul>
-<h2 id="_5">实用建议<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>通用字段：</p>
 <ul>
-<li>从 <code>templates/devices/single_qubit.yaml</code> 起步最稳妥</li>
-<li>先把 <code>components</code> 写完整，再补 <code>connections</code></li>
-<li>频率、非谐性和退相干参数优先显式写在组件上</li>
+<li><code>id</code></li>
+<li><code>type</code></li>
+<li><code>a</code></li>
+<li><code>b</code></li>
+<li><code>via</code></li>
+<li><code>parameters</code></li>
+</ul>
+<p>lowering 后，连接会变成：</p>
+<ul>
+<li><code>JCConnectionSpec</code></li>
+<li><code>DispersiveConnectionSpec</code></li>
+<li><code>ReadoutFeedlineConnectionSpec</code></li>
+<li><code>ZZConnectionSpec</code></li>
+</ul>
+<h2 id="modelspec">与 ModelSpec 的关系<a class="headerlink" href="#modelspec" title="Permanent link">&para;</a></h2>
+<p>设备配置中的 <code>components</code> 和 <code>connections</code> 是 <code>SystemSpec</code> 的主要来源。当前 <code>SystemSpec</code> 不保留额外 <code>graph</code> 层，也不保留重复的 <code>component_summary</code>。</p>
+<div class="highlight"><pre><span></span><code>SystemSpec
+  components
+  connections
+  structure
+  assumptions
+</code></pre></div>
+<p><code>structure</code> 记录 study 选择后的模型结构摘要，例如 qubit/cavity/feedline 的表示方式和耦合类型。</p>
+<h2 id="_3">实用建议<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<ul>
+<li>从 <code>templates/devices/single_qubit.yaml</code> 或已有 CQED 模板复制起步</li>
+<li>优先把硬件事实写在组件和连接上</li>
+<li>不要为了统计数量手写 summary；需要数量时由代码从 <code>components</code> 推导</li>
+<li><code>representation: disabled</code> 可用于暂时排除组件</li>
 </ul>
 
 
