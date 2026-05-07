@@ -6,6 +6,7 @@ from typing import Any
 
 PULSE_KEYS = {
     "gate_duration_ns",
+    "idle_duration_ns",
     "measure_duration_ns",
     "measure_amp",
     "measure_segments",

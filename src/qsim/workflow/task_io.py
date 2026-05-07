@@ -98,6 +98,10 @@ _SOLVER_RUN_COMMON_KEYS = {
     "decoder",
     "decoder_options",
     "qec_engine",
+    "qutip_options",
+    "native_options",
+    "backend_options",
+    "one_over_f_components",
 }
 _SOLVER_RUN_JULIA_KEYS = {"julia_bin", "julia_depot_path", "julia_timeout_s"}
 

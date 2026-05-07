@@ -10,3 +10,4 @@ examples/
 *.pytest*
 *tmp*
 personal_use/
+report/

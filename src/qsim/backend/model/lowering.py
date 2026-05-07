@@ -469,11 +469,26 @@ def lower_system(
         dim = int(_device_value(hw, "dimension", (context.cavity_nmax + 1) * (context.transmon_levels**num_qubits)))
 
     cavity_freq_hz = float(_device_value(hw, "cavity_freq_Hz", context.composite_quantum.cavity_freq_Hz))
+    component_specs = [SystemComponentSpec.from_dict(item) for item in context.composite_meta.component_dicts]
+    transmon_idx = 0
+    for idx, comp in enumerate(component_specs):
+        if str(getattr(comp, "type", "")).strip().lower() != "transmon":
+            continue
+        if transmon_idx >= num_qubits:
+            break
+        component_specs[idx] = replace(
+            comp,
+            freq_Hz=float(frame.qubit_freqs_Hz[transmon_idx]),
+            omega_rad_s=TWO_PI * float(frame.qubit_freqs_Hz[transmon_idx]),
+            anharmonicity_Hz=float(anharmonicity_Hz[transmon_idx]),
+            anharmonicity_rad_s=TWO_PI * float(anharmonicity_Hz[transmon_idx]),
+        )
+        transmon_idx += 1
     return SystemSpec(
         model_type=context.model_type,
         simulation_level=context.simulation_level,
         dimension=dim,
-        components=[SystemComponentSpec.from_dict(item) for item in context.composite_meta.component_dicts],
+        components=component_specs,
         connections=[SystemConnectionSpec.from_dict(item) for item in context.composite_meta.connection_dicts],
         structure=ModelStructureSpec.from_dict(context.structure.to_dict()),
         qubits=SystemQubitSpec(

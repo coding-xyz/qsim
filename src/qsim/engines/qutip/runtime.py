@@ -31,7 +31,7 @@ class QutipRunConfig:
             seed=int(solver.seed if solver.seed is not None else options.get("seed", 12345)),
             ntraj=int(max(1, solver.ntraj if solver.ntraj is not None else options.get("ntraj", 128))),
             qutip_options=native_options,
-            one_over_f_components=int(options.get("one_over_f_components", 64)),
+            one_over_f_components=int(options.get("one_over_f_components") or 64),
             backend_options=backend_options,
         )
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import math
 from typing import Any
 
 from qsim.schemas._factory_utils import _float, _merged_payload, _optional_float, _str
@@ -146,13 +147,17 @@ def _build_transmon_component(raw: dict[str, Any]) -> TransmonComponentSpec:
     data = _merged_payload(raw)
     basis = data["_basis"]
     noise = data["_noise"]
+    freq_hz = _float(data, "freq_Hz")
+    anh_hz = _float(data, "anharmonicity_Hz")
+    omega_rad_s = _float(data, "omega_rad_s") or (2.0 * math.pi * freq_hz)
+    anh_rad_s = _float(data, "anharmonicity_rad_s") or (2.0 * math.pi * anh_hz)
     return TransmonComponentSpec(
         **_base_component_kwargs(raw),
         levels=int(basis.get("levels", data.get("levels", 2)) or 2),
-        freq_Hz=_float(data, "freq_Hz"),
-        omega_rad_s=_float(data, "omega_rad_s"),
-        anharmonicity_Hz=_float(data, "anharmonicity_Hz"),
-        anharmonicity_rad_s=_float(data, "anharmonicity_rad_s"),
+        freq_Hz=freq_hz,
+        omega_rad_s=omega_rad_s,
+        anharmonicity_Hz=anh_hz,
+        anharmonicity_rad_s=anh_rad_s,
         T1_s=_optional_float(data.get("T1_s", noise.get("T1_s"))),
         T2_s=_optional_float(data.get("T2_s", noise.get("T2_s"))),
         Tphi_s=_optional_float(data.get("Tphi_s", noise.get("Tphi_s"))),

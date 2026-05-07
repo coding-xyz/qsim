@@ -27,25 +27,29 @@ class PulseCompiler:
             y_quadrature = np.zeros_like(t)
             has_quadrature = False
             carrier_freq_Hz = 0.0
-            carrier_phase_rad = 0.0
             for p in ch.pulses:
                 shape = make_shape(p.shape, p.params)
                 if p.carrier is not None and carrier_freq_Hz == 0.0:
                     carrier_freq_Hz = float(p.carrier.freq)
-                    carrier_phase_rad = float(p.carrier.phase)
+                phase = float(p.carrier.phase) if p.carrier is not None else 0.0
+                cos_phase = float(np.cos(phase))
+                sin_phase = float(np.sin(phase))
                 for i, ti in enumerate(t):
                     if hasattr(shape, "quadratures"):
                         i_env, q_env = shape.quadratures(float(ti), p.t0_s, p.t1_s, p.amp)
-                        y[i] += i_env
-                        y_quadrature[i] += q_env
+                        y[i] += i_env * cos_phase - q_env * sin_phase
+                        y_quadrature[i] += i_env * sin_phase + q_env * cos_phase
                         has_quadrature = has_quadrature or (q_env != 0.0)
                     else:
-                        y[i] += shape.sample(float(ti), p.t0_s, p.t1_s, p.amp)
+                        env = shape.sample(float(ti), p.t0_s, p.t1_s, p.amp)
+                        y[i] += env * cos_phase
+                        y_quadrature[i] += env * sin_phase
+                        has_quadrature = has_quadrature or (abs(env * sin_phase) > 0.0)
             payload = {
                 "t": t,
                 "y": y,
                 "carrier_freq_Hz": np.asarray([carrier_freq_Hz], dtype=float),
-                "carrier_phase_rad": np.asarray([carrier_phase_rad], dtype=float),
+                "carrier_phase_rad": np.asarray([0.0], dtype=float),
             }
             if has_quadrature:
                 payload["y_quadrature"] = y_quadrature

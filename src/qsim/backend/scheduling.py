@@ -25,8 +25,11 @@ def _gate_family(name: str) -> str:
 def _gate_duration_ns(gate: CircuitGate, hw: dict[str, Any]) -> float:
     name = str(gate.name).lower()
     gate_dur = float(hw["gate_duration_ns"])
+    idle_dur = float(hw.get("idle_duration_ns", gate_dur))
     if name in {"z", "rz"}:
         return 0.0
+    if name == "id":
+        return idle_dur
     if name in {"x", "sx", "h", "rx", "ry"}:
         return gate_dur
     if name in {"cz", "cx"}:

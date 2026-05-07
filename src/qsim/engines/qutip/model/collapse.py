@@ -59,6 +59,8 @@ def _append_stochastic_noise(
     selected_noise = str(model_spec.noise.selected_model or "markovian_lindblad").lower()
     stochastic = list(model_spec.noise.stochastic_channels)
     seed = int(run_config.seed)
+    if setup.solver == "heom":
+        return selected_noise, seed
     rng = np.random.default_rng(seed)
     if selected_noise in {"one_over_f", "ou"} and stochastic:
         for item in stochastic:

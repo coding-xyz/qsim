@@ -20,7 +20,7 @@ from qsim.common.unit_schema import (
 
 _ALLOWED_LEVEL = {"qubit", "nlevel", "cqed", "io"}
 _ALLOWED_NOISE = {"deterministic", "lindblad", "sde", "tls", "hybrid"}
-_ALLOWED_SOLVER = {"se", "me", "mcwf", "io"}
+_ALLOWED_SOLVER = {"se", "me", "mcwf", "heom", "io"}
 
 
 @dataclass(frozen=True)

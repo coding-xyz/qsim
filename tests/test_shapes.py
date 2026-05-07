@@ -1,5 +1,9 @@
 import pytest
 
+import math
+
+import pytest
+
 from qsim.common.schemas import Carrier, ChannelSpec, PulseIR, PulseSpec
 from qsim.pulse.sequence import PulseCompiler
 from qsim.pulse.shapes import DragShape, GaussianShape, RectShape
@@ -60,3 +64,25 @@ def test_pulse_compiler_exports_drag_quadrature_separately():
     assert "y_quadrature" in payload
     assert payload["y"][mid - 1] == pytest.approx(payload["y"][mid + 1], rel=1e-6)
     assert payload["y_quadrature"][mid - 1] == pytest.approx(-payload["y_quadrature"][mid + 1], rel=1e-6)
+
+
+def test_pulse_compiler_preserves_per_pulse_carrier_phase_on_one_channel():
+    pulse_ir = PulseIR(
+        t_end_s=5e-9,
+        channels=[
+            ChannelSpec(
+                name="XY_0",
+                pulses=[
+                    PulseSpec(t0_s=0.0, t1_s=2e-9, amp=1.0, shape="rect", carrier=Carrier(freq=5.0e9, phase=0.0)),
+                    PulseSpec(t0_s=3e-9, t1_s=5e-9, amp=1.0, shape="rect", carrier=Carrier(freq=5.0e9, phase=0.5 * math.pi)),
+                ],
+            )
+        ],
+    )
+
+    payload = PulseCompiler.compile(pulse_ir, sample_rate_Hz=1.0e9)["XY_0"]
+
+    assert payload["y"][1] == pytest.approx(1.0)
+    assert payload["y_quadrature"][1] == pytest.approx(0.0)
+    assert payload["y"][4] == pytest.approx(0.0, abs=1e-12)
+    assert payload["y_quadrature"][4] == pytest.approx(1.0)

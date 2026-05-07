@@ -131,6 +131,17 @@ def test_virtual_z_recipe_emits_no_pulse_and_zero_duration():
     assert rz_duration == 0.0
 
 
+def test_id_recipe_uses_configurable_idle_duration_without_emitting_pulse():
+    payload = build_gate_mapping_catalog({"idle_duration_ns": 125.0})
+    ops = {item["op_name"]: item for item in payload["operations"]}
+    pulses, duration, _events = instantiate_operation_recipe("id", [0], start_ns=20.0, hw={"idle_duration_ns": 125.0})
+
+    assert ops["id"]["duration_ns"] == 125.0
+    assert ops["id"]["steps"] == []
+    assert pulses == []
+    assert duration == 125.0
+
+
 def test_lowering_and_catalog_instantiation_stay_in_sync_for_mixed_circuit():
     circuit = CircuitIR(
         num_qubits=2,

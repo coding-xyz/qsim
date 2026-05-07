@@ -57,6 +57,10 @@ class WorkflowRunOptions:
     decoder: str | None = None
     decoder_options: dict | None = None
     qec_engine: str = "auto"
+    qutip_options: dict | None = None
+    native_options: dict | None = None
+    backend_options: dict | None = None
+    one_over_f_components: int | None = None
 
     @property
     def schedule(self) -> str | None:

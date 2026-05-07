@@ -138,6 +138,7 @@ def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any
     hw = hw or {}
     reject_unknown_keys("device", hw, MODEL_HARDWARE_KEYS)
     gate_dur = float(hw.get("gate_duration_ns", 20.0))
+    idle_dur = float(hw.get("idle_duration_ns", gate_dur))
     measure_dur = float(hw.get("measure_duration_ns", 200.0))
     edge_ns = float(hw.get("rect_edge_ns", 2.0))
     schedule_value = hw.get("schedule", hw.get("schedule_policy", "serial"))
@@ -146,6 +147,7 @@ def resolve_lowering_hardware(hw: dict[str, Any] | None = None) -> dict[str, Any
         "ro_freq_Hz": float(hw.get("ro_freq_Hz", 6.5e9)),
         "schedule_policy": str(schedule_value).strip().lower() or "serial",
         "gate_duration_ns": gate_dur,
+        "idle_duration_ns": idle_dur,
         "measure_duration_ns": measure_dur,
         "measure_amp": float(hw.get("measure_amp", 0.8)),
         "rect_edge_ns": edge_ns,
@@ -480,6 +482,7 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
     """Return a machine-readable catalog of supported gate-to-pulse mappings."""
     cfg = resolve_lowering_hardware(hw)
     gate_dur = float(cfg["gate_duration_ns"])
+    idle_dur = float(cfg["idle_duration_ns"])
     measure_dur = float(cfg["measure_duration_ns"])
     reset_total = (
         float(cfg["reset_measure_duration_ns"])
@@ -575,6 +578,15 @@ def build_gate_mapping_catalog(hw: dict[str, Any] | None = None) -> dict[str, An
             hardware_keys=["gate_duration_ns", "rect_edge_ns", "xy_freq_Hz"],
         ),
         _catalog_entry(
+            name="id",
+            arity=1,
+            duration_ns=idle_dur,
+            steps=[],
+            summary="Idle interval with configurable duration and no emitted pulse.",
+            hardware_keys=["idle_duration_ns"],
+            note="Used as an explicit delay in pulse lowering.",
+        ),
+        _catalog_entry(
             name="measure",
             arity="1+",
             duration_ns=measure_dur,
@@ -654,6 +666,7 @@ def instantiate_operation_recipe(
         )
 
     gate_dur = float(cfg["gate_duration_ns"])
+    idle_dur = float(cfg["idle_duration_ns"])
     gate_dur_s = gate_dur * NS_TO_S
     if gate in {"x", "sx", "rx", "ry"}:
         if gate in {"rx", "ry"}:
@@ -710,6 +723,9 @@ def instantiate_operation_recipe(
 
     if gate in {"rz", "z"}:
         return pulses, 0.0, events
+
+    if gate == "id":
+        return pulses, idle_dur, events
 
     if gate == "cz":
         edge_s = float(cfg["rect_edge_ns"]) * NS_TO_S
