@@ -484,7 +484,8 @@ def _normalize_composite_device_payload(raw: dict[str, object]) -> dict[str, obj
         comp_type = str(comp.get("type", "")).strip().lower()
         basis = dict(comp.get("basis", {}) or {})
         parameters = dict(comp.get("parameters", {}) or {})
-        local_noise = dict(comp.get("noise", {}) or {})
+        raw_noise = comp.get("noise", {}) or {}
+        local_noise = dict(raw_noise) if isinstance(raw_noise, dict) else {}
         if comp_type == "transmon":
             q_payload = {
                 "freq_Hz": float(parameters.get("freq_Hz", 0.0)),

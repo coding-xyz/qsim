@@ -14,8 +14,15 @@ device:
         freq_Hz: 5.0e9
         anharmonicity_Hz: -2.0e8
       noise:
-        T1_s: 120.0e-6
-        T2_s: 90.0e-6
+        - id: q0_T1
+          kind: markovian
+          operator: lowering
+          rate:
+            T1_s: 120.0e-6
+        - id: q0_Tphi
+          kind: markovian
+          operator: sigma_z_over_2
+          rate:
+            Tphi_s: 144.0e-6
   connections: []
   parameters: {}
-  noise: {}

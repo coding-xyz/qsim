@@ -18,17 +18,27 @@ cases:
     pulse:
       gate_duration_ns: 22.0
     noise:
-      model: one_over_f
-      one_over_f_amp_Hz: 4.0e7
-      one_over_f_fmin_Hz: 1.0e6
-      one_over_f_fmax_Hz: 1.0e8
+      - id: q0_1overf_case
+        kind: one_over_f
+        targets: [q0]
+        operator: sigma_z_over_2
+        amplitude:
+          rms_Hz: 4.0e7
+          definition: integrated_rms_over_band
+        band_Hz: [1.0e6, 1.0e8]
+        exponent: 1.0
+        psd_convention: one_sided
     note: 1/f surrogate noise
   - tag: ou_drift
     device: {}
     pulse:
       gate_duration_ns: 22.0
     noise:
-      model: ou
-      ou_sigma_Hz: 4.0e7
-      ou_tau_s: 1.2e-8
+      - id: q0_ou_case
+        kind: ou
+        targets: [q0]
+        operator: sigma_z_over_2
+        amplitude:
+          sigma_Hz: 4.0e7
+          tau_s: 1.2e-8
     note: OU frequency drift surrogate

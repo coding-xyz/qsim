@@ -171,6 +171,157 @@ def test_model_builder_uses_solver_timing_controls():
     assert overridden.t_end == pytest.approx(4.0e-9)
 
 
+def test_model_builder_lowers_source_level_noise_and_crosstalk_schema():
+    executable = ExecutableModel(solver="me", metadata={"num_qubits": 2})
+    hw = {
+        "components": [
+            {
+                "id": "q0",
+                "type": "transmon",
+                "parameters": {"freq_Hz": 5.0e9},
+                "noise": [
+                    {
+                        "id": "q0_T1",
+                        "kind": "markovian",
+                        "operator": "lowering",
+                        "rate": {"T1_s": 25.0e-6},
+                    }
+                ],
+            },
+            {"id": "q1", "type": "transmon", "parameters": {"freq_Hz": 5.1e9}},
+        ],
+        "shared_noise": [
+            {
+                "id": "shared_flux_bias",
+                "kind": "one_over_f",
+                "targets": ["q0", "q1"],
+                "operator": "sigma_z_over_2",
+                "amplitude": {"rms_Hz": 2.0e4, "definition": "integrated_rms_over_band"},
+                "band_Hz": [10.0, 1.0e6],
+                "exponent": 1.0,
+                "psd_convention": "one_sided",
+                "correlation": {"type": "shared"},
+            }
+        ],
+        "control_crosstalk": [
+            {
+                "id": "drive_leakage_q0_to_q1",
+                "kind": "deterministic_control_transfer",
+                "source_channel": "XY_0",
+                "target_channel": "XY_1",
+                "transfer": {"amplitude": 0.02, "phase_rad": 0.1},
+            }
+        ],
+        "readout_crosstalk": [
+            {
+                "id": "ro_q0_to_q1_assignment",
+                "kind": "assignment_crosstalk",
+                "source": "q0",
+                "target": "q1",
+                "probability": {"p_target_flip_when_source_excited": 0.03},
+            }
+        ],
+    }
+    noise = {"overrides": {"shared_flux_bias": {"amplitude": {"rms_Hz": 5.0e4}}}}
+
+    pulse_samples = {
+        "XY_0": {
+            "t": [0.0, 1.0e-9, 2.0e-9],
+            "y": [0.0, 1.0, 0.0],
+            "carrier_freq_Hz": [5.0e9],
+            "carrier_phase_rad": [0.0],
+        }
+    }
+
+    spec = DefaultModelBuilder().build(executable, hw=hw, noise=noise, pulse_samples=pulse_samples)
+
+    assert [source.id for source in spec.noise.sources] == ["q0_T1", "shared_flux_bias"]
+    assert len(spec.noise.collapse_channels) == 1
+    assert spec.noise.collapse_channels[0].kind == "relaxation"
+    colored = [item for item in spec.noise.stochastic_channels if item.id == "shared_flux_bias"][0]
+    assert colored.kind == "one_over_f"
+    assert colored.targets == [0, 1]
+    assert colored.one_over_f_amp_Hz == pytest.approx(5.0e4)
+    assert colored.one_over_f_amp_rad_s == pytest.approx(2.0 * math.pi * 5.0e4)
+    assert spec.noise.control_crosstalk[0].target_channel == "XY_1"
+    assert spec.noise.readout_crosstalk[0].kind == "assignment_crosstalk"
+    leaked = [term for term in spec.hamiltonian.control_terms if term.coefficient.metadata.get("channel") == "XY_1"][0]
+    assert leaked.operator.target == 1
+    assert leaked.coefficient.values == pytest.approx([0.0, 0.02, 0.0])
+    assert leaked.coefficient.carrier.phase_rad == pytest.approx(0.1)
+    assert any(item["kind"] == "control_crosstalk_transfers" for item in spec.noise.realizations)
+    assert any(item["kind"] == "readout_crosstalk" for item in spec.noise.realizations)
+
+
+def test_workflow_normalizes_composite_device_with_authored_component_noise_sources():
+    hw = {
+        "components": [
+            {
+                "id": "q0",
+                "type": "transmon",
+                "parameters": {"freq_Hz": 5.0e9, "anharmonicity_Hz": -2.0e8},
+                "noise": [
+                    {
+                        "id": "q0_T1",
+                        "kind": "markovian",
+                        "operator": "lowering",
+                        "rate": {"T1_s": 25.0e-6},
+                    },
+                    {
+                        "id": "q0_flux_1overf",
+                        "kind": "one_over_f",
+                        "operator": "sigma_z_over_2",
+                        "amplitude": {"rms_Hz": 4.0e4},
+                        "band_Hz": [5.0e3, 8.0e5],
+                    },
+                ],
+            }
+        ],
+        "connections": [],
+        "simulation_level": "qubit",
+    }
+
+    normalized = normalize_device_payload(hw)
+
+    assert normalized["qubits"][0]["freq_Hz"] == pytest.approx(5.0e9)
+    assert normalized["components"][0]["noise"][1]["id"] == "q0_flux_1overf"
+
+
+def test_model_builder_rejects_unknown_noise_source_override():
+    executable = ExecutableModel(solver="me", metadata={"num_qubits": 1})
+
+    with pytest.raises(ValueError, match="unknown source id"):
+        DefaultModelBuilder().build(
+            executable,
+            hw={"components": [{"id": "q0", "type": "transmon", "parameters": {"freq_Hz": 5.0e9}}]},
+            noise={"overrides": {"missing": {"amplitude": {"rms_Hz": 1.0}}}},
+            pulse_samples={},
+        )
+
+
+def test_model_builder_accepts_top_level_noise_source_list_shorthand():
+    executable = ExecutableModel(solver="me", metadata={"num_qubits": 1})
+
+    spec = DefaultModelBuilder().build(
+        executable,
+        hw={"components": [{"id": "q0", "type": "transmon", "parameters": {"freq_Hz": 5.0e9}}]},
+        noise=[
+            {
+                "id": "q0_T1_task",
+                "kind": "markovian",
+                "targets": ["q0"],
+                "operator": "lowering",
+                "rate": {"T1_s": 20.0e-6},
+            }
+        ],
+        pulse_samples={},
+    )
+
+    assert [source.id for source in spec.noise.sources] == ["q0_T1_task"]
+    assert len(spec.noise.collapse_channels) == 1
+    assert spec.noise.collapse_channels[0].target == 0
+
+
 def test_model_builder_collects_readout_controls():
     executable = ExecutableModel(solver="me", metadata={"num_qubits": 1})
     pulse_samples = {

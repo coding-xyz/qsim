@@ -62,32 +62,58 @@ def _append_stochastic_noise(
     if setup.solver == "heom":
         return selected_noise, seed
     rng = np.random.default_rng(seed)
-    if selected_noise in {"one_over_f", "ou"} and stochastic:
-        for item in stochastic:
-            target = int(item.q)
-            if target < 0 or target >= setup.n_qubits:
-                continue
-            if selected_noise == "one_over_f":
-                series = engine._one_over_f_trace(
-                    tlist=setup.tlist,
-                    amp=float(item.one_over_f_amp_rad_s),
-                    fmin=float(item.one_over_f_fmin),
-                    fmax=float(item.one_over_f_fmax or 0.5 / max(setup.dt, 1e-12)),
-                    exponent=float(item.one_over_f_exponent),
-                    ncomp=int(run_config.one_over_f_components),
-                    rng=rng,
-                )
-            else:
-                series = engine._ou_trace(
-                    tlist=setup.tlist,
-                    sigma=float(item.ou_sigma_rad_s),
-                    tau=float(item.ou_tau),
-                    rng=rng,
-                )
+    if not stochastic:
+        return selected_noise, seed
+    for item in stochastic:
+        channel_noise = _channel_noise_model(item, selected_noise)
+        if channel_noise not in {"one_over_f", "1/f", "pink", "ou"}:
+            continue
+        targets = list(getattr(item, "targets", []) or [int(item.q)])
+        targets = [int(target) for target in targets if 0 <= int(target) < setup.n_qubits]
+        if not targets:
+            continue
+        if channel_noise in {"one_over_f", "1/f", "pink"}:
+            series = engine._one_over_f_trace(
+                tlist=setup.tlist,
+                amp=float(item.one_over_f_amp_rad_s),
+                fmin=float(item.one_over_f_fmin),
+                fmax=float(item.one_over_f_fmax or 0.5 / max(setup.dt, 1e-12)),
+                exponent=float(item.one_over_f_exponent),
+                ncomp=int(run_config.one_over_f_components),
+                rng=rng,
+            )
+        else:
+            series = engine._ou_trace(
+                tlist=setup.tlist,
+                sigma=float(item.ou_sigma_rad_s),
+                tau=float(item.ou_tau),
+                rng=rng,
+            )
+        for target in targets:
             system.H.append(
                 [
-                    system.z_ops[target],
+                    _stochastic_coupling_operator(setup=setup, system=system, item=item, target=target),
                     lambda t, _a=None, s=series, x=setup.tlist: float(np.interp(float(t), x, s)),
                 ]
             )
     return selected_noise, seed
+
+
+def _channel_noise_model(item: Any, selected_noise: str) -> str:
+    for name in ("kind", "model", "noise_model"):
+        value = getattr(item, name, None)
+        if value:
+            return str(value).strip().lower()
+    if isinstance(item, dict):
+        for name in ("kind", "model", "noise_model"):
+            value = item.get(name)
+            if value:
+                return str(value).strip().lower()
+    return selected_noise
+
+
+def _stochastic_coupling_operator(*, setup: QutipPlan, system: QutipSystem, item: Any, target: int):
+    operator = str(getattr(item, "operator", "") or "").strip().lower()
+    if operator in {"sigma_z_over_2", "0.5*sigma_z", "half_sigma_z"}:
+        return 0.5 * system.z_ops[target]
+    return system.z_ops[target]

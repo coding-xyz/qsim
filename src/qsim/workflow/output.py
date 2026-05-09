@@ -249,6 +249,10 @@ def build_settings_report(
             "readout_lines": [line.to_dict() for line in model_spec.readout.lines] if model_spec.readout else [],
             "noise_summary": {
                 "selected_model": model_spec.noise.selected_model,
+                "sources": [source.to_dict() for source in model_spec.noise.sources],
+                "realizations": list(model_spec.noise.realizations),
+                "control_crosstalk": [item.to_dict() for item in model_spec.noise.control_crosstalk],
+                "readout_crosstalk": [item.to_dict() for item in model_spec.noise.readout_crosstalk],
                 "supported": list(model_spec.noise.supported),
                 "unsupported": list(model_spec.noise.unsupported),
                 "warnings": list(model_spec.noise.warnings),

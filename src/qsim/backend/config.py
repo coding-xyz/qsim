@@ -160,6 +160,9 @@ class DeviceConfig:
     T2_s: Any = None
     Tphi_s: Any = None
     Tup_s: Any = None
+    shared_noise: list[dict[str, Any]] = field(default_factory=list)
+    control_crosstalk: list[dict[str, Any]] = field(default_factory=list)
+    readout_crosstalk: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def component_dicts(self) -> list[dict[str, Any]]:
@@ -212,6 +215,12 @@ class DeviceConfig:
             value = getattr(self, key)
             if value is not None:
                 data[key] = value
+        if self.shared_noise:
+            data["shared_noise"] = [dict(item) for item in self.shared_noise]
+        if self.control_crosstalk:
+            data["control_crosstalk"] = [dict(item) for item in self.control_crosstalk]
+        if self.readout_crosstalk:
+            data["readout_crosstalk"] = [dict(item) for item in self.readout_crosstalk]
         return data
 
 
@@ -248,6 +257,10 @@ class NoiseConfig:
     model: str = "markovian_lindblad"
     local: LocalNoiseConfig = field(default_factory=LocalNoiseConfig)
     stochastic: StochasticNoiseConfig = field(default_factory=StochasticNoiseConfig)
+    sources: list[dict[str, Any]] = field(default_factory=list)
+    enabled_sources: list[str] = field(default_factory=list)
+    disabled_sources: list[str] = field(default_factory=list)
+    overrides: dict[str, Any] = field(default_factory=dict)
     one_over_f: bool = False
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -256,6 +269,14 @@ class NoiseConfig:
     def to_dict(self) -> dict[str, Any]:
         data = dict(self.data)
         data["model"] = self.model
+        if self.sources:
+            data["sources"] = [dict(item) for item in self.sources]
+        if self.enabled_sources:
+            data["enabled_sources"] = list(self.enabled_sources)
+        if self.disabled_sources:
+            data["disabled_sources"] = list(self.disabled_sources)
+        if self.overrides:
+            data["overrides"] = dict(self.overrides)
         if self.one_over_f:
             data["one_over_f"] = True
         return data
@@ -375,13 +396,20 @@ def _normalize_qubit(raw: dict[str, Any]) -> QubitConfig:
 
 def _normalize_component(raw: dict[str, Any]) -> ComponentConfig:
     data = dict(raw or {})
+    raw_noise = data.get("noise", {}) or {}
+    if isinstance(raw_noise, list):
+        noise = {"sources": [dict(item) for item in raw_noise if isinstance(item, dict)]}
+    elif isinstance(raw_noise, dict):
+        noise = dict(raw_noise)
+    else:
+        noise = {}
     return ComponentConfig(
         id=str(data.get("id", "")),
         type=str(data.get("type", "")).strip().lower(),
         representation=str(data.get("representation", "quantum")).strip().lower(),
         basis=dict(data.get("basis", {}) or {}),
         parameters=dict(data.get("parameters", {}) or {}),
-        noise=dict(data.get("noise", {}) or {}),
+        noise=noise,
         description=str(data.get("description", "")),
         raw=data,
     )
@@ -456,14 +484,20 @@ def normalize_device_config(raw: dict[str, Any] | DeviceConfig | None) -> Device
         T2_s=data.get("T2_s"),
         Tphi_s=data.get("Tphi_s"),
         Tup_s=data.get("Tup_s"),
+        shared_noise=[dict(item) for item in list(data.get("shared_noise", []) or []) if isinstance(item, dict)],
+        control_crosstalk=[dict(item) for item in list(data.get("control_crosstalk", []) or []) if isinstance(item, dict)],
+        readout_crosstalk=[dict(item) for item in list(data.get("readout_crosstalk", []) or []) if isinstance(item, dict)],
     )
 
 
-def normalize_noise_config(raw: dict[str, Any] | NoiseConfig | None) -> NoiseConfig:
+def normalize_noise_config(raw: dict[str, Any] | list[dict[str, Any]] | NoiseConfig | None) -> NoiseConfig:
     """Normalize a raw noise mapping into a stable backend config object."""
     if isinstance(raw, NoiseConfig):
         return raw
-    data = dict(raw or {})
+    if isinstance(raw, list):
+        data = {"sources": [dict(item) for item in raw if isinstance(item, dict)]}
+    else:
+        data = dict(raw or {})
     reject_unknown_keys("noise", data, NOISE_KEYS)
     model = _normalize_noise_model(data.get("model", data.get("type", "")), one_over_f=bool(data.get("one_over_f", False)))
     local = LocalNoiseConfig(
@@ -488,6 +522,10 @@ def normalize_noise_config(raw: dict[str, Any] | NoiseConfig | None) -> NoiseCon
         model=model,
         local=local,
         stochastic=stochastic,
+        sources=[dict(item) for item in list(data.get("sources", []) or []) if isinstance(item, dict)],
+        enabled_sources=[str(item) for item in list(data.get("enabled_sources", []) or [])],
+        disabled_sources=[str(item) for item in list(data.get("disabled_sources", []) or [])],
+        overrides=dict(data.get("overrides", {}) or {}),
         one_over_f=bool(data.get("one_over_f", False)),
     )
 
@@ -594,7 +632,7 @@ def normalize_analysis_config(raw: dict[str, Any] | AnalysisConfig | None) -> An
 def normalize_model_build_config(
     *,
     device: dict[str, Any] | DeviceConfig | None,
-    noise: dict[str, Any] | NoiseConfig | None,
+    noise: dict[str, Any] | list[dict[str, Any]] | NoiseConfig | None,
     solver_run: dict[str, Any] | SolverConfig | None,
     frame: dict[str, Any] | FrameConfig | None,
     analyser: dict[str, Any] | AnalysisConfig | None,

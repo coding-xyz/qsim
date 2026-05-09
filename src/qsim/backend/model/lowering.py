@@ -657,7 +657,76 @@ def lower_sampled_channels(hw: DeviceConfig, pulse_samples: dict[str, dict[str, 
             )
         )
 
+    _append_control_crosstalk_records(
+        controls=controls,
+        readout_controls=readout_controls,
+        crosstalk=list(hw.control_crosstalk or []),
+        num_qubits=num_qubits,
+        pulse_refs=pulse_refs,
+    )
     return SampledChannelsIR(controls=controls, readout_controls=readout_controls, pulse_carrier_reference_freqs_Hz=pulse_refs)
+
+
+def _channel_role_axis_target(channel: str, num_qubits: int) -> tuple[str, str | None, int | None]:
+    mxy = XY_RE.match(channel)
+    if mxy:
+        target = int(mxy.group(1))
+        return ("control", "x", target if target < num_qubits else None)
+    mz = Z_RE.match(channel)
+    if mz:
+        target = int(mz.group(1))
+        return ("control", "z", target if target < num_qubits else None)
+    mro = RO_RE.match(channel)
+    if mro:
+        return ("readout", None, int(mro.group(1)))
+    return ("", None, None)
+
+
+def _append_control_crosstalk_records(
+    *,
+    controls: list[dict[str, Any]],
+    readout_controls: list[dict[str, Any]],
+    crosstalk: list[dict[str, Any]],
+    num_qubits: int,
+    pulse_refs: list[float],
+) -> None:
+    source_records = {str(item.get("channel", "")): item for item in [*controls, *readout_controls]}
+    for item in crosstalk:
+        source_channel = str(item.get("source_channel", "") or "")
+        target_channel = str(item.get("target_channel", "") or "")
+        if not source_channel or not target_channel:
+            continue
+        source = source_records.get(source_channel)
+        if source is None:
+            continue
+        transfer = dict(item.get("transfer", {}) or {})
+        amplitude = float(transfer.get("amplitude", 0.0) or 0.0)
+        if amplitude == 0.0:
+            continue
+        phase_rad = float(transfer.get("phase_rad", 0.0) or 0.0)
+        role, axis, target = _channel_role_axis_target(target_channel, num_qubits)
+        if role == "control" and (axis is None or target is None):
+            continue
+        record = dict(source)
+        record["channel"] = target_channel
+        record["values"] = [amplitude * float(value) for value in list(source.get("values", []) or [])]
+        record["carrier_phase_rad"] = float(record.get("carrier_phase_rad", 0.0) or 0.0) + phase_rad
+        record["crosstalk_id"] = str(item.get("id", "") or "")
+        record["crosstalk_source_channel"] = source_channel
+        record["crosstalk_transfer"] = dict(transfer)
+        record["kind"] = str(item.get("kind", "deterministic_control_transfer") or "deterministic_control_transfer")
+        if role == "control":
+            record["axis"] = axis
+            record["target"] = int(target)
+            carrier_freq_Hz = float(record.get("carrier_freq_Hz", 0.0) or 0.0)
+            if axis == "x" and carrier_freq_Hz != 0.0 and pulse_refs[int(target)] == 0.0:
+                pulse_refs[int(target)] = carrier_freq_Hz
+            controls.append(record)
+        elif role == "readout":
+            record["kind"] = "readout_crosstalk_transfer"
+            if target is not None:
+                record["target"] = int(target)
+            readout_controls.append(record)
 
 
 def lower_frame(

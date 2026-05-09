@@ -154,6 +154,10 @@ def model_spec_from_runtime_dict(
         noise=NoiseSpec(
             selected_model=str(noise_summary.get("selected_model", "markovian_lindblad")),
             readout_error=float((data.get("noise_cfg", {}) or {}).get("readout_error", 0.0) or 0.0),
+            sources=list(noise_summary.get("sources", []) or []),
+            realizations=list(noise_summary.get("realizations", []) or []),
+            control_crosstalk=list(noise_summary.get("control_crosstalk", []) or []),
+            readout_crosstalk=list(noise_summary.get("readout_crosstalk", []) or []),
             collapse_channels=list(data.get("collapse_operators", []) or []),
             stochastic_channels=list(noise_summary.get("stochastic", []) or []),
             per_qubit_rates=list(noise_summary.get("per_qubit_rates", []) or []),

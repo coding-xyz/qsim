@@ -23,9 +23,30 @@ cases:
     pulse:
       gate_duration_ns: 20.0
     noise:
-      model: markovian_lindblad
-      T1_per_qubit_s: [1.0e-4, 1.0e-4]
-      T2_per_qubit_s: [8.0e-5, 8.0e-5]
+      - id: q0_T1_weak
+        kind: markovian
+        targets: [q0]
+        operator: lowering
+        rate:
+          T1_s: 1.0e-4
+      - id: q0_Tphi_weak
+        kind: markovian
+        targets: [q0]
+        operator: sigma_z_over_2
+        rate:
+          Tphi_s: 133.333333e-6
+      - id: q1_T1_weak
+        kind: markovian
+        targets: [q1]
+        operator: lowering
+        rate:
+          T1_s: 1.0e-4
+      - id: q1_Tphi_weak
+        kind: markovian
+        targets: [q1]
+        operator: sigma_z_over_2
+        rate:
+          Tphi_s: 133.333333e-6
     note: weak 2Q coupling
   - tag: strong_coupling
     device:
@@ -37,7 +58,28 @@ cases:
     pulse:
       gate_duration_ns: 28.0
     noise:
-      model: markovian_lindblad
-      T1_per_qubit_s: [6.0e-5, 6.5e-5]
-      T2_per_qubit_s: [4.5e-5, 5.0e-5]
+      - id: q0_T1_strong
+        kind: markovian
+        targets: [q0]
+        operator: lowering
+        rate:
+          T1_s: 6.0e-5
+      - id: q0_Tphi_strong
+        kind: markovian
+        targets: [q0]
+        operator: sigma_z_over_2
+        rate:
+          Tphi_s: 72.0e-6
+      - id: q1_T1_strong
+        kind: markovian
+        targets: [q1]
+        operator: lowering
+        rate:
+          T1_s: 6.5e-5
+      - id: q1_Tphi_strong
+        kind: markovian
+        targets: [q1]
+        operator: sigma_z_over_2
+        rate:
+          Tphi_s: 81.25e-6
     note: stronger 2Q coupling

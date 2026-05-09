@@ -60,6 +60,9 @@ MODEL_HARDWARE_KEYS = LOWERING_HARDWARE_KEYS | {
     "components",
     "connections",
     "parameters",
+    "shared_noise",
+    "control_crosstalk",
+    "readout_crosstalk",
 }
 
 COUPLING_KEYS = {"i", "j", "g_Hz", "kind"}
@@ -89,6 +92,10 @@ NOISE_KEYS = {
     "one_over_f_exponent",
     "ou_sigma_Hz",
     "ou_tau_s",
+    "sources",
+    "enabled_sources",
+    "disabled_sources",
+    "overrides",
 }
 
 NS_TO_S = 1e-9

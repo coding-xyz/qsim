@@ -20,9 +20,13 @@ cases:
       measure_duration_ns: 60.0
       gate_duration_ns: 20.0
     noise:
-      model: ou
-      ou_sigma_Hz: 1.0e7
-      ou_tau_s: 6.0e-9
+      - id: q0_ou_nominal
+        kind: ou
+        targets: [q0]
+        operator: sigma_z_over_2
+        amplitude:
+          sigma_Hz: 1.0e7
+          tau_s: 6.0e-9
     note: mild control/readout disturbance
   - tag: stressed_joint
     device:
@@ -31,7 +35,11 @@ cases:
       measure_duration_ns: 120.0
       gate_duration_ns: 30.0
     noise:
-      model: ou
-      ou_sigma_Hz: 5.0e7
-      ou_tau_s: 1.4e-8
+      - id: q0_ou_stressed
+        kind: ou
+        targets: [q0]
+        operator: sigma_z_over_2
+        amplitude:
+          sigma_Hz: 5.0e7
+          tau_s: 1.4e-8
     note: stronger combined control/readout disturbance
