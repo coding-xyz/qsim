@@ -130,7 +130,7 @@ def _is_v3_solver_payload(payload: dict[str, Any]) -> bool:
 
 def _is_v3_pulse_payload(payload: dict[str, Any]) -> bool:
     raw_pulse = payload.get("pulse", {}) or {}
-    return isinstance(raw_pulse, dict) and any(k in raw_pulse for k in {"channels", "carriers", "waveforms", "operations", "acquisition"})
+    return isinstance(raw_pulse, dict) and any(k in raw_pulse for k in {"channels", "carriers", "waveforms", "operations"})
 
 
 def _map_v3_task_payload(payload: dict[str, Any]) -> dict[str, Any]:

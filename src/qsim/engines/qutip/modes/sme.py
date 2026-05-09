@@ -249,7 +249,13 @@ class QutipSmeMixin:
         seed = int(run_config.seed)
         ntraj = max(1, int(run_config.ntraj))
         drive = cls._sample_readout_drive(tlist, list(setup.readout_controls or []))
-        kappa_ext_hz = max(0.0, float(readout_chain.get("kappa_ext_Hz", 0.0) or 0.0))
+        has_cavity = system.cavity_a is not None and system.cavity_n is not None
+        rate_hz = (
+            float(readout_chain.get("kappa_ext_Hz", 0.0) or 0.0)
+            if has_cavity
+            else float(readout_chain.get("measurement_rate_Hz", readout_chain.get("kappa_ext_Hz", 2.0e6)) or 2.0e6)
+        )
+        kappa_ext_hz = max(0.0, rate_hz)
         kappa_ext_rad_s = 2.0 * math.pi * kappa_ext_hz
         eta_chain = float(readout_chain.get("eta_chain", 1.0) or 1.0)
         eta_chain = min(1.0, max(1.0e-6, eta_chain))
@@ -270,13 +276,14 @@ class QutipSmeMixin:
             cls._enable_sme_measurement_storage(options, tlist)
 
         c_ops_eff = list(solver_inputs.c_ops)
-        if lost_rate > 0.0:
+        if has_cavity and lost_rate > 0.0:
             c_ops_eff.append(math.sqrt(lost_rate) * system.cavity_a)
 
         sc_ops = []
         monitored_ix = len(c_ops_eff)
+        monitored_base_op = system.cavity_a if has_cavity else system.z_ops[0]
         if measured_rate > 0.0:
-            monitored_op = math.sqrt(measured_rate) * system.cavity_a
+            monitored_op = math.sqrt(measured_rate) * monitored_base_op
             if protocol.solver_kind == "counting":
                 c_ops_eff.append(monitored_op)
             else:
@@ -298,7 +305,7 @@ class QutipSmeMixin:
             c_ops_eff=c_ops_eff,
             sc_ops=sc_ops,
             monitored_collapse_index=monitored_ix,
-            e_ops_all=e_ops + [system.cavity_a, system.cavity_n] + lower_ops,
+            e_ops_all=e_ops + [monitored_base_op, monitored_base_op.dag() * monitored_base_op] + lower_ops,
             num_primary=len(e_ops),
             num_lowering=len(lower_ops),
         )

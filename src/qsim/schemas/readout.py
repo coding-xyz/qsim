@@ -187,6 +187,7 @@ class ReadoutChainSpec:
     added_noise_photons: float = 0.0
     center_freq_Hz: float = 0.0
     bandwidth_Hz: float = 0.0
+    measurement_rate_Hz: float = 0.0
     cavity_freq_Hz: float = 0.0
     input_amplitude_noise_rel_sigma: float = 0.0
     input_phase_noise_std_rad: float = 0.0
@@ -214,6 +215,7 @@ class ReadoutChainSpec:
             added_noise_photons=float(raw.get("added_noise_photons", 0.0) or 0.0),
             center_freq_Hz=float(raw.get("center_freq_Hz", 0.0) or 0.0),
             bandwidth_Hz=float(raw.get("bandwidth_Hz", 0.0) or 0.0),
+            measurement_rate_Hz=float(raw.get("measurement_rate_Hz", 0.0) or 0.0),
             cavity_freq_Hz=float(raw.get("cavity_freq_Hz", 0.0) or 0.0),
             input_amplitude_noise_rel_sigma=float(raw.get("input_amplitude_noise_rel_sigma", 0.0) or 0.0),
             input_phase_noise_std_rad=float(raw.get("input_phase_noise_std_rad", 0.0) or 0.0),
@@ -234,6 +236,7 @@ class ReadoutChainSpec:
             "added_noise_photons": self.added_noise_photons,
             "center_freq_Hz": self.center_freq_Hz,
             "bandwidth_Hz": self.bandwidth_Hz,
+            "measurement_rate_Hz": self.measurement_rate_Hz,
             "cavity_freq_Hz": self.cavity_freq_Hz,
             "input_amplitude_noise_rel_sigma": self.input_amplitude_noise_rel_sigma,
             "input_phase_noise_std_rad": self.input_phase_noise_std_rad,
@@ -256,6 +259,7 @@ class ReadoutChainSpec:
             and self.added_noise_photons == 0.0
             and self.center_freq_Hz == 0.0
             and self.bandwidth_Hz == 0.0
+            and self.measurement_rate_Hz == 0.0
             and self.cavity_freq_Hz == 0.0
             and self.input_amplitude_noise_rel_sigma == 0.0
             and self.input_phase_noise_std_rad == 0.0

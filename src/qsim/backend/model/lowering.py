@@ -917,6 +917,7 @@ def infer_cqed_readout_chain(model_data: ReadoutTopologyInput, n_qubits: int) ->
         "added_noise_photons": safe_float(line_params.get("added_noise_photons", 0.0), 0.0),
         "center_freq_Hz": safe_float(line_params.get("center_freq_Hz", cavity_params.get("freq_Hz", 0.0)), 0.0),
         "bandwidth_Hz": safe_float(io_params.get("bandwidth_Hz", line_params.get("bandwidth_Hz", 0.0)), 0.0),
+        "measurement_rate_Hz": safe_float(line_params.get("measurement_rate_Hz", io_params.get("measurement_rate_Hz", 2.0e6)), 2.0e6),
     }
 
 

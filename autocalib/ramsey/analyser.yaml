@@ -1,0 +1,18 @@
+schema_version: "1.0"
+trajectory:
+  quantum: density_matrix
+  save_times: none
+  save_final_state: false
+  save_jump_events: false
+  save_measurement_records: true
+metrics:
+  - population
+  - mean_excited
+  - variance
+readout_model:
+  mode: direct_qubit_sme
+iq_discrimination:
+  method: linear_discriminant
+  shots: 200
+  calibration_states:
+    - label: ramsey

@@ -1,0 +1,21 @@
+schema_version: "3.0"
+target: trajectory
+input:
+  qasm_text: |
+    OPENQASM 3;
+    qubit[1] q;
+    bit[1] c;
+    x q[0];
+    measure q[0] -> c[0];
+  solver_config: solver.yaml
+  device_config: ../device.yaml
+  pulse_config: pulse.yaml
+  analyser_config: analyser.yaml
+output:
+  out_dir: ../runs/drag_sme
+  persist_artifacts: true
+  artifact_mode: all
+  export_plots: false
+  export_dxf: false
+features: {}
+tags: [autocalib, drag, sme, iq]

@@ -30,7 +30,7 @@ def run_solver_mode(
     trajectory_cfg: QutipTrajectoryRequest,
 ) -> Trajectory:
     """Dispatch the prepared model to the selected QuTiP solver-mode module."""
-    if setup.readout_mode == "monitored_sme" and system.cavity_a is not None and system.cavity_n is not None:
+    if setup.readout_mode == "monitored_sme":
         return run_monitored_sme(
             engine=engine,
             setup=setup,

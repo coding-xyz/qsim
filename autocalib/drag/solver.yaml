@@ -1,0 +1,33 @@
+schema_version: "3.0"
+solver:
+  engine: qutip
+  seed: 20260509
+  mcwf_ntraj: 200
+  study:
+    - name: drag_sme
+      description: DRAG beta comparison with heterodyne stochastic master-equation readout
+      active_components: [q0, ro0]
+      active_connections: []
+      prep_state:
+        label: ground
+        sequence: []
+      representations:
+        q0: quantum
+        ro0: classical
+      bases:
+        q0:
+          kind: nlevel
+          levels: 3
+      solver_mode: me
+      time:
+        dt_s: 2.0e-9
+        t_padding_s: 0.0
+      frame:
+        mode: rotating
+        reference: pulse_carrier
+        rwa: true
+      options:
+        subsystem_model: transmon_nlevel
+        readout_protocol: heterodyne_sme
+  schedule:
+    policy: serial

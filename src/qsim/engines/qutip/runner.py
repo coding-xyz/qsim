@@ -119,14 +119,14 @@ class QutipRunnerMixin:
 
     @staticmethod
     def _resolve_runtime_readout_mode(*, solver: str, has_classical_line: bool, readout_protocol: str) -> str:
-        if not has_classical_line:
-            return "none"
         if solver in {"me", "mcwf"} and readout_protocol in {
             "homodyne_sme",
             "heterodyne_sme",
             "photon_counting_sme",
         }:
             return "monitored_sme"
+        if not has_classical_line:
+            return "none"
         if solver == "mcwf":
             return "hybrid_classical"
         return "postprocessed_classical"

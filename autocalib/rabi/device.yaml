@@ -1,0 +1,28 @@
+schema_version: "3.0"
+device:
+  simulation_level: nlevel
+  transmon_levels: 3
+  control_scale: 1.0
+  components:
+    - id: q0
+      type: transmon
+      description: shared three-level transmon used by Rabi, Ramsey, and DRAG autocalibration tasks
+      ports:
+        drive: drive_port
+      parameters:
+        freq_Hz: 5.0e9
+        anharmonicity_Hz: -2.2e8
+      noise:
+        T1_s: 24.0e-6
+        Tphi_s: 18.0e-6
+    - id: ro0
+      type: readout_line
+      description: direct qubit heterodyne SME readout chain
+      parameters:
+        eta_chain: 0.35
+        gain_dB: 40.0
+        added_noise_photons: 10.0
+        bandwidth_Hz: 8.0e6
+        measurement_rate_Hz: 2.0e6
+  connections: []
+  noise: {}

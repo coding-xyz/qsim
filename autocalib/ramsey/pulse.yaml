@@ -1,0 +1,16 @@
+schema_version: "1.0"
+pulse:
+  gate_duration_ns: 16.0
+  idle_duration_ns: 8.0
+  xy_freq_Hz: 5.0e9
+  ro_freq_Hz: 6.45e9
+  single_qubit_shape: gaussian
+  single_qubit_sigma_fraction: 0.20
+  measure_duration_ns: 500.0
+  measure_amp: 0.04
+  readout_edge_ns: 20.0
+  acquisition:
+    integration_window_ns: 500.0
+    start_delay_ns: 0.0
+    demodulation:
+      phase_rad: 0.0
