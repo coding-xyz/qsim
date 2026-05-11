@@ -7,6 +7,7 @@ from typing import Any
 from qsim.analysis.observables import compute_observables
 from qsim.analysis.registry import MetricRegistry
 from qsim.common.schemas import ModelSpec, Observables, Report, Trajectory
+from qsim.schemas.results import MetricSeries, MetricsOutput
 
 
 def _complex_scalar(value) -> complex:
@@ -170,11 +171,14 @@ def metric_population(trajectory: Trajectory, model_spec: ModelSpec, metric_cfg:
         updates["final_p0"] = float(basis_series["0"][-1])
     if "1" in basis_series and basis_series["1"]:
         updates["final_p1"] = float(basis_series["1"][-1])
+    # Use the length of the first available series for time alignment
+    series_length = max((len(values) for values in basis_series.values()), default=0)
+    payload = MetricSeries(
+        times=list(trajectory.times[: series_length]),
+        values=basis_series,
+    )
     return _metric_result(
-        {
-            "times": list(trajectory.times[:series_length]),
-            "values": basis_series,
-        },
+        payload,
         observable_updates=updates,
     )
 
@@ -185,10 +189,7 @@ def metric_mean_excited(trajectory: Trajectory, model_spec: ModelSpec, metric_cf
     mean_series = _mean_excited_series_from_population(basis_series, model_spec)
     updates = {"mean_excited": float(mean_series[-1])} if mean_series else {}
     return _metric_result(
-        {
-            "times": list(trajectory.times),
-            "values": mean_series,
-        },
+        MetricSeries(times=list(trajectory.times), values=list(mean_series)),
         observable_updates=updates,
     )
 
@@ -199,10 +200,7 @@ def metric_variance(trajectory: Trajectory, model_spec: ModelSpec, metric_cfg: d
     variance_series = _variance_series_from_population(basis_series, model_spec)
     updates = {"variance": float(variance_series[-1])} if variance_series else {}
     return _metric_result(
-        {
-            "times": list(trajectory.times),
-            "values": variance_series,
-        },
+        MetricSeries(times=list(trajectory.times), values=list(variance_series)),
         observable_updates=updates,
     )
 
@@ -237,15 +235,17 @@ def resolve_metrics_payload(
     analyser_cfg: dict[str, Any] | None,
     *,
     registry: MetricRegistry | None = None,
-) -> tuple[dict[str, Any], Observables, Report]:
+) -> tuple[MetricsOutput, Observables, Report]:
     requested_metrics = list((analyser_cfg or {}).get("metrics", []) or [])
     observables = compute_observables(trajectory)
     observable_values = dict(observables.values or {})
-    metrics_out: dict[str, Any] = {}
+    metric_items: dict[str, MetricSeries] = {}
     metric_registry = registry or DEFAULT_METRIC_REGISTRY
 
     if not requested_metrics:
-        metrics_out = dict(observable_values)
+        # Handle default observables as scalar metrics
+        for key, val in observable_values.items():
+            metric_items[key] = MetricSeries(values=[float(val)])
     else:
         for item in requested_metrics:
             if isinstance(item, str):
@@ -267,30 +267,46 @@ def resolve_metrics_payload(
                     metric_cfg,
                     {"observable_values": dict(observable_values)},
                 )
-                metrics_out[name] = result.get("payload")
+                payload = result.get("payload")
+                if isinstance(payload, dict) and all(isinstance(v, MetricSeries) for v in payload.values()):
+                    metric_items.update(payload)
+                elif isinstance(payload, MetricSeries):
+                    metric_items[name] = payload
+                else:
+                    terminal = _metric_terminal_value(payload)
+                    if terminal is not None:
+                        metric_items[name] = MetricSeries(values=[float(terminal)])
+                
                 for obs_name, obs_value in dict(result.get("observable_updates", {}) or {}).items():
                     observable_values[str(obs_name)] = float(obs_value)
                 continue
             if key in observable_values:
-                metrics_out[name] = float(observable_values[key])
+                metric_items[name] = MetricSeries(values=[float(observable_values[key])])
             elif name in observable_values:
-                metrics_out[name] = float(observable_values[name])
+                metric_items[name] = MetricSeries(values=[float(observable_values[name])])
 
     error_budget = {}
-    for key, value in metrics_out.items():
-        terminal = _metric_terminal_value(value)
-        if terminal is not None:
-            error_budget[key] = float(terminal)
+    for key, series in metric_items.items():
+        if series.values:
+            if isinstance(series.values, dict):
+                # For population distributions, use state "1" or the last state as budget proxy
+                val_series = series.values.get("1") or (
+                    series.values[sorted(series.values.keys())[-1]] 
+                    if series.values else []
+                )
+                error_budget[key] = float(val_series[-1]) if val_series else 0.0
+            else:
+                error_budget[key] = float(series.values[-1])
     report = Report(
         summary={
-            "metrics": list(metrics_out.keys()),
+            "metrics": list(metric_items.keys()),
             "metric_mode": "time_series",
             "metric_terminal_values": error_budget,
             "metric_registry": metric_registry.names(),
         },
         error_budget=error_budget,
     )
-    return metrics_out, Observables(values=observable_values), report
+    return MetricsOutput(metric_items=metric_items), Observables(values=observable_values), report
 
 
 __all__ = [

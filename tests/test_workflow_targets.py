@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
@@ -21,9 +21,10 @@ def test_create_model_runs_trajectory_target_from_example_task1():
     model.add_analyser("analyser_0", "solver_0", DefaultAnalyserConfig(metrics=["population"]))
     model.run()
 
-    assert "solver_0" in model.results.trajectories
-    assert "analyser_0" in model.results.analyses
-    assert "population" in model.results.analyses["analyser_0"].metrics
+    assert "solver_0" in model.runs
+    assert "analyser_0" in model.analyses
+    assert model.analyses["analyser_0"].output.metrics is not None
+    assert "population" in model.analyses["analyser_0"].output.metrics.metric_items
 
 
 def test_cross_engine_target_without_compare_engines_fails():

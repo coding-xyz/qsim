@@ -11,7 +11,14 @@ from qsim.schemas._factory_utils import _float, _merged_payload, _optional_float
 
 @dataclass
 class SystemComponentSpec:
-    """Base entry for a typed engine-neutral system component."""
+    """Base entry for a typed engine-neutral system component.
+
+    Attributes:
+        id: Unique identifier for the component. Defaults to "".
+        type: Type of the component (e.g., "transmon", "resonator"). Defaults to "".
+        representation: Simulation representation (e.g., "quantum", "classical"). Defaults to "quantum".
+        description: Human-readable description of the component. Defaults to "".
+    """
 
     id: str = ""
     type: str = ""
@@ -20,15 +27,33 @@ class SystemComponentSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "SystemComponentSpec":
-        """Build the appropriate component subclass from a plain mapping."""
+        """Build the appropriate component subclass from a plain mapping.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing component fields.
+
+        Returns:
+            SystemComponentSpec: A typed component specification (possibly a subclass).
+        """
         return system_component_from_dict(data)
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a flat JSON-safe representation of the component."""
+        """Return a flat JSON-safe representation of the component.
+
+        Returns:
+            dict[str, Any]: A dictionary containing all public fields of the component.
+        """
         return _dataclass_public_dict(self)
 
     def to_device_dict(self) -> dict[str, Any]:
-        """Return a compatibility device-style mapping with nested parameters."""
+        """Return a compatibility device-style mapping with nested parameters.
+
+        This method formats the component in a style compatible with legacy 
+        device descriptions, grouping parameters and basis info into nested dicts.
+
+        Returns:
+            dict[str, Any]: Device-style mapping.
+        """
         data = {
             "id": self.id,
             "type": self.type,
@@ -45,7 +70,23 @@ class SystemComponentSpec:
 
 @dataclass
 class TransmonComponentSpec(SystemComponentSpec):
-    """Typed transmon component entry."""
+    """Typed transmon component entry.
+
+    Attributes:
+        type: Component type. Defaults to "transmon".
+        levels: Number of energy levels to simulate. Defaults to 2.
+        freq_Hz: Qubit transition frequency in Hz. Defaults to 0.0.
+        omega_rad_s: Qubit transition angular frequency in rad/s. Defaults to 0.0.
+        anharmonicity_Hz: Anharmonicity in Hz. Defaults to 0.0.
+        anharmonicity_rad_s: Anharmonicity in rad/s. Defaults to 0.0.
+        T1_s: Longitudinal relaxation time in seconds.
+        T2_s: Total dephasing time in seconds.
+        Tphi_s: Pure dephasing time in seconds.
+        Tup_s: Excitation time in seconds.
+        gamma1_Hz: Relaxation rate in Hz. Defaults to 0.0.
+        gamma_phi_Hz: Pure dephasing rate in Hz. Defaults to 0.0.
+        gamma_up_Hz: Excitation rate in Hz. Defaults to 0.0.
+    """
 
     type: str = "transmon"
     levels: int = 2
@@ -64,7 +105,20 @@ class TransmonComponentSpec(SystemComponentSpec):
 
 @dataclass
 class ResonatorComponentSpec(SystemComponentSpec):
-    """Typed resonator/cavity component entry."""
+    """Typed resonator/cavity component entry.
+
+    Attributes:
+        type: Component type. Defaults to "resonator".
+        nmax: Maximum number of Fock states to simulate. Defaults to 0.
+        freq_Hz: Resonator frequency in Hz. Defaults to 0.0.
+        omega_rad_s: Resonator angular frequency in rad/s. Defaults to 0.0.
+        kappa_int_Hz: Internal decay rate in Hz. Defaults to 0.0.
+        kappa_int_rad_s: Internal decay rate in rad/s. Defaults to 0.0.
+        kappa_ext_Hz: External coupling rate in Hz. Defaults to 0.0.
+        kappa_ext_rad_s: External coupling rate in rad/s. Defaults to 0.0.
+        chi_Hz: Dispersive shift in Hz. Defaults to 0.0.
+        chi_rad_s: Dispersive shift in rad/s. Defaults to 0.0.
+    """
 
     type: str = "resonator"
     nmax: int = 0
@@ -80,7 +134,20 @@ class ResonatorComponentSpec(SystemComponentSpec):
 
 @dataclass
 class ReadoutLineComponentSpec(SystemComponentSpec):
-    """Typed readout-line component entry."""
+    """Typed readout-line component entry.
+
+    Attributes:
+        type: Component type. Defaults to "readout_line".
+        eta_chain: Overall quantum efficiency of the chain. Defaults to 1.0.
+        gain_dB: Total amplification gain in dB. Defaults to 0.0.
+        added_noise_photons: Equivalent noise in photons. Defaults to 0.0.
+        center_freq_Hz: Center frequency of the line in Hz. Defaults to 0.0.
+        bandwidth_Hz: Bandwidth of the line in Hz. Defaults to 0.0.
+        input_amplitude_noise_rel_sigma: Relative amplitude noise. Defaults to 0.0.
+        input_phase_noise_std_rad: Phase noise standard deviation in rad. Defaults to 0.0.
+        input_additive_noise_sigma: Additive noise sigma. Defaults to 0.0.
+        feedback_success_prob: Probability of successful feedback. Defaults to 1.0.
+    """
 
     type: str = "readout_line"
     eta_chain: float = 1.0
@@ -95,11 +162,27 @@ class ReadoutLineComponentSpec(SystemComponentSpec):
 
 
 def _dataclass_public_dict(obj: Any) -> dict[str, Any]:
+    """Convert a dataclass to a dictionary, filtering out None values.
+
+    Args:
+        obj (Any): The dataclass instance to convert.
+
+    Returns:
+        dict[str, Any]: Dictionary of public fields.
+    """
     data = asdict(obj)
     return {key: value for key, value in data.items() if value is not None}
 
 
 def _component_parameters_dict(component: SystemComponentSpec) -> dict[str, Any]:
+    """Extract a dictionary of key physical parameters from a component.
+
+    Args:
+        component (SystemComponentSpec): The component to extract parameters from.
+
+    Returns:
+        dict[str, Any]: Dictionary of parameters.
+    """
     if isinstance(component, TransmonComponentSpec):
         return {
             "freq_Hz": component.freq_Hz,
@@ -128,6 +211,14 @@ def _component_parameters_dict(component: SystemComponentSpec) -> dict[str, Any]
 
 
 def _component_basis_dict(component: SystemComponentSpec) -> dict[str, Any]:
+    """Extract the basis specification from a component.
+
+    Args:
+        component (SystemComponentSpec): The component to extract basis from.
+
+    Returns:
+        dict[str, Any]: Basis specification (e.g., {"kind": "fock", "nmax": 10}).
+    """
     if isinstance(component, TransmonComponentSpec):
         return {"kind": "nlevel", "levels": component.levels} if component.levels > 2 else {}
     if isinstance(component, ResonatorComponentSpec):
@@ -136,6 +227,14 @@ def _component_basis_dict(component: SystemComponentSpec) -> dict[str, Any]:
 
 
 def _base_component_kwargs(raw: dict[str, Any]) -> dict[str, str]:
+    """Extract common base fields for any system component.
+
+    Args:
+        raw (dict[str, Any]): Raw input data.
+
+    Returns:
+        dict[str, str]: Dictionary of base keyword arguments.
+    """
     return {
         "id": str(raw.get("id", "") or ""),
         "representation": str(raw.get("representation", "quantum") or "quantum"),
@@ -144,6 +243,14 @@ def _base_component_kwargs(raw: dict[str, Any]) -> dict[str, str]:
 
 
 def _build_transmon_component(raw: dict[str, Any]) -> TransmonComponentSpec:
+    """Builder for Transmon components.
+
+    Args:
+        raw (dict[str, Any]): Raw input data.
+
+    Returns:
+        TransmonComponentSpec: A typed transmon specification.
+    """
     data = _merged_payload(raw)
     basis = data["_basis"]
     noise = data["_noise"]
@@ -169,6 +276,14 @@ def _build_transmon_component(raw: dict[str, Any]) -> TransmonComponentSpec:
 
 
 def _build_resonator_component(raw: dict[str, Any]) -> ResonatorComponentSpec:
+    """Builder for resonator/cavity components.
+
+    Args:
+        raw (dict[str, Any]): Raw input data.
+
+    Returns:
+        ResonatorComponentSpec: A typed resonator specification.
+    """
     data = _merged_payload(raw)
     return ResonatorComponentSpec(
         **_base_component_kwargs(raw),
@@ -186,6 +301,14 @@ def _build_resonator_component(raw: dict[str, Any]) -> ResonatorComponentSpec:
 
 
 def _build_readout_line_component(raw: dict[str, Any]) -> ReadoutLineComponentSpec:
+    """Builder for readout line components.
+
+    Args:
+        raw (dict[str, Any]): Raw input data.
+
+    Returns:
+        ReadoutLineComponentSpec: A typed readout line specification.
+    """
     data = _merged_payload(raw)
     return ReadoutLineComponentSpec(
         **_base_component_kwargs(raw),
@@ -210,7 +333,14 @@ _COMPONENT_BUILDERS = {
 
 
 def system_component_from_dict(data: dict[str, Any] | None) -> SystemComponentSpec:
-    """Parse a plain component dictionary into a typed component spec."""
+    """Parse a plain component dictionary into a typed component spec.
+
+    Args:
+        data (dict[str, Any] | None): Input dictionary containing component fields.
+
+    Returns:
+        SystemComponentSpec: A typed component specification of the correct subclass.
+    """
     raw = dict(data or {})
     comp_type = _str(raw, "type").strip().lower()
     builder = _COMPONENT_BUILDERS.get(comp_type)

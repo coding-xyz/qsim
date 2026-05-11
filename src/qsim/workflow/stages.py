@@ -7,6 +7,7 @@ from copy import deepcopy
 
 from qsim.analysis.metrics import resolve_metrics_payload
 from qsim.analysis.readout_chain import build_readout_analysis
+from qsim.schemas.results import AnalysisOutput
 from qsim.analysis.sensitivity import build_error_budget_v2, build_sensitivity_report
 from qsim.backend.compile_pipeline import CompilePipeline
 from qsim.backend.config import load_backend_config
@@ -405,14 +406,17 @@ def run_analysis_stage(
     """Run observables/report analysis and build sensitivity budgets."""
     stage_timings: dict[str, float] = {}
     t0 = time.perf_counter()
-    trajectory_payload = _resolve_analysis_trajectory(trajectory, analyser_cfg)
-    metrics_payload, observables_obj, report_obj = _resolve_metric_payload(
+    
+    # Metrics output is now typed (MetricsOutput)
+    metrics_out, observables_obj, report_obj = _resolve_metric_payload(
         trajectory,
         model_spec,
         analyser_cfg,
         metric_registry=metric_registry,
     )
-    readout_payload = build_readout_analysis(
+    
+    # Readout output is now a dict containing typed ReadoutAnalysis and IQAnalysis
+    readout_results = build_readout_analysis(
         trajectory=trajectory,
         model_spec=model_spec,
         pulse_ir=pulse_ir,
@@ -420,15 +424,14 @@ def run_analysis_stage(
         analyser_cfg=analyser_cfg,
         seed=int(getattr(cfg, "seed", 12345)),
     )
-    analysis = {
-        "trajectory": trajectory_payload,
-        "metrics": metrics_payload,
-        "report": report_obj.__dict__,
-    }
-    if readout_payload.get("readout") is not None:
-        analysis["readout"] = readout_payload["readout"]
-    if readout_payload.get("iq") is not None:
-        analysis["iq"] = readout_payload["iq"]
+    
+    # Aggregate into typed AnalysisOutput
+    analysis_output = AnalysisOutput(
+        metrics=metrics_out,
+        readout=readout_results.get("readout"),
+        iq=readout_results.get("iq"),
+    )
+    
     t1 = time.perf_counter()
     stage_timings["analysis_run"] = t1 - t0
 
@@ -457,7 +460,7 @@ def run_analysis_stage(
     t2 = time.perf_counter()
     stage_timings["sensitivity_run"] = t2 - t1
     return {
-        "analysis": analysis,
+        "analysis": analysis_output,
         "observables_obj": observables_obj,
         "logical_error_obj": logical_error_obj,
         "sensitivity_report": sensitivity_report,

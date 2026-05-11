@@ -6,6 +6,7 @@ import math
 from typing import Any
 
 import numpy as np
+from qsim.schemas.results import IQAnalysis, ReadoutAnalysis, ShotData
 
 from qsim.backend.config import normalize_device_config
 from qsim.backend.model.lowering import (
@@ -330,7 +331,7 @@ def build_readout_analysis(
     pulse_cfg: dict[str, Any] | None,
     analyser_cfg: dict[str, Any] | None,
     seed: int,
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, Any]:
     """Build readout-chain and IQ-classification analysis payloads."""
     analyser_cfg = dict(analyser_cfg or {})
     pulse_cfg = dict(pulse_cfg or {})
@@ -515,109 +516,59 @@ def build_readout_analysis(
     cluster_separation = float(min(pairwise_distances) / max(noise_sigma, 1.0e-12)) if pairwise_distances else 0.0
     snr = float((np.mean(pairwise_distances) if pairwise_distances else 0.0) / max(2.0 * noise_sigma, 1.0e-12))
 
-    return {
-        "readout": {
-            "schema_version": "1.0",
-            "mode": str(readout_cfg.get("mode", "input_output_v1") or "input_output_v1"),
-            "signals": {
-                "quantum": {
-                    "cavity_a": _complex_pairs(cavity_a),
-                    "cavity_n": [float(x) for x in list(obs.get("cavity_n", []) or [])],
-                    "qubit_lowering": list(obs.get("qubit_lowering", []) or []),
-                },
-                "io_chain": {
-                    "a_in": _complex_pairs(drive),
-                    "a_out": _complex_pairs(a_out),
-                    "line_state": _complex_pairs(line_state) if line_state.size > 0 else [],
-                    "heterodyne_current": _complex_pairs(heterodyne_current) if heterodyne_current.size > 0 else [],
-                    "ro_line_if": _complex_pairs(ro_line_if),
-                    "complex_envelope": _complex_pairs(np.asarray(receiver.get("complex_envelope", baseband_source), dtype=complex)),
-                    "rf_signal": _real_list(np.asarray(receiver.get("rf_signal", []), dtype=float)),
-                    "if_signal": _real_list(np.asarray(receiver.get("if_signal", []), dtype=float)),
-                    "adc_signal": _real_list(np.asarray(receiver.get("adc_signal", []), dtype=float)),
-                },
+    # Map to typed ReadoutAnalysis
+    readout_analysis = ReadoutAnalysis(
+        signals={
+            "quantum": {
+                "cavity_a": _complex_pairs(cavity_a),
+                "cavity_n": [float(x) for x in list(obs.get("cavity_n", []) or [])],
+                "qubit_lowering": list(obs.get("qubit_lowering", []) or []),
             },
-            "feedback": dict(obs.get("feedback", {}) or {}),
-            "times": times.astype(float).tolist(),
-            "adc_times": _real_list(adc_times),
-            "a_in": _complex_pairs(drive),
-            "a_cavity": _complex_pairs(cavity_a),
-            "a_out": _complex_pairs(a_out),
-            "line_state": _complex_pairs(line_state) if line_state.size > 0 else [],
-            "heterodyne_current": _complex_pairs(heterodyne_current) if heterodyne_current.size > 0 else [],
-            "ro_line_if": _complex_pairs(ro_line_if),
-            "complex_envelope": _complex_pairs(np.asarray(receiver.get("complex_envelope", baseband_source), dtype=complex)),
-            "rf_signal": _real_list(np.asarray(receiver.get("rf_signal", []), dtype=float)),
-            "if_signal": _real_list(np.asarray(receiver.get("if_signal", []), dtype=float)),
-            "adc_signal": _real_list(np.asarray(receiver.get("adc_signal", []), dtype=float)),
-            "demodulated_voltage": _complex_pairs(digital_baseband if digital_baseband.size > 0 else baseband),
-            "I": [float(x) for x in i_trace.tolist()],
-            "Q": [float(x) for x in q_trace.tolist()],
-            "windows": iq_samples,
-            "num_shots": len(shot_payloads) if shot_payloads else int(iq_cfg.get("shots", 128) or 128),
-            "receiver": {
-                "mode": str(receiver.get("mode", "direct_adc")),
-                "adc_sample_rate_Hz": _safe_float(receiver.get("adc_sample_rate_Hz", 0.0), 0.0),
-                "carrier_frequency_Hz": _safe_float(receiver.get("carrier_frequency_Hz", 0.0), 0.0),
-                "lo_frequency_Hz": _safe_float(receiver.get("lo_frequency_Hz", 0.0), 0.0),
-                "if_frequency_Hz": _safe_float(receiver.get("if_frequency_Hz", 0.0), 0.0),
-                "sampled_frequency_Hz": _safe_float(receiver.get("sampled_frequency_Hz", 0.0), 0.0),
-                "alias_frequency_Hz": _safe_float(receiver.get("alias_frequency_Hz", 0.0), 0.0),
-                "alias_frequency_signed_Hz": _safe_float(receiver.get("alias_frequency_signed_Hz", 0.0), 0.0),
-                "rf_alias_frequency_Hz": _safe_float(receiver.get("rf_alias_frequency_Hz", 0.0), 0.0),
-                "rf_alias_frequency_signed_Hz": _safe_float(receiver.get("rf_alias_frequency_signed_Hz", 0.0), 0.0),
-                "adc_noise_sigma": _safe_float(receiver.get("adc_noise_sigma", 0.0), 0.0),
-                "rf_noise_sigma": _safe_float(receiver.get("rf_noise_sigma", 0.0), 0.0),
-                "adc_source": str(receiver.get("adc_source", "rf_signal")),
+            "io_chain": {
+                "a_in": _complex_pairs(drive),
+                "a_out": _complex_pairs(a_out),
+                "line_state": _complex_pairs(line_state) if line_state.size > 0 else [],
+                "heterodyne_current": _complex_pairs(heterodyne_current) if heterodyne_current.size > 0 else [],
+                "ro_line_if": _complex_pairs(ro_line_if),
+                "complex_envelope": _complex_pairs(np.asarray(receiver.get("complex_envelope", baseband_source), dtype=complex)),
+                "rf_signal": _real_list(np.asarray(receiver.get("rf_signal", []), dtype=float)),
+                "if_signal": _real_list(np.asarray(receiver.get("if_signal", []), dtype=float)),
+                "adc_signal": _real_list(np.asarray(receiver.get("adc_signal", []), dtype=float)),
             },
-            "chain": {
-                "kappa_ext_Hz": _safe_float(chain.get("kappa_ext_Hz", 0.0), 0.0),
-                "kappa_int_Hz": _safe_float(chain.get("kappa_int_Hz", 0.0), 0.0),
-                "eta_chain": eta_chain,
-                "gain_dB": _safe_float(chain.get("gain_dB", 0.0), 0.0),
-                "added_noise_photons": added_noise_photons,
-                "center_freq_Hz": _safe_float(chain.get("center_freq_Hz", 0.0), 0.0),
-            },
-            "equations": {
-                "cavity": str(readout_cfg.get("input_output", {}).get("cavity_equation", chain.get("cavity_equation", ""))),
-                "output": str((dict(obs.get("equations", {}) or {})).get("a_out", readout_cfg.get("input_output", {}).get("output_equation", chain.get("output_equation", "")))),
-                "line_state": str((dict(obs.get("equations", {}) or {})).get("line_state", "")),
-                "quantum_drive": str((dict(obs.get("equations", {}) or {})).get("quantum_drive", "")),
-                "complex_envelope": str((dict(obs.get("equations", {}) or {})).get("measured_voltage", readout_cfg.get("input_output", {}).get("measured_voltage", ""))),
-                "heterodyne_current": str((dict(obs.get("equations", {}) or {})).get("heterodyne_current", "")),
-                "demodulation": "v_bb(t) = v_if(t) * exp(-i (2*pi*if_Hz*t + phase_rad))",
-                "rf_reconstruction": "v_rf(t) = Re{v_env(t) * exp(i*(2*pi*f_carrier*t + phi_rf))}",
-                "adc_sampling": "v_adc[n] = v_sampled(t_n) + n_adc[n], t_n = n / f_s",
-            },
-            "demodulation": {
-                "phase_rad": demod_phase,
-                "if_Hz": if_Hz,
-                "source": "complex_envelope" if measured_voltage.size > 0 else ("heterodyne_current" if heterodyne_current.size > 0 else ("line_state" if line_state.size > 0 else "a_out")),
-            },
-            "shots": shot_views if shot_payloads else [],
         },
-        "iq": {
-            "schema_version": "1.0",
-            "method": str(iq_cfg.get("method", "nearest_centroid") or "nearest_centroid"),
-            "integration": {
-                "mode": str(iq_cfg.get("integration_mode", "uniform_window") or "uniform_window"),
-                "window_ns": integration_window_s * 1.0e9,
-                "start_delay_ns": start_delay_s * 1.0e9,
-            },
+        demodulation={
+            "phase_rad": demod_phase,
+            "if_Hz": if_Hz,
+            "source": "complex_envelope" if measured_voltage.size > 0 else ("heterodyne_current" if heterodyne_current.size > 0 else ("line_state" if line_state.size > 0 else "a_out")),
+        },
+        shots=[
+            ShotData(
+                timestamp=float(sv.get("adc_times", [0.0])[0]),
+                value=None, # Baseband trace is in digital_baseband
+                metadata={"complex_envelope": sv.get("complex_envelope")}
+            ) for sv in shot_views
+        ] if shot_payloads else [],
+    )
+    
+    # Map to typed IQAnalysis
+    iq_analysis = IQAnalysis(
+        centroids={label: val for label, val in centroids.items()},
+        confusion_matrix={
             "labels": labels,
-            "samples": iq_samples,
-            "centroids": {label: [float(val.real), float(val.imag)] for label, val in centroids.items()},
-            "synthetic_clouds": synthetic_clouds,
-            "confusion_matrix": {
-                "labels": labels,
-                "values": confusion.astype(int).tolist(),
-            },
-            "assignment_fidelity": assignment_fidelity,
-            "noise_sigma": float(noise_sigma),
-            "cluster_separation": cluster_separation,
-            "snr": snr,
-            "num_shots": len(shot_payloads) if shot_payloads else int(iq_cfg.get("shots", 128) or 128),
+            "values": confusion.astype(int).tolist(),
         },
+        assignment_fidelity=assignment_fidelity,
+        noise_sigma=float(noise_sigma),
+        snr=snr,
+    )
+    
+    return {
+        "readout": readout_analysis,
+        "iq": iq_analysis,
+        "legacy_payload": { # Keep for temporary backward compatibility in stages.py
+            "readout": { "mode": str(readout_cfg.get("mode", "input_output_v1")), "times": times.astype(float).tolist() },
+            "iq": { "labels": labels, "samples": iq_samples }
+        }
     }
 
 

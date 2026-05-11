@@ -7,10 +7,27 @@ from typing import Any
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
+    """Convert a value to float, falling back to a default if None.
+
+    Args:
+        value (Any): Value to convert.
+        default (float): Default value if input is None. Defaults to 0.0.
+
+    Returns:
+        float: Converted float value.
+    """
     return float(default if value is None else value)
 
 
 def _as_str_list(value: Any) -> list[str]:
+    """Convert a value or collection to a list of strings.
+
+    Args:
+        value (Any): Input value (None, str, int, or iterable).
+
+    Returns:
+        list[str]: List of strings.
+    """
     if value is None:
         return []
     if isinstance(value, str):
@@ -21,6 +38,14 @@ def _as_str_list(value: Any) -> list[str]:
 
 
 def _as_int_list(value: Any) -> list[int]:
+    """Convert a value or collection to a list of integers.
+
+    Args:
+        value (Any): Input value (None, str, int, or iterable).
+
+    Returns:
+        list[int]: List of integers.
+    """
     if value is None:
         return []
     if isinstance(value, str):
@@ -32,7 +57,24 @@ def _as_int_list(value: Any) -> list[int]:
 
 @dataclass
 class NoiseSourceSpec:
-    """Authored, engine-neutral stochastic or Markovian noise source."""
+    """Authored, engine-neutral stochastic or Markovian noise source.
+
+    Attributes:
+        id: Unique identifier for the noise source. Defaults to "".
+        kind: Type of noise (e.g., "markovian", "stochastic"). Defaults to "".
+        targets: List of subsystem IDs affected by this noise.
+        operator: Symbolic operator associated with the noise. Defaults to "".
+        amplitude: Numerical amplitude of the noise.
+        rate: Transition rate or decay rate.
+        spectrum: Spectral density information.
+        band_Hz: Frequency band limits in Hz.
+        exponent: Spectral exponent (e.g., for 1/f noise).
+        psd_convention: Power Spectral Density convention used. Defaults to "".
+        correlation: Correlation parameters between sources.
+        units: Units for the noise parameters.
+        realization_hints: Hints for the engine to generate specific noise realizations.
+        metadata: Non-primary technical annotations.
+    """
 
     id: str = ""
     kind: str = ""
@@ -51,7 +93,14 @@ class NoiseSourceSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "NoiseSourceSpec":
-        """Create an authored noise source from a plain dictionary."""
+        """Create an authored noise source from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing noise source fields.
+
+        Returns:
+            NoiseSourceSpec: A typed noise source specification.
+        """
         raw = dict(data or {})
         band = raw.get("band_Hz", [])
         if band is None:
@@ -74,13 +123,26 @@ class NoiseSourceSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the source to a JSON-safe dictionary."""
+        """Serialize the source to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the noise source.
+        """
         return asdict(self)
 
 
 @dataclass
 class ControlCrosstalkSpec:
-    """Device-level control-channel transfer or leakage specification."""
+    """Device-level control-channel transfer or leakage specification.
+
+    Attributes:
+        id: Unique identifier for the crosstalk entry. Defaults to "".
+        kind: Type of crosstalk (e.g., "deterministic_control_transfer"). Defaults to "deterministic_control_transfer".
+        source_channel: The channel where the signal originates. Defaults to "".
+        target_channel: The channel where the signal leaks into. Defaults to "".
+        transfer: Transfer function or coefficient describing the leakage.
+        metadata: Non-primary technical annotations.
+    """
 
     id: str = ""
     kind: str = "deterministic_control_transfer"
@@ -91,6 +153,14 @@ class ControlCrosstalkSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "ControlCrosstalkSpec":
+        """Create a crosstalk spec from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary.
+
+        Returns:
+            ControlCrosstalkSpec: A typed crosstalk specification.
+        """
         raw = dict(data or {})
         return cls(
             id=str(raw.get("id", "") or ""),
@@ -102,12 +172,27 @@ class ControlCrosstalkSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the crosstalk spec to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the crosstalk spec.
+        """
         return asdict(self)
 
 
 @dataclass
 class ReadoutCrosstalkSpec:
-    """Device-level readout crosstalk or assignment-correlation specification."""
+    """Device-level readout crosstalk or assignment-correlation specification.
+
+    Attributes:
+        id: Unique identifier for the readout crosstalk entry. Defaults to "".
+        kind: Type of readout crosstalk. Defaults to "".
+        source: Source of the crosstalk (e.g., a specific qubit). Defaults to "".
+        target: Target of the crosstalk. Defaults to "".
+        probability: Probability matrix or values for misassignment.
+        transfer: Transfer characteristics of the crosstalk.
+        metadata: Non-primary technical annotations.
+    """
 
     id: str = ""
     kind: str = ""
@@ -119,6 +204,14 @@ class ReadoutCrosstalkSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "ReadoutCrosstalkSpec":
+        """Create a readout crosstalk spec from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary.
+
+        Returns:
+            ReadoutCrosstalkSpec: A typed readout crosstalk specification.
+        """
         raw = dict(data or {})
         return cls(
             id=str(raw.get("id", "") or ""),
@@ -131,12 +224,24 @@ class ReadoutCrosstalkSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the readout crosstalk spec to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the readout crosstalk spec.
+        """
         return asdict(self)
 
 
 @dataclass
 class CollapseChannelSpec:
-    """Markovian collapse channel."""
+    """Markovian collapse channel.
+
+    Attributes:
+        target: Index of the target subsystem. Defaults to 0.
+        kind: Type of the collapse channel (e.g., "relaxation", "dephasing"). Defaults to "".
+        rate_Hz: Collapse rate in Hz. Defaults to 0.0.
+        rate_rad_s: Collapse rate in rad/s. Defaults to 0.0.
+    """
 
     target: int = 0
     kind: str = ""
@@ -145,7 +250,14 @@ class CollapseChannelSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "CollapseChannelSpec":
-        """Create a collapse channel from a plain dictionary."""
+        """Create a collapse channel from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing channel fields.
+
+        Returns:
+            CollapseChannelSpec: A typed collapse channel specification.
+        """
         raw = dict(data or {})
         return cls(
             target=int(raw.get("target", 0) or 0),
@@ -155,7 +267,11 @@ class CollapseChannelSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the collapse channel to a JSON-safe dictionary."""
+        """Serialize the collapse channel to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the collapse channel.
+        """
         return {
             "target": self.target,
             "kind": self.kind,
@@ -166,7 +282,24 @@ class CollapseChannelSpec:
 
 @dataclass
 class StochasticChannelSpec:
-    """Classical stochastic-noise channel parameters for one qubit."""
+    """Classical stochastic-noise channel parameters for one qubit.
+
+    Attributes:
+        q: Index of the target qubit. Defaults to 0.
+        id: Unique identifier for the stochastic channel. Defaults to "".
+        kind: Type of stochastic noise model. Defaults to "".
+        targets: List of target indices. Defaults to an empty list.
+        operator: Symbolic operator associated with the noise. Defaults to "sigma_z_over_2".
+        correlation: Correlation parameters.
+        one_over_f_amp_Hz: Amplitude of 1/f noise in Hz. Defaults to 0.0.
+        one_over_f_amp_rad_s: Amplitude of 1/f noise in rad/s. Defaults to 0.0.
+        one_over_f_fmin: Minimum frequency for 1/f noise. Defaults to 0.0.
+        one_over_f_fmax: Maximum frequency for 1/f noise. Defaults to 0.0.
+        one_over_f_exponent: Spectral exponent for 1/f noise. Defaults to 1.0.
+        ou_sigma_Hz: Ornstein-Uhlenbeck noise amplitude in Hz. Defaults to 0.0.
+        ou_sigma_rad_s: Ornstein-Uhlenbeck noise amplitude in rad/s. Defaults to 0.0.
+        ou_tau: Ornstein-Uhlenbeck correlation time. Defaults to 1.0.
+    """
 
     q: int = 0
     id: str = ""
@@ -185,7 +318,14 @@ class StochasticChannelSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "StochasticChannelSpec":
-        """Create a stochastic channel from a plain dictionary."""
+        """Create a stochastic channel from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing channel fields.
+
+        Returns:
+            StochasticChannelSpec: A typed stochastic channel specification.
+        """
         raw = dict(data or {})
         targets = _as_int_list(raw.get("targets"))
         return cls(
@@ -210,7 +350,11 @@ class StochasticChannelSpec:
             self.targets = [int(self.q)]
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the stochastic channel to a JSON-safe dictionary."""
+        """Serialize the stochastic channel to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the stochastic channel.
+        """
         return asdict(self)
 
 
@@ -221,6 +365,15 @@ class PerQubitRateSpec:
     This is compatibility metadata emitted by lowering for legacy consumers.
     Authored noise should use ``NoiseSourceSpec(kind="markovian", ...)``
     instead of treating this as a source of truth.
+
+    Attributes:
+        q: Index of the target qubit. Defaults to 0.
+        gamma1_Hz: Longitudinal relaxation rate in Hz. Defaults to 0.0.
+        gamma_phi_Hz: Pure dephasing rate in Hz. Defaults to 0.0.
+        gamma_up_Hz: Excitation rate in Hz. Defaults to 0.0.
+        gamma1_rad_s: Longitudinal relaxation rate in rad/s. Defaults to 0.0.
+        gamma_phi_rad_s: Pure dephasing rate in rad/s. Defaults to 0.0.
+        gamma_up_rad_s: Excitation rate in rad/s. Defaults to 0.0.
     """
 
     q: int = 0
@@ -233,7 +386,14 @@ class PerQubitRateSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "PerQubitRateSpec":
-        """Create per-qubit rate data from a plain dictionary."""
+        """Create per-qubit rate data from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing rate fields.
+
+        Returns:
+            PerQubitRateSpec: A typed per-qubit rate specification.
+        """
         raw = dict(data or {})
         return cls(
             q=int(raw.get("q", 0) or 0),
@@ -246,13 +406,35 @@ class PerQubitRateSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize per-qubit rates to a JSON-safe dictionary."""
+        """Serialize per-qubit rates to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the per-qubit rates.
+        """
         return asdict(self)
 
 
 @dataclass
 class NoiseSpec:
-    """Engine-neutral noise model."""
+    """Engine-neutral noise model.
+
+    The `NoiseSpec` aggregates all noise sources, including Markovian channels,
+    stochastic processes, and device-level crosstalk.
+
+    Attributes:
+        selected_model: Identifier of the primary noise model. Defaults to "markovian_lindblad".
+        readout_error: Global readout error probability. Defaults to 0.0.
+        sources: List of general noise source specifications.
+        realizations: Specific noise realizations for stochastic simulations.
+        control_crosstalk: Specifications for control-channel leakage.
+        readout_crosstalk: Specifications for readout crosstalk.
+        collapse_channels: List of Markovian collapse channels.
+        stochastic_channels: List of stochastic noise channels.
+        per_qubit_rates: Summary of per-qubit Markovian rates (legacy/compatibility).
+        supported: List of noise features supported by the current engine.
+        unsupported: List of noise features not supported.
+        warnings: List of warnings regarding the noise configuration.
+    """
 
     selected_model: str = "markovian_lindblad"
     readout_error: float = 0.0
@@ -268,7 +450,11 @@ class NoiseSpec:
     warnings: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        """Normalize nested channel dictionaries into typed specs."""
+        """Normalize nested channel dictionaries into typed specs.
+
+        This method ensures that all noise-related lists contain the 
+        appropriate typed specification objects rather than raw dictionaries.
+        """
         self.sources = [
             item if isinstance(item, NoiseSourceSpec) else NoiseSourceSpec.from_dict(item)
             for item in list(self.sources or [])
@@ -294,5 +480,4 @@ class NoiseSpec:
             item if isinstance(item, PerQubitRateSpec) else PerQubitRateSpec.from_dict(item)
             for item in list(self.per_qubit_rates or [])
         ]
-
 

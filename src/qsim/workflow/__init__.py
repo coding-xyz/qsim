@@ -16,7 +16,8 @@ from qsim.workflow.contracts import (
     compose_workflow_task,
     normalize_device_payload,
 )
-from qsim.workflow.model import AnalysisResult, Model, ModelResults, SolverRunResult, create_model, load_model
+from qsim.schemas.results import ModelAnalysis
+from qsim.workflow.model import Model, create_model, load_model
 from qsim.workflow.planner import ExecutionPlan, build_execution_plan
 from qsim.workflow.session_adapter import commit_result_to_session
 from qsim.workflow.task_io import (
@@ -44,10 +45,8 @@ __all__ = [
     "WorkflowTaskConfig",
     "compose_workflow_task",
     "normalize_device_payload",
-    "AnalysisResult",
+    "ModelAnalysis",
     "Model",
-    "ModelResults",
-    "SolverRunResult",
     "create_model",
     "load_model",
     "ExecutionPlan",
@@ -61,3 +60,7 @@ __all__ = [
     "load_task_config_file",
     "load_task_file",
 ]
+
+# Deprecated compatibility alias. Prefer ``ModelAnalysis`` in new code.
+AnalysisResult = ModelAnalysis
+__all__.append("AnalysisResult")

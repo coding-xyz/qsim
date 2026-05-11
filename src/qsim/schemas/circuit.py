@@ -10,7 +10,14 @@ from qsim.schemas.utils import SCHEMA_VERSION
 
 @dataclass
 class CircuitGate:
-    """One logical gate operation in circuit IR."""
+    """One logical gate operation in circuit IR.
+
+    Attributes:
+        name: Name of the gate operation (e.g., "rx", "cx").
+        qubits: List of target/control qubit indices.
+        params: Numerical parameters for the gate (e.g., rotation angle).
+        clbits: List of classical bit indices involved.
+    """
 
     name: str
     qubits: list[int] = field(default_factory=list)
@@ -20,7 +27,16 @@ class CircuitGate:
 
 @dataclass
 class CircuitIR:
-    """Normalized circuit representation used by compile pipeline."""
+    """Normalized circuit representation used by compile pipeline.
+
+    Attributes:
+        schema_version: Version of the circuit IR schema.
+        format: Format of the circuit (e.g., "openqasm3"). Defaults to "openqasm3".
+        num_qubits: Number of qubits in the circuit. Defaults to 0.
+        num_clbits: Number of classical bits in the circuit. Defaults to 0.
+        gates: Ordered list of gate operations.
+        source_qasm: Original QASM source code string.
+    """
 
     schema_version: str = SCHEMA_VERSION
     format: str = "openqasm3"
@@ -32,7 +48,17 @@ class CircuitIR:
 
 @dataclass
 class CircuitSpec:
-    """Circuit snapshot kept with ``ModelSpec`` for engines that need gate context."""
+    """Circuit snapshot kept with ``ModelSpec`` for engines that need gate context.
+
+    Attributes:
+        schema_version: Version of the circuit spec schema.
+        format: Format of the circuit (e.g., "openqasm3"). Defaults to "openqasm3".
+        num_qubits: Number of qubits in the circuit. Defaults to 0.
+        num_clbits: Number of classical bits in the circuit. Defaults to 0.
+        gates: Ordered list of gate operations.
+        source_qasm: Original QASM source code string.
+        stage: Compilation stage of the snapshot (e.g., "normalized"). Defaults to "normalized".
+    """
 
     schema_version: str = SCHEMA_VERSION
     format: str = "openqasm3"
@@ -44,7 +70,15 @@ class CircuitSpec:
 
     @classmethod
     def from_circuit_ir(cls, circuit: CircuitIR, *, stage: str = "normalized") -> "CircuitSpec":
-        """Create a ``CircuitSpec`` snapshot from normalized ``CircuitIR``."""
+        """Create a ``CircuitSpec`` snapshot from normalized ``CircuitIR``.
+
+        Args:
+            circuit (CircuitIR): The source circuit intermediate representation.
+            stage (str): The compilation stage name. Defaults to "normalized".
+
+        Returns:
+            CircuitSpec: A snapshot of the circuit for model specification.
+        """
         return cls(
             schema_version=str(circuit.schema_version),
             format=str(circuit.format),
@@ -60,7 +94,14 @@ class CircuitSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "CircuitSpec":
-        """Create a ``CircuitSpec`` from a JSON-style mapping."""
+        """Create a ``CircuitSpec`` from a JSON-style mapping.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing circuit fields.
+
+        Returns:
+            CircuitSpec: A typed circuit specification.
+        """
         raw = dict(data or {})
         return cls(
             schema_version=str(raw.get("schema_version", SCHEMA_VERSION)),
@@ -76,7 +117,11 @@ class CircuitSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the circuit snapshot to a JSON-safe dictionary."""
+        """Serialize the circuit snapshot to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A JSON-serializable representation of the circuit spec.
+        """
         return {
             "schema_version": self.schema_version,
             "format": self.format,

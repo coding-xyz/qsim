@@ -10,13 +10,22 @@ import yaml
 
 from qsim.backend.config import validate_backend_config
 from qsim.workflow.contracts import (
+    AnalyserTrajectoryConfig,
     DefaultAnalyserConfig,
+    IQDiscriminationConfig,
+    NoiseAnalysisConfig,
+    PulseAcquisitionConfig,
+    PulseChannelConfig,
+    PulseTimingConfig,
+    ReadoutModelConfig,
+    ReportConfig,
     SolverBackendConfig,
     TaskInputConfig,
     WorkflowDeviceConfig,
     WorkflowFeatureFlags,
     WorkflowFrameOptions,
     WorkflowOutputOptions,
+    WorkflowPulseConfig,
     WorkflowRunOptions,
     WorkflowSolverConfig,
     WorkflowTask,
@@ -654,14 +663,37 @@ def load_analyser_config_file(path: str | Path) -> DefaultAnalyserConfig:
     """Load an analyser config file into ``DefaultAnalyserConfig``."""
     _cfg_path, payload = _load_mapping(path)
     _reject_unknown("analyser top-level", set(payload), _ANALYSER_TOP_KEYS)
+
+    trajectory_raw = dict(payload.get("trajectory", {}) or {})
+    trajectory_known = {k: v for k, v in trajectory_raw.items() if k in {"window_start", "window_end", "stride"}}
+    trajectory_extras = {k: v for k, v in trajectory_raw.items() if k not in trajectory_known}
+
+    readout_raw = dict(payload.get("readout_model", {}) or {})
+    readout_known = {
+        k: v for k, v in readout_raw.items() if k in {"model_type", "integration_time", "demodulation_freq_Hz"}
+    }
+    readout_extras = {k: v for k, v in readout_raw.items() if k not in readout_known}
+
+    iq_raw = dict(payload.get("iq_discrimination", {}) or {})
+    iq_known = {k: v for k, v in iq_raw.items() if k in {"method", "num_clusters", "prior_centroids"}}
+    iq_extras = {k: v for k, v in iq_raw.items() if k not in iq_known}
+
+    noise_raw = dict(payload.get("noise_analysis", {}) or {})
+    noise_known = {k: v for k, v in noise_raw.items() if k in {"method", "resolution_Hz"}}
+    noise_extras = {k: v for k, v in noise_raw.items() if k not in noise_known}
+
+    report_raw = dict(payload.get("report", {}) or {})
+    report_known = {k: v for k, v in report_raw.items() if k in {"include_plots", "format"}}
+    report_extras = {k: v for k, v in report_raw.items() if k not in report_known}
+
     return DefaultAnalyserConfig(
         solver_id=str(payload.get("solver_id")).strip() or None if payload.get("solver_id") is not None else None,
-        trajectory=dict(payload.get("trajectory", {}) or {}) or None,
+        trajectory=AnalyserTrajectoryConfig(**trajectory_known, extras=trajectory_extras),
         metrics=list(payload.get("metrics", []) or []) or None,
-        readout_model=dict(payload.get("readout_model", {}) or {}) or None,
-        iq_discrimination=dict(payload.get("iq_discrimination", {}) or {}) or None,
-        noise_analysis=dict(payload.get("noise_analysis", {}) or {}) or None,
-        report=dict(payload.get("report", {}) or {}) or None,
+        readout_model=ReadoutModelConfig(**readout_known, extras=readout_extras),
+        iq_discrimination=IQDiscriminationConfig(**iq_known, extras=iq_extras),
+        noise_analysis=NoiseAnalysisConfig(**noise_known, extras=noise_extras),
+        report=ReportConfig(**report_known, extras=report_extras),
     )
 
 
@@ -702,7 +734,56 @@ def load_config_bundle_files(
     device_cfg = load_device_config_file(device_path)
     analyser_cfg = load_analyser_config_file(analyser_path)
     if pulse_path:
-        device_cfg.pulse = {**dict(device_cfg.pulse or {}), **load_pulse_config_file(pulse_path)}
+        pulse_payload = load_pulse_config_file(pulse_path)
+        def _split_payload(raw: dict[str, Any], known: set[str]) -> tuple[dict[str, Any], dict[str, Any]]:
+            known_items = {k: v for k, v in raw.items() if k in known}
+            extras_map = {k: v for k, v in raw.items() if k not in known}
+            return known_items, extras_map
+
+        known_fields = {"acquisition", "timing", "channels", "extras"}
+        known_args = {k: v for k, v in pulse_payload.items() if k in known_fields}
+        extra_args = {k: v for k, v in pulse_payload.items() if k not in known_fields}
+        extras = dict(known_args.get("extras") or {})
+        extras.update(extra_args)
+        acquisition_known, acquisition_extras = _split_payload(
+            dict(known_args.get("acquisition", {}) or {}),
+            {"shots", "averaging", "trigger_source", "extras"},
+        )
+        timing_known, timing_extras = _split_payload(
+            dict(known_args.get("timing", {}) or {}),
+            {"clock_rate_Hz", "sample_rate_Hz", "precision_s", "extras"},
+        )
+        acquisition_known_extras = dict(acquisition_known.pop("extras", {}) or {})
+        timing_known_extras = dict(timing_known.pop("extras", {}) or {})
+        device_cfg.pulse = WorkflowPulseConfig(
+            acquisition=PulseAcquisitionConfig(
+                **acquisition_known,
+                extras={**acquisition_known_extras, **acquisition_extras},
+            ),
+            timing=PulseTimingConfig(
+                **timing_known,
+                extras={**timing_known_extras, **timing_extras},
+            ),
+            channels={
+                str(channel_id): (
+                    channel_cfg if isinstance(channel_cfg, PulseChannelConfig)
+                    else PulseChannelConfig(
+                        **{
+                            k: v
+                            for k, v in dict(channel_cfg or {}).items()
+                            if k in {"type", "amplitude", "duration_ns", "phase", "frequency_Hz"}
+                        },
+                        extras={
+                            k: v
+                            for k, v in dict(channel_cfg or {}).items()
+                            if k not in {"type", "amplitude", "duration_ns", "phase", "frequency_Hz"}
+                        },
+                    )
+                )
+                for channel_id, channel_cfg in dict(known_args.get("channels", {}) or {}).items()
+            },
+            extras=extras or None,
+        )
     return compose_workflow_task(
         task_cfg,
         solver_cfg,

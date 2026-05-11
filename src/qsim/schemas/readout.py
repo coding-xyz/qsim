@@ -8,7 +8,20 @@ from typing import Any
 from qsim.schemas.components import _dataclass_public_dict
 @dataclass
 class ReadoutControlSpec:
-    """Sampled readout-drive channel."""
+    """Sampled readout-drive channel.
+
+    Attributes:
+        channel: Identifier of the readout control channel. Defaults to "".
+        target: Index of the target subsystem. Defaults to 0.
+        kind: Type of readout control (e.g., "readout"). Defaults to "readout".
+        times: Time grid for the sampled signal in seconds.
+        values: Sampled signal coefficients.
+        scale: Global scaling factor. Defaults to 1.0.
+        carrier_freq_Hz: Carrier frequency in Hz. Defaults to 0.0.
+        carrier_omega_rad_s: Carrier angular frequency in rad/s. Defaults to 0.0.
+        carrier_phase_rad: Carrier phase in radians. Defaults to 0.0.
+        metadata: Non-primary technical annotations.
+    """
 
     channel: str = ""
     target: int = 0
@@ -23,7 +36,14 @@ class ReadoutControlSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "ReadoutControlSpec":
-        """Create a sampled readout control from a plain dictionary."""
+        """Create a sampled readout control from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing control fields.
+
+        Returns:
+            ReadoutControlSpec: A typed readout control specification.
+        """
         raw = dict(data or {})
         core = {
             "channel",
@@ -50,7 +70,11 @@ class ReadoutControlSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the readout control to a JSON-safe dictionary."""
+        """Serialize the readout control to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the readout control.
+        """
         data = {
             "channel": self.channel,
             "target": self.target,
@@ -68,7 +92,18 @@ class ReadoutControlSpec:
 
 @dataclass
 class ReadoutLineSpec:
-    """Readout line component projected into the model spec."""
+    """Readout line component projected into the model spec.
+
+    Attributes:
+        id: Unique identifier for the readout line. Defaults to "".
+        representation: Representation mode (e.g., "quantum", "classical"). Defaults to "".
+        description: Human-readable description. Defaults to "".
+        eta_chain: Total quantum efficiency of the readout chain. Defaults to 1.0.
+        gain_dB: Total gain of the chain in decibels. Defaults to 0.0.
+        added_noise_photons: Equivalent noise temperature in photons. Defaults to 0.0.
+        center_freq_Hz: Center frequency of the readout line in Hz. Defaults to 0.0.
+        bandwidth_Hz: Bandwidth of the readout line in Hz. Defaults to 0.0.
+    """
 
     id: str = ""
     representation: str = ""
@@ -81,7 +116,14 @@ class ReadoutLineSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "ReadoutLineSpec":
-        """Create a readout-line spec from component-style input."""
+        """Create a readout-line spec from component-style input.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing line fields.
+
+        Returns:
+            ReadoutLineSpec: A typed readout line specification.
+        """
         raw = dict(data or {})
         params = dict(raw.get("parameters", {}) or {})
         return cls(
@@ -96,7 +138,11 @@ class ReadoutLineSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the readout line to a JSON-safe dictionary."""
+        """Serialize the readout line to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the readout line.
+        """
         return {
             "id": self.id,
             "representation": self.representation,
@@ -111,7 +157,24 @@ class ReadoutLineSpec:
 
 @dataclass
 class ResetEventSpec:
-    """Measurement-conditioned reset event projected into the runtime model."""
+    """Measurement-conditioned reset event projected into the runtime model.
+
+    Attributes:
+        id: Unique identifier for the reset event. Defaults to "".
+        target: Target qubit/subsystem index or ID. Defaults to "".
+        t0_s: Start time of the event in seconds. Defaults to 0.0.
+        t_meas_end_s: Time when the measurement ends. Defaults to 0.0.
+        t_deplete_end_s: Time when state depletion ends. Defaults to 0.0.
+        t_feedback_start_s: Time when feedback logic starts. Defaults to 0.0.
+        t_apply_s: Time when the reset pulse is applied. Defaults to 0.0.
+        duration_s: Duration of the reset pulse. Defaults to 0.0.
+        feedback_offset_s: Delay between measurement and feedback. Defaults to 0.0.
+        method: Reset method (e.g., "conditional_pi"). Defaults to "conditional_pi".
+        condition: Logical condition for triggering the reset. Defaults to "".
+        conditional_on: Index of the qubit the reset is conditioned on. Defaults to 1.
+        apply_feedback: Whether to apply the feedback pulse. Defaults to True.
+        success_probability: Probability of successful reset. Defaults to 1.0.
+    """
 
     id: str = ""
     target: int | str = ""
@@ -130,7 +193,14 @@ class ResetEventSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "ResetEventSpec":
-        """Create a reset event from current or legacy timing keys."""
+        """Create a reset event from current or legacy timing keys.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing event fields.
+
+        Returns:
+            ResetEventSpec: A typed reset event specification.
+        """
         raw = dict(data or {})
         t0_s = _time_seconds(raw, "t0")
         t_meas_end_s = _time_seconds(raw, "t_meas_end")
@@ -165,11 +235,27 @@ class ResetEventSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the reset event to a JSON-safe dictionary."""
+        """Serialize the reset event to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the reset event.
+        """
         return _dataclass_public_dict(self)
 
 
 def _time_seconds(raw: dict[str, Any], stem: str) -> float:
+    """Convert a time value from a dictionary to seconds.
+
+    If the key ends with `_s`, it is treated as seconds. Otherwise, it is 
+    treated as nanoseconds.
+
+    Args:
+        raw (dict[str, Any]): Input dictionary.
+        stem (str): Base name of the time field.
+
+    Returns:
+        float: Time value in seconds.
+    """
     if f"{stem}_s" in raw:
         return float(raw.get(f"{stem}_s", 0.0) or 0.0)
     return 1.0e-9 * float(raw.get(stem, 0.0) or 0.0)
@@ -177,7 +263,26 @@ def _time_seconds(raw: dict[str, Any], stem: str) -> float:
 
 @dataclass
 class ReadoutChainSpec:
-    """Readout-chain parameters used by dispersive and classical readout paths."""
+    """Readout-chain parameters used by dispersive and classical readout paths.
+
+    Attributes:
+        kappa_int_Hz: Internal cavity decay rate in Hz. Defaults to 0.0.
+        kappa_ext_Hz: External coupling decay rate in Hz. Defaults to 0.0.
+        chi_Hz: Dispersive shift in Hz. Can be a single value or a list per qubit.
+        eta_chain: Overall quantum efficiency. Defaults to 1.0.
+        gain_dB: Total amplifier gain in dB. Defaults to 0.0.
+        added_noise_photons: System added noise in photons. Defaults to 0.0.
+        center_freq_Hz: Readout center frequency in Hz. Defaults to 0.0.
+        bandwidth_Hz: Readout bandwidth in Hz. Defaults to 0.0.
+        measurement_rate_Hz: Rate of information extraction in Hz. Defaults to 0.0.
+        cavity_freq_Hz: Bare cavity frequency in Hz. Defaults to 0.0.
+        input_amplitude_noise_rel_sigma: Relative amplitude noise sigma. Defaults to 0.0.
+        input_phase_noise_std_rad: Input phase noise standard deviation in rad. Defaults to 0.0.
+        input_additive_noise_sigma: Input additive noise sigma. Defaults to 0.0.
+        feedback_success_prob: Probability of successful feedback. Defaults to 1.0.
+        cavity_equation: Formal equation for cavity dynamics. Defaults to "".
+        output_equation: Formal equation for output signal. Defaults to "".
+    """
 
     kappa_int_Hz: float = 0.0
     kappa_ext_Hz: float = 0.0
@@ -198,7 +303,14 @@ class ReadoutChainSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "ReadoutChainSpec":
-        """Create readout-chain parameters from a plain dictionary."""
+        """Create readout-chain parameters from a plain dictionary.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary containing chain fields.
+
+        Returns:
+            ReadoutChainSpec: A typed readout chain specification.
+        """
         raw = dict(data or {})
         chi_raw = raw.get("chi_Hz", [])
         chi: float | list[float]
@@ -226,7 +338,11 @@ class ReadoutChainSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize readout-chain parameters to a JSON-safe dictionary."""
+        """Serialize readout-chain parameters to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary representation of the readout chain.
+        """
         data = {
             "kappa_int_Hz": self.kappa_int_Hz,
             "kappa_ext_Hz": self.kappa_ext_Hz,
@@ -249,7 +365,11 @@ class ReadoutChainSpec:
 
     @property
     def is_empty(self) -> bool:
-        """Whether all readout-chain fields are still at defaults."""
+        """Whether all readout-chain fields are still at defaults.
+
+        Returns:
+            bool: True if no custom parameters have been set.
+        """
         return (
             self.kappa_int_Hz == 0.0
             and self.kappa_ext_Hz == 0.0
@@ -272,7 +392,20 @@ class ReadoutChainSpec:
 
 @dataclass
 class ReadoutSpec:
-    """Engine-neutral readout request and chain description."""
+    """Engine-neutral readout request and chain description.
+
+    The `ReadoutSpec` defines how the state of the system is measured and 
+    processed, including the hardware chain and any active reset events.
+
+    Attributes:
+        protocol: Measurement protocol (e.g., "dispersive_reflectometry"). Defaults to "dispersive_reflectometry".
+        update_mode: Mode for state updates (e.g., "predictor_corrector"). Defaults to "predictor_corrector".
+        subsystem_model: Model of the readout subsystem. Defaults to "".
+        chain: Parameters of the readout hardware chain.
+        controls: List of readout drive controls.
+        lines: List of physical readout lines.
+        reset_events: List of measurement-conditioned reset events.
+    """
 
     protocol: str = "dispersive_reflectometry"
     update_mode: str = "predictor_corrector"
@@ -283,7 +416,11 @@ class ReadoutSpec:
     reset_events: list[ResetEventSpec] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        """Normalize nested dictionaries into typed readout specs."""
+        """Normalize nested dictionaries into typed readout specs.
+
+        This method ensures that all readout-related lists and the chain 
+        contain the appropriate typed specification objects.
+        """
         if not isinstance(self.chain, ReadoutChainSpec):
             self.chain = ReadoutChainSpec.from_dict(self.chain)
         self.controls = [

@@ -11,3 +11,5 @@ examples/
 *tmp*
 personal_use/
 report/
+agent_config/
+*/__pycache__/

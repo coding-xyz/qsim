@@ -8,7 +8,14 @@ from typing import Any
 from qsim.schemas.components import _dataclass_public_dict
 @dataclass
 class OperatorRef:
-    """Symbolic operator reference before backend-specific lowering."""
+    """Symbolic operator reference before backend-specific lowering.
+
+    Attributes:
+        name: Name of the operator (e.g., "sigma_x", "a_plus").
+        target: Integer index of the target qubit/subsystem.
+        target_pair: List of indices for two-body operators.
+        scope: Domain of the operator (e.g., "system", "drive"). Defaults to "system".
+    """
 
     name: str
     target: int | None = None
@@ -18,7 +25,13 @@ class OperatorRef:
 
 @dataclass
 class CarrierSpec:
-    """Carrier metadata attached to a sampled signal."""
+    """Carrier metadata attached to a sampled signal.
+
+    Attributes:
+        freq_Hz: Carrier frequency in Hz. Defaults to 0.0.
+        omega_rad_s: Carrier angular frequency in rad/s. Defaults to 0.0.
+        phase_rad: Carrier phase in radians. Defaults to 0.0.
+    """
 
     freq_Hz: float = 0.0
     omega_rad_s: float = 0.0
@@ -27,7 +40,18 @@ class CarrierSpec:
 
 @dataclass
 class SignalSpec:
-    """Sampled or analytic coefficient signal for time-dependent terms."""
+    """Sampled or analytic coefficient signal for time-dependent terms.
+
+    Attributes:
+        kind: Type of signal (e.g., "sampled", "analytic"). Defaults to "sampled".
+        unit: Unit of the signal values. Defaults to "".
+        times_s: Time grid for the signal in seconds.
+        values: Numerical coefficients at each time point.
+        interpolation: Interpolation method (e.g., "linear", "cubic"). Defaults to "linear".
+        scale: Global scaling factor for the signal. Defaults to 1.0.
+        carrier: Optional carrier metadata for modulated signals.
+        metadata: Non-primary technical annotations.
+    """
 
     kind: str = "sampled"
     unit: str = ""
@@ -41,7 +65,15 @@ class SignalSpec:
 
 @dataclass
 class HamiltonianTerm:
-    """Static Hamiltonian term."""
+    """Static Hamiltonian term.
+
+    Attributes:
+        operator: The operator associated with this term.
+        coefficient: Numerical strength of the term. Defaults to 1.0.
+        unit: Unit of the coefficient (e.g., "rad_per_s"). Defaults to "rad_per_s".
+        kind: Category of the term (e.g., "static"). Defaults to "static".
+        metadata: Non-primary technical annotations.
+    """
 
     operator: OperatorRef
     coefficient: float = 1.0
@@ -52,7 +84,14 @@ class HamiltonianTerm:
 
 @dataclass
 class TimeDependentHamiltonianTerm:
-    """Time-dependent Hamiltonian term driven by a signal."""
+    """Time-dependent Hamiltonian term driven by a signal.
+
+    Attributes:
+        operator: The operator associated with this term.
+        coefficient: The time-varying signal coefficient.
+        kind: Category of the term (e.g., "control", "readout"). Defaults to "control".
+        metadata: Non-primary technical annotations.
+    """
 
     operator: OperatorRef
     coefficient: SignalSpec
@@ -75,7 +114,15 @@ _CONTROL_TERM_CORE_KEYS = {
 
 
 def control_dict_to_hamiltonian_term(ctrl: dict[str, Any], *, kind: str) -> TimeDependentHamiltonianTerm:
-    """Convert a sampled control/readout-drive dictionary into a Hamiltonian term."""
+    """Convert a sampled control/readout-drive dictionary into a Hamiltonian term.
+
+    Args:
+        ctrl (dict[str, Any]): Input dictionary containing control parameters.
+        kind (str): Category of the resulting term (e.g., "control", "readout_drive").
+
+    Returns:
+        TimeDependentHamiltonianTerm: A typed Hamiltonian term with signal coefficients.
+    """
     target = int(ctrl.get("target", -1)) if "target" in ctrl else None
     target_pair = list(ctrl.get("target_pair", []) or []) or None
     op_name = str(ctrl.get("axis", "readout") if kind == "control" else "readout")
@@ -107,7 +154,20 @@ def control_dict_to_hamiltonian_term(ctrl: dict[str, Any], *, kind: str) -> Time
 
 @dataclass
 class CouplingTermSpec:
-    """Static coupling term in the engine-neutral Hamiltonian."""
+    """Static coupling term in the engine-neutral Hamiltonian.
+
+    Attributes:
+        id: Unique identifier for the coupling. Defaults to "".
+        kind: Type of coupling (e.g., "xx+yy", "zz"). Defaults to "xx+yy".
+        i: Index of the first connected subsystem. Defaults to 0.
+        j: Index of the second connected subsystem. Defaults to 1.
+        a: Identifier of the first component. Defaults to "".
+        b: Identifier of the second component. Defaults to "".
+        via: Identifier of the mediator component (if any). Defaults to "".
+        operator: Symbolic operator reference.
+        coefficient_Hz: Coupling strength in Hz. Defaults to 0.0.
+        coefficient_rad_s: Coupling strength in rad/s. Defaults to 0.0.
+    """
 
     id: str = ""
     kind: str = "xx+yy"
@@ -122,7 +182,14 @@ class CouplingTermSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> "CouplingTermSpec":
-        """Create a coupling term from current or legacy coupling keys."""
+        """Create a coupling term from current or legacy coupling keys.
+
+        Args:
+            data (dict[str, Any] | None): Input dictionary.
+
+        Returns:
+            CouplingTermSpec: A typed coupling term specification.
+        """
         raw = dict(data or {})
         g_hz = float(raw.get("coefficient_Hz", raw.get("g_Hz", 0.0)) or 0.0)
         g_rad_s = float(raw.get("coefficient_rad_s", raw.get("g_rad_s", raw.get("g", 0.0))) or 0.0)
@@ -151,7 +218,11 @@ class CouplingTermSpec:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the coupling term to a JSON-safe dictionary."""
+        """Serialize the coupling term to a JSON-safe dictionary.
+
+        Returns:
+            dict[str, Any]: A JSON-serializable representation of the coupling.
+        """
         data = _dataclass_public_dict(self)
         if self.operator is not None:
             data["operator"] = asdict(self.operator)
@@ -160,7 +231,18 @@ class CouplingTermSpec:
 
 @dataclass
 class HamiltonianSpec:
-    """Engine-neutral Hamiltonian terms."""
+    """Engine-neutral Hamiltonian terms.
+
+    The `HamiltonianSpec` aggregates all terms that define the system's 
+    energy landscape, including static internal terms, couplings, and 
+    time-dependent external drives.
+
+    Attributes:
+        static_terms: List of constant energy terms.
+        coupling_terms: List of fixed interactions between subsystems.
+        control_terms: List of time-dependent terms for system control.
+        readout_drive_terms: List of time-dependent terms for readout.
+    """
 
     static_terms: list[HamiltonianTerm] = field(default_factory=list)
     coupling_terms: list[CouplingTermSpec] = field(default_factory=list)

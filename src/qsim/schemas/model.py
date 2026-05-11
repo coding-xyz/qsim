@@ -20,6 +20,111 @@ from qsim.schemas.system import (
     SystemSpec,
 )
 
+# --- Run-Scoped Containers ---
+
+from enum import Enum, auto
+
+class RunStatus(Enum):
+    """Execution status of a model run.
+
+    Attributes:
+        PENDING: Run is queued and waiting for execution.
+        RUNNING: Run is currently being processed by an engine.
+        COMPLETED: Run finished successfully.
+        FAILED: Run terminated with an error.
+    """
+    PENDING = auto()
+    RUNNING = auto()
+    COMPLETED = auto()
+    FAILED = auto()
+
+@dataclass(slots=True)
+class RunIdentity:
+    """Unique identifier for a specific execution run.
+
+    Attributes:
+        run_id: Unique UUID or string identifying this specific run.
+        solver_id: Identifier of the solver configuration used.
+        study_name: Name of the study if this run is part of a study.
+        study_index: Index of the step within the study.
+    """
+    run_id: str
+    solver_id: str
+    study_name: str | None = None
+    study_index: int | None = None
+
+@dataclass(slots=True)
+class RunArtifacts:
+    """Compiled and intermediate artifacts for a run.
+
+    This container holds all non-factual outputs produced during the 
+    compilation and lowering phase, before the numerical engine is invoked.
+
+    Attributes:
+        circuit: The original parsed circuit specification.
+        normalized_circuit: The circuit after normalization and optimization.
+        model_spec: The engine-neutral domain model (authoritative truth).
+        pulse_ir: Intermediate representation of pulses for the hardware.
+        executable_model: The lowered model ready for engine consumption.
+        compile_report: Metadata and logs from the compilation process.
+        decoder_outputs: Results from QEC decoding if applicable.
+        timings: Calculated time offsets and durations.
+    """
+    circuit: CircuitSpec | None = None
+    normalized_circuit: CircuitSpec | None = None
+    model_spec: ModelSpec | None = None
+    pulse_ir: "PulseIR | None" = None
+    executable_model: "ExecutableModel | None" = None
+    compile_report: dict[str, Any] = field(default_factory=dict)
+    decoder_outputs: "DecoderOutputs | None" = None
+    timings: dict[str, float] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class ModelRun:
+    """Authoritative home for one execution of one solver/study combination.
+
+    A `ModelRun` encapsulates everything unique to a single execution, including
+    its identity, the task contract, the intermediate artifacts, and the final result.
+
+    Attributes:
+        identity: The unique identity of this run.
+        runtime_task: The runtime contract (input) for this execution.
+        artifacts: Compiled and intermediate products (IR).
+        result: The factual numerical output (e.g., Trajectory).
+        status: Current execution status.
+        started_at: Epoch timestamp of start.
+        finished_at: Epoch timestamp of completion.
+        error: Error message if the run failed.
+    """
+    identity: RunIdentity
+    runtime_task: "WorkflowTask"
+    artifacts: RunArtifacts = field(default_factory=RunArtifacts)
+    result: "RunResult | None" = None
+    status: RunStatus = RunStatus.PENDING
+    started_at: float | None = None
+    finished_at: float | None = None
+    error: str | None = None
+
+@dataclass(slots=True)
+class ModelManifest:
+    """Version and layout metadata for the persisted model.
+
+    Used to ensure compatibility and provenance when loading models from disk.
+
+    Attributes:
+        schema_version: Version of the model schema.
+        created_at: ISO timestamp of model creation.
+        config_layout: Map of configuration keys to their versions/sources.
+        state_snapshot: Snapshot of session state at the time of manifest creation.
+        provenance: Traceability data regarding the model's origin.
+    """
+    schema_version: str = "3.0"
+    created_at: str = ""
+    config_layout: dict[str, str] = field(default_factory=dict)
+    state_snapshot: dict[str, Any] = field(default_factory=dict)
+    provenance: dict[str, Any] = field(default_factory=dict)
+
+# --- Domain Model ---
 
 @dataclass
 class ModelSpec:
@@ -29,6 +134,19 @@ class ModelSpec:
     numerical engines. It describes the circuit context, solver request, time
     grid, frame, physical system, Hamiltonian, noise, readout, and analysis
     request without depending on a backend-private runtime representation.
+
+    Attributes:
+        circuit: The circuit specification associated with the simulation.
+        solver: Solver specification (e.g., SE, ME, SME).
+        time: Time grid specification (dt, t_end).
+        frame: Reference frame and RWA settings.
+        system: Physical system description (qubits, resonators).
+        hamiltonian: System Hamiltonian including controls and couplings.
+        noise: Noise model and dissipation channels.
+        readout: Readout protocol and chain specification.
+        analysis_request: Requested post-processing analysis.
+        study: Study context if this is part of a parameter sweep.
+        metadata: Non-primary technical annotations and debug notes.
     """
 
     circuit: "CircuitSpec | None" = None
@@ -80,17 +198,22 @@ def model_spec_from_runtime_dict(
 ) -> ModelSpec:
     """Build a structured ``ModelSpec`` from a legacy runtime dictionary.
 
+    This function facilitates backward compatibility with models persisted 
+    using the legacy dict-based format.
+
+    .. deprecated:: 2.0
+       Use direct ModelSpec construction or the formal WorkflowTask pipeline.
+
     Args:
-        solver: Solver mode token to place in ``SolverSpec.mode``.
-        dimension: Hilbert-space dimension for ``SystemSpec``.
-        t_end: Simulation end time in seconds.
-        dt: Simulation timestep in seconds.
-        engine: Optional runtime engine hint stored in ``SolverSpec.engine``.
-        model: Plain dictionary produced by older model-building paths.
+        solver (str): Solver mode token (e.g., "se", "me", "sme"). Defaults to "se".
+        dimension (int): Hilbert-space dimension for the system. Defaults to 2.
+        t_end (float): Total simulation time in seconds. Defaults to 0.0.
+        dt (float): Simulation time step in seconds. Defaults to 1.0.
+        engine (str): The numerical engine to use (e.g., "qutip", "julia"). Defaults to "qutip".
+        model (dict[str, Any], optional): Legacy dictionary containing model data. Defaults to None.
 
     Returns:
-        A structured ``ModelSpec`` with typed system, Hamiltonian, noise, and
-        readout sections.
+        ModelSpec: A structured and typed model specification.
     """
     data = dict(model or {})
 
@@ -194,6 +317,3 @@ def model_spec_from_runtime_dict(
             "legacy_raw_h_terms": list(data.get("h_terms", []) or []),
         },
     )
-
-
-

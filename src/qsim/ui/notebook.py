@@ -24,20 +24,21 @@ def plot_default(model: Model) -> dict[str, object]:
         A mapping with optional matplotlib figures under
         ``pulses``, ``trajectory``, and ``report``.
     """
-    if not model.results.trajectories:
+    if not model.runs:
         raise ValueError("plot_default expects a model that has already been run.")
-    solver_id = sorted(model.results.trajectories.keys())[0]
-    bundle = model.results.solver_runs[solver_id]
-    trajectory = bundle.trajectory
+    run_id = sorted(model.runs.keys())[0]
+    bundle = model.runs[run_id]
+    trajectory = bundle.result.trajectory if bundle.result else None
     assert trajectory is not None
 
     report_payload = {}
-    if bundle.analyses:
-        analyser_id = sorted(bundle.analyses.keys())[0]
-        report_payload = dict(bundle.analyses[analyser_id].report or {})
+    # Find the first analysis associated with this run
+    analysis = model.find_analysis_for_run(run_id)
+    if analysis and analysis.output:
+        report_payload = dict(getattr(analysis.output, "report", {}) or {})
 
     return {
-        "pulses": plot_pulses(bundle.pulse_ir) if bundle.pulse_ir is not None else None,
+        "pulses": plot_pulses(bundle.artifacts.pulse_ir) if bundle.artifacts and bundle.artifacts.pulse_ir is not None else None,
         "trajectory": plot_trajectory(trajectory),
         "report": plot_report(report_payload),
     }
@@ -68,12 +69,12 @@ def _first_available_trajectory(model: Model, *, study_name: str | None = None):
             trajectory = None
         if trajectory is not None:
             return trajectory
-    for bundle in getattr(model.results, "solver_runs", {}).values():
-        trajectory = getattr(bundle, "trajectory", None)
+    for bundle in model.runs.values():
+        trajectory = bundle.result.trajectory if bundle.result else None
         if trajectory is not None:
             return trajectory
-    keys = list(getattr(model.results, "solver_runs", {}).keys())
-    raise RuntimeError(f"qsim run finished but no trajectory was found; solver_runs={keys}")
+    keys = list(model.runs.keys())
+    raise RuntimeError(f"qsim run finished but no trajectory was found; runs={keys}")
 
 
 def _first_available_analysis(model: Model, *, study_name: str | None = None):
@@ -87,10 +88,10 @@ def _first_available_analysis(model: Model, *, study_name: str | None = None):
             analysis = None
         if analysis is not None:
             return analysis
-    for bundle in getattr(model.results, "solver_runs", {}).values():
-        analyses = getattr(bundle, "analyses", {}) or {}
-        if analyses:
-            return next(iter(analyses.values()))
+    for run_id, bundle in model.runs.items():
+        analysis = model.find_analysis_for_run(run_id)
+        if analysis:
+            return analysis
     return None
 
 
@@ -242,7 +243,7 @@ def density_snapshots(source: Any) -> np.ndarray:
 
 
 def _case_model_spec(case: dict[str, Any]):
-    return next(iter(case["model"].results.solver_runs.values())).model_spec
+    return next(iter(case["model"].runs.values())).artifacts.model_spec
 
 
 def qubit_level_populations(case: dict[str, Any], *, normalize: bool = True) -> np.ndarray:
@@ -365,7 +366,12 @@ def plot_iq_clouds(ax, cases: list[dict[str, Any]], title: str | None = None) ->
         label = str(case.get("label", ""))
         if not points.size:
             continue
-        color = next(ax._get_lines.prop_cycler)["color"]
+        # ``Axes._get_lines.prop_cycler`` is not available in some matplotlib versions.
+        # Prefer the stable helper and keep a safe fallback.
+        if hasattr(ax._get_lines, "get_next_color"):
+            color = ax._get_lines.get_next_color()
+        else:
+            color = None
         ax.scatter(points[:, 0], points[:, 1], s=20, alpha=0.45, color=color, label=label)
         ax.scatter([points[:, 0].mean()], [points[:, 1].mean()], marker="x", s=90, color=color)
     ax.set_title(title or "Integrated I/Q clouds")

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
+from typing import Any
 
 from qsim.common.schemas import BackendConfig
 
@@ -14,15 +15,15 @@ class WorkflowInput:
     qasm_text: str
     backend_path: str | None = None
     backend_config: BackendConfig | None = None
-    device: dict | None = None
-    device_model: dict | None = None
-    pulse: dict | None = None
-    frame: dict | None = None
-    analyser: dict | None = None
-    study: list[dict] | None = None
+    device: dict[str, Any] | None = None
+    device_model: dict[str, Any] | None = None
+    pulse: WorkflowPulseConfig | None = None
+    frame: WorkflowFrameOptions | None = None
+    analyser: DefaultAnalyserConfig | None = None
+    study: list[dict[str, Any]] | None = None
     schedule_policy: str | None = None
     reset_feedback_policy: str | None = None
-    noise: dict | None = None
+    noise: dict[str, Any] | None = None
     param_bindings: dict[str, float] | None = None
 
     @property
@@ -196,35 +197,81 @@ class WorkflowSolverConfig:
 
 
 @dataclass(slots=True)
+class AnalyserTrajectoryConfig:
+    """Config for trajectory-level filtering and processing."""
+    window_start: float = 0.0
+    window_end: float | None = None
+    stride: float = 1.0
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class ReadoutModelConfig:
+    """Config for the physical readout signal model."""
+    model_type: str = "gaussian"
+    integration_time: float = 0.0
+    demodulation_freq_Hz: float = 0.0
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class IQDiscriminationConfig:
+    """Config for IQ plane clustering and state discrimination."""
+    method: str = "kmeans"
+    num_clusters: int = 2
+    prior_centroids: list[complex] | None = None
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class NoiseAnalysisConfig:
+    """Config for noise characterization and error budgeting."""
+    method: str = "spectral"
+    resolution_Hz: float = 1.0
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class ReportConfig:
+    """Settings for final report generation and visualization."""
+    include_plots: bool = True
+    format: str = "pdf"
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
 class DefaultAnalyserConfig:
     """Default analyser config bound to one solver trajectory."""
 
     solver_id: str | None = None
-    trajectory: dict | None = None
+    trajectory: AnalyserTrajectoryConfig = field(default_factory=AnalyserTrajectoryConfig)
     metrics: list[dict] | list[str] | None = None
-    readout_model: dict | None = None
-    iq_discrimination: dict | None = None
-    noise_analysis: dict | None = None
-    report: dict | None = None
+    readout_model: ReadoutModelConfig = field(default_factory=ReadoutModelConfig)
+    iq_discrimination: IQDiscriminationConfig = field(default_factory=IQDiscriminationConfig)
+    noise_analysis: NoiseAnalysisConfig = field(default_factory=NoiseAnalysisConfig)
+    report: ReportConfig = field(default_factory=ReportConfig)
     extras: dict | None = None
 
     def to_payload(self) -> dict[str, object]:
         """Convert to internal analyser payload consumed by analysis stages."""
+        def _payload_dict(value: Any) -> dict[str, Any]:
+            if value is None:
+                return {}
+            if is_dataclass(value):
+                payload = asdict(value)
+                extras = dict(payload.pop("extras", {}) or {})
+                payload.update(extras)
+                return payload
+            return dict(value or {})
+
         payload: dict[str, object] = {}
         if self.solver_id:
             payload["solver_id"] = str(self.solver_id)
-        if self.trajectory:
-            payload["trajectory"] = dict(self.trajectory)
+        
+        # Convert typed configs back to dicts for the analysis stages
+        payload["trajectory"] = _payload_dict(self.trajectory)
+        payload["readout_model"] = _payload_dict(self.readout_model)
+        payload["iq_discrimination"] = _payload_dict(self.iq_discrimination)
+        payload["noise_analysis"] = _payload_dict(self.noise_analysis)
+        payload["report"] = _payload_dict(self.report)
+        
         if self.metrics:
             payload["metrics"] = list(self.metrics)
-        if self.readout_model:
-            payload["readout_model"] = dict(self.readout_model)
-        if self.iq_discrimination:
-            payload["iq_discrimination"] = dict(self.iq_discrimination)
-        if self.noise_analysis:
-            payload["noise_analysis"] = dict(self.noise_analysis)
-        if self.report:
-            payload["report"] = dict(self.report)
         if self.extras:
             payload.update(dict(self.extras))
         return payload
@@ -241,11 +288,45 @@ class DefaultAnalyserConfig:
 
 
 @dataclass(slots=True)
+class PulseAcquisitionConfig:
+    """Configuration for pulse sequence acquisition."""
+    shots: int = 1000
+    averaging: int = 1
+    trigger_source: str = "internal"
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class PulseTimingConfig:
+    """Global timing and clock settings for pulses."""
+    clock_rate_Hz: float = 1e9
+    sample_rate_Hz: float = 1e9
+    precision_s: float = 1e-12
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class PulseChannelConfig:
+    """Configuration for a specific pulse channel."""
+    type: str = "gaussian"
+    amplitude: float = 0.0
+    duration_ns: float = 0.0
+    phase: float = 0.0
+    frequency_Hz: float = 0.0
+    extras: dict[str, Any] = field(default_factory=dict)
+
+@dataclass(slots=True)
+class WorkflowPulseConfig:
+    """Typed configuration for pulse-level definitions."""
+    acquisition: PulseAcquisitionConfig = field(default_factory=PulseAcquisitionConfig)
+    timing: PulseTimingConfig = field(default_factory=PulseTimingConfig)
+    channels: dict[str, PulseChannelConfig] = field(default_factory=dict)
+    extras: dict[str, Any] | None = None
+
+@dataclass(slots=True)
 class WorkflowDeviceConfig:
     """Device/pulse/noise config independent from task and solver."""
 
     device: dict | None = None
-    pulse: dict | None = None
+    pulse: WorkflowPulseConfig = field(default_factory=WorkflowPulseConfig)
     noise: dict | None = None
 
 
@@ -592,32 +673,106 @@ def normalize_targets(value: str | list[str]) -> list[str]:
     return list(dict.fromkeys(cleaned))
 
 
+def build_effective_pulse_config(device_cfg: WorkflowDeviceConfig, model_pulse: WorkflowPulseConfig) -> dict[str, Any]:
+    """Merge device pulse defaults with model-level pulse overrides."""
+    def _payload_dict(value: Any) -> dict[str, Any]:
+        if value is None:
+            return {}
+        if is_dataclass(value):
+            return asdict(value)
+        return dict(value or {})
+
+    device_pulse = device_cfg.pulse or WorkflowPulseConfig()
+    model_pulse = model_pulse or WorkflowPulseConfig()
+
+    merged_channels = {
+        str(channel_id): _payload_dict(channel_cfg)
+        for channel_id, channel_cfg in dict(device_pulse.channels or {}).items()
+    }
+    merged_channels.update(
+        {
+            str(channel_id): _payload_dict(channel_cfg)
+            for channel_id, channel_cfg in dict(model_pulse.channels or {}).items()
+        }
+    )
+
+    return {
+        "acquisition": {
+            **_payload_dict(device_pulse.acquisition),
+            **_payload_dict(model_pulse.acquisition),
+        },
+        **{
+            key: value
+            for channel_cfg in merged_channels.values()
+            for key, value in dict(channel_cfg or {}).items()
+            if key in {
+                "gate_duration_ns",
+                "idle_duration_ns",
+                "measure_duration_ns",
+                "measure_amp",
+                "measure_segments",
+                "measure_start_delay_ns",
+                "rect_edge_ns",
+                "readout_edge_ns",
+                "single_qubit_shape",
+                "single_qubit_sigma_fraction",
+                "single_qubit_drag_beta",
+                "single_qubit_rect_edge_ns",
+                "reset_measure_duration_ns",
+                "reset_deplete_duration_ns",
+                "reset_latency_duration_ns",
+                "reset_pi_duration_ns",
+                "reset_measure_amp",
+                "reset_deplete_amp",
+                "reset_pi_amp",
+                "reset_cond_on",
+                "reset_apply_feedback",
+                "xy_freq_Hz",
+                "ro_freq_Hz",
+            }
+        },
+        **dict(model_pulse.extras or {}),
+    }
+
+def build_effective_device_config(device_cfg: WorkflowDeviceConfig, study_step: dict | None) -> tuple[dict, dict]:
+    """Centralized logic to apply study-step overrides to the device model."""
+    runtime_source_device = apply_composite_device_step_overrides(device_cfg.device, study_step)
+    runtime_level = infer_runtime_level(runtime_source_device)
+    runtime_device = normalize_device_payload(runtime_source_device)
+    if "simulation_level" not in runtime_device:
+        runtime_device["simulation_level"] = runtime_level
+    return runtime_device, runtime_source_device
+
+def build_effective_analyser_payload(analyser_cfg: DefaultAnalyserConfig | None, solver_cfg: WorkflowSolverConfig | None = None) -> dict | None:
+    """Unified conversion of typed analyser config to runtime payload."""
+    if analyser_cfg is None:
+        return None
+    return analyser_cfg.to_payload()
+
 def compose_workflow_task(
     task_cfg: WorkflowTaskConfig,
     solver_cfg: WorkflowSolverConfig,
     device_cfg: WorkflowDeviceConfig,
     analyser_cfg: DefaultAnalyserConfig | None,
+    model_pulse: WorkflowPulseConfig,
     *,
     backend_source: str | None = None,
 ) -> WorkflowTask:
     """Compose task/solver/device/analyser configs into one runtime task contract."""
     run_cfg, frame_cfg, _primary_step = merge_solver_runtime_from_study(solver_cfg)
-    runtime_source_device = apply_composite_device_step_overrides(device_cfg.device, _primary_step)
-    runtime_level = infer_runtime_level(runtime_source_device)
-    runtime_device = normalize_device_payload(runtime_source_device)
-    if "simulation_level" not in runtime_device:
-        runtime_device["simulation_level"] = runtime_level
-
+    runtime_device, runtime_source_device = build_effective_device_config(device_cfg, _primary_step)
+    runtime_level = runtime_device.get("simulation_level", "qubit")
+    
     return WorkflowTask(
         input=WorkflowInput(
             qasm_text=task_cfg.input.qasm_text,
             backend_path=backend_source,
             backend_config=solver_cfg.to_backend_config(noise=device_cfg.noise, runtime_level=runtime_level),
-            device=runtime_device or None,
-            device_model=dict(runtime_source_device or {}) or None,
-            pulse=dict(device_cfg.pulse or {}) or None,
+            device=runtime_device,
+            device_model=dict(runtime_source_device or {}),
+            pulse=build_effective_pulse_config(device_cfg, model_pulse),
             frame=asdict(frame_cfg),
-            analyser=analyser_cfg.to_payload() if analyser_cfg is not None else None,
+            analyser=build_effective_analyser_payload(analyser_cfg, solver_cfg),
             study=list(solver_cfg.study or []) or None,
             schedule_policy=(
                 str(run_cfg.schedule_policy).strip().lower() if run_cfg.schedule_policy else None

@@ -1,10 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 from pathlib import Path
 
 from qsim.workflow import create_model
-from qsim.workflow.model import _compact_runtime_details
+from qsim.workflow.model_utils import compact_runtime_details
 
 
 def _write_task_bundle(tmp_path: Path) -> Path:
@@ -56,21 +56,22 @@ def _write_task_bundle(tmp_path: Path) -> Path:
     return task
 
 
-def test_model_run_applies_param_bindings_and_records_runtime_metadata(tmp_path: Path):
+def test_model_run_applies_param_bindings_and_records_run_scoped_artifacts(tmp_path: Path):
     task_path = _write_task_bundle(tmp_path)
     model = create_model(task_config=task_path)
     model.run()
-    bundle = model.results.solver_runs["solver_0"]
+    run = model.runs["solver_0"]
 
-    assert model.circuit is not None
-    assert bundle.runtime_metadata is not None
-    assert bundle.runtime_metadata["solver_mode"] == "me"
-    assert model.circuit.gates[0].name == "rz"
-    assert float(model.circuit.gates[0].params[0]) == 0.3
+    assert run.artifacts.circuit is not None
+    assert run.result is not None
+    assert run.result.runtime_metadata is not None
+    assert run.result.runtime_metadata["solver_mode"] == "me"
+    assert run.artifacts.circuit.gates[0].name == "rz"
+    assert float(run.artifacts.circuit.gates[0].params[0]) == 0.3
 
 
 def test_compact_runtime_details_summarizes_large_payloads():
-    compact = _compact_runtime_details(
+    compact = compact_runtime_details(
         {
             "solver_impl": "quantumoptics.timeevolution.master_dynamic",
             "collapse_counts": {"relaxation": 1, "dephasing": 1},

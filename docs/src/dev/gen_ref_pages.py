@@ -38,7 +38,15 @@ GROUP_ENTRYPOINTS = {
     ],
     "pulse": ["qsim.pulse.DefaultPulseLowering", "qsim.pulse.PulseCompiler", "qsim.pulse.build_gate_mapping_catalog"],
     "qec": ["qsim.qec.get_decoder", "qsim.qec.build_prior_and_report", "qsim.qec.summarize_logical_error"],
-    "schemas": ["qsim.schemas.ModelSpec", "qsim.schemas.SystemSpec", "qsim.schemas.HamiltonianSpec", "qsim.schemas.Trajectory"],
+    "schemas": [
+        "qsim.schemas.ModelSpec", 
+        "qsim.schemas.SystemSpec", 
+        "qsim.schemas.HamiltonianSpec", 
+        "qsim.schemas.NoiseSpec", 
+        "qsim.schemas.ReadoutSpec", 
+        "qsim.schemas.Trajectory", 
+        "qsim.schemas.ModelAnalysis"
+    ],
     "session": ["qsim.session.Session"],
     "ui": ["qsim.ui.plot_default"],
     "workflow": [

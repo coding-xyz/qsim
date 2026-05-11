@@ -432,7 +432,8 @@ def test_create_model_accepts_task_with_embedded_solver_device_refs(tmp_path: Pa
 
     model = create_model(task_config=task_path)
     model.run()
-    assert "solver_0" in model.results.trajectories
+    assert "solver_0" in model.runs
+    assert model.runs["solver_0"].result is not None
     assert model.out_dir is not None
 
 
@@ -457,4 +458,5 @@ def test_create_model_accepts_solver_device_pulse_and_analyser_overrides(tmp_pat
         analyser_config=analyser_path,
     )
     model.run()
-    assert "solver_0" in model.results.trajectories
+    assert "solver_0" in model.runs
+    assert model.runs["solver_0"].result is not None

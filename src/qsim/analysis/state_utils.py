@@ -13,13 +13,15 @@ def final_density_matrix(source: Any) -> np.ndarray:
     """Return the final density matrix from a trajectory-like object.
 
     ``source`` may be a ``Trajectory``, a solver-run bundle with a ``trajectory``
-    attribute, or a ``Model`` with ``results.trajectories["solver_0"]``.
+    attribute, or a ``Model`` containing ``runs``.
     """
     trajectory = source
     if hasattr(source, "trajectory"):
         trajectory = source.trajectory
-    elif hasattr(source, "results") and hasattr(source.results, "trajectories"):
-        trajectory = source.results.trajectories["solver_0"]
+    elif hasattr(source, "runs") and source.runs:
+        # Use the first available run trajectory as representative
+        first_run = next(iter(source.runs.values()))
+        trajectory = first_run.result.trajectory if first_run.result else None
 
     if not isinstance(trajectory, Trajectory) and not hasattr(trajectory, "density_matrix"):
         raise TypeError("source must be a Trajectory, solver-run bundle, or Model with density-matrix results")

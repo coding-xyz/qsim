@@ -60,16 +60,21 @@ def summarize_workflow_result(
     note: str = "",
 ) -> dict:
     """Build one flat summary row from a completed ``Model``."""
-    if not getattr(model.results, "trajectories", None):
+    if not model.runs:
         raise ValueError("summarize_workflow_result expects a model that has already produced results.")
-    solver_id = sorted(model.results.trajectories.keys())[0]
-    bundle = model.results.solver_runs[solver_id]
-    trajectory = bundle.trajectory
+    run_id = sorted(model.runs.keys())[0]
+    bundle = model.runs[run_id]
+    trajectory = bundle.result.trajectory if bundle.result else None
     assert trajectory is not None
-    analysis = next(iter(bundle.analyses.values()), None)
-    metrics = dict((analysis.metrics if analysis is not None else {}) or {})
-    runtime = dict(bundle.runtime_metadata or {})
-    model_payload = dict(getattr(bundle.model_spec, "payload", {}) or {})
+    # Find the first analysis that depends on this run
+    analysis = model.find_analysis_for_run(run_id)
+    metric_items = (
+        dict(analysis.output.metrics.metric_items)
+        if analysis and analysis.output and analysis.output.metrics
+        else {}
+    )
+    runtime = dict(bundle.result.runtime_metadata if bundle.result else {})
+    model_spec = bundle.artifacts.model_spec if bundle.artifacts else None
 
     inferred_state_encoding = state_encoding(trajectory)
     density_matrix = dict(getattr(trajectory, "density_matrix", {}) or {})
@@ -100,19 +105,19 @@ def summarize_workflow_result(
             final_state_last = float(numeric_state[-1])
             final_state_max = float(max(numeric_state))
 
-    population_metric = dict(metrics.get("population", {}) or {})
-    population_series = dict(population_metric.get("values", {}) or {})
+    population_metric = metric_items.get("population")
     final_p0 = np.nan
     final_p1 = np.nan
-    if isinstance(population_series.get("0"), list) and population_series["0"]:
-        final_p0 = float(population_series["0"][-1])
-    if isinstance(population_series.get("1"), list) and population_series["1"]:
-        final_p1 = float(population_series["1"][-1])
+    if population_metric and getattr(population_metric, "values", None):
+        values = list(population_metric.values or [])
+        if values:
+            final_p1 = float(values[-1])
+            final_p0 = float(max(0.0, 1.0 - final_p1))
 
-    mean_excited_metric = dict(metrics.get("mean_excited", {}) or {})
-    mean_excited_values = list(mean_excited_metric.get("values", []) or [])
-    variance_metric = dict(metrics.get("variance", {}) or {})
-    variance_values = list(variance_metric.get("values", []) or [])
+    mean_excited_metric = metric_items.get("mean_excited")
+    mean_excited_values = list(getattr(mean_excited_metric, "values", []) or [])
+    variance_metric = metric_items.get("variance")
+    variance_values = list(getattr(variance_metric, "values", []) or [])
 
     row = {
         "task": task_tag,
@@ -122,7 +127,7 @@ def summarize_workflow_result(
         "trajectory_engine": str(trajectory.engine),
         "state_encoding": inferred_state_encoding,
         "state_kind": state_kind,
-        "num_qubits": int(model_payload.get("num_qubits", 0) or 0),
+        "num_qubits": int(getattr(getattr(model_spec, "system", None), "num_qubits", 0) or 0),
         "state_len": int(state_len),
         "final_state_json": final_state_json,
         "final_state_sum": final_state_sum,
@@ -161,4 +166,3 @@ def attach_compare_status(df: pd.DataFrame) -> pd.DataFrame:
     df["compare_status"] = [statuses[(t, c)] for t, c in zip(df["task"], df["case"])]
     df["compare_reason"] = [reasons[(t, c)] for t, c in zip(df["task"], df["case"])]
     return df
-

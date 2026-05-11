@@ -10,7 +10,21 @@ from qsim.schemas.utils import SCHEMA_VERSION
 
 @dataclass
 class BackendConfig:
-    """Backend execution configuration loaded from YAML."""
+    """Backend execution configuration loaded from YAML.
+
+    This class represents the legacy input configuration used to drive 
+    backend execution before the transition to the structured Workflow model.
+
+    Attributes:
+        schema_version: Version of the config schema.
+        level: Simulation level (e.g., "qubit", "transmon"). Defaults to "qubit".
+        noise: Noise model type (e.g., "deterministic", "stochastic"). Defaults to "deterministic".
+        solver: Solver mode (e.g., "se", "me"). Defaults to "se".
+        analysis_pipeline: Identifier for the post-processing pipeline. Defaults to "default".
+        truncation: Map of subsystem IDs to their Hilbert space truncation limits.
+        sweep: List of parameter sweep configurations.
+        seed: Random seed for stochastic simulations. Defaults to 1234.
+    """
 
     schema_version: str = SCHEMA_VERSION
     level: str = "qubit"

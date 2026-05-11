@@ -24,7 +24,7 @@ def test_resolve_metrics_payload_uses_registered_metric():
         for i, row in enumerate(final):
             if i < len(row):
                 total += float(row[i].real)
-        return {"payload": total, "observable_updates": {"tail_sum": total}}
+        return {"payload": 1.0 * total, "observable_updates": {"tail_sum": total}}
 
     registry.register("tail_sum", tail_sum_metric)
 
@@ -56,7 +56,8 @@ def test_resolve_metrics_payload_uses_registered_metric():
         registry=registry,
     )
 
-    assert metrics["tail_sum"] == 1.0
+    assert "tail_sum" in metrics.metric_items
+    assert metrics.metric_items["tail_sum"].values == [1.0]
     assert observables.values["tail_sum"] == 1.0
     assert "tail_sum" in report.summary["metrics"]
 
@@ -74,7 +75,7 @@ def test_model_run_analysis_uses_model_metric_registry():
             if i < len(row):
                 total += float(row[i].real)
         return {
-            "payload": total,
+            "payload": 1.0 * total,
             "observable_updates": {"tail_sum": total},
         }
 
@@ -82,9 +83,9 @@ def test_model_run_analysis_uses_model_metric_registry():
     model.add_analyser("analyser_0", "solver_0", DefaultAnalyserConfig(metrics=["tail_sum"]))
     model.run()
 
-    analysis = model.results.analyses["analyser_0"]
-    assert "tail_sum" in analysis.metrics
-    assert "tail_sum" in analysis.report["summary"]["metrics"]
+    analysis = model.analyses["analyser_0"]
+    assert analysis.output.metrics is not None
+    assert "tail_sum" in analysis.output.metrics.metric_items
 
 
 def test_add_analyser_binds_to_solver():
@@ -99,4 +100,6 @@ def test_add_analyser_binds_to_solver():
     model.run_all()
 
     assert model.analysers["population_only"].solver_id == "solver_0"
-    assert "population" in model.results.analyses["population_only"].metrics
+    assert "population_only" in model.analyses
+    assert model.analyses["population_only"].output.metrics is not None
+    assert "population" in model.analyses["population_only"].output.metrics.metric_items
