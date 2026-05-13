@@ -1,4 +1,9 @@
-﻿# qsim
+# Deprecated
+
+This projected has been moved to https://github.com/coding-xyz/MuSIQ
+
+ 
+ # qsim
 
 qsim is a workflow-first quantum simulation project with reproducible artifacts, QEC pipeline integration, and documentation automation.
 
